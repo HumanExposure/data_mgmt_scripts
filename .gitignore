@@ -107,4 +107,4 @@ venv.bak/
 
 .gitignore
 .idea/
-
+/pdf_extraction/config.yml
