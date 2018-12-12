@@ -1,5 +1,5 @@
 # pdf_extraction script
-This script looks at a directory or your choosing, 
+This script looks at a directory of your choosing, 
 finds all of the pdf's in that directory, and attempts 
 to extract text from each pdf. The text is then inserted into a mysql 
 database along with the filename and datagroup (from factotum) of the 
