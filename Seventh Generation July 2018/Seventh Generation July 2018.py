@@ -141,12 +141,12 @@ def text_to_csv(files):
                                     ID = row[0]
                                     break
                         except IndexError:
-                            File.append(' ')
-                            prodName.append(' ')
+                            File.append('')
+                            prodName.append('')
                         try:
                             revDate.append(date)
                         except IndexError:
-                            revDate.append(' ')
+                            revDate.append('')
                         try:
                             try:
                                 if chemName[-1] == 'di-(palm carboxyethyl) hydroxyethyl':
@@ -156,7 +156,7 @@ def text_to_csv(files):
                             except IndexError: 
                                 casNum.append(i[2])
                         except IndexError:
-                            casNum.append(' ')
+                            casNum.append('')
                         try:
                             if i[0][-1] == '*':
                                 note = ''
@@ -172,7 +172,10 @@ def text_to_csv(files):
                                         continue
                                     if flag:
                                         note = note + ' ' + line2.strip()
-                                chemName.append(i[0] + note)
+                                if (len(i[0] + note)) < 500:
+                                    chemName.append(i[0] + note)
+                                else:
+                                    chemName.append(i[0] + ' Name too long, see original pdf')
                             else:
                                 try:
                                     if chemName[-1] == 'di-(palm carboxyethyl) hydroxyethyl':
@@ -182,55 +185,55 @@ def text_to_csv(files):
                                 except IndexError:
                                     chemName.append(i[0]) 
                         except IndexError:
-                            chemName.append(' ')
+                            chemName.append('')
                         try:
                             recUse.append(i[1])
                         except IndexError:
-                            recUse.append(' ')
+                            recUse.append('')
                         try:
                             if '%' in (i[3]):
                                 unit.append('3')
                             else:
-                                unit.append(' ')
+                                unit.append('2')
                         except IndexError:
-                            unit.append(' ')
+                            unit.append('')
                         try:
                             conc = (i[3]).replace('%','')
                             if 'mg/kg' in i[3] or 'not applicable' in i[3]:
-                                conc = ' '                            
+                                conc = ''                            
                         except IndexError:
-                            conc = ' '
+                            conc = ''
                         if '-' in conc:
                             minConc = conc.split('-')[0]
                             minConc.strip()
                             maxConc = conc.split('-')[1]
                             maxConc.strip()
-                            cConc = ' '
+                            cConc = ''
                         else:
                             cConc = conc
-                            maxConc = ' '
-                            minConc = ' '
+                            maxConc = ''
+                            minConc = ''
                         try:
                             cenC.append(cConc)
                         except IndexError:
-                            cenC.append(' ')
+                            cenC.append('')
                         try:
                             minC.append(minConc)
                         except IndexError:
-                            minC.append(' ')
+                            minC.append('')
                         try:
                             maxC.append(maxConc)
                         except IndexError:
-                            maxC.append(' ')
+                            maxC.append('')
                         try:
                             category.append(cat)
                         except IndexError:
-                            category.append(' ')
+                            category.append('')
                         try:
                             ddID.append(ID)
                         except IndexError:
-                            ddID.append(' ')
-                        rev.append(' ')
+                            ddID.append('')
+                        rev.append('')
                         rank.append(k)
                         k = k + 1
                         if len(i) < 4:
