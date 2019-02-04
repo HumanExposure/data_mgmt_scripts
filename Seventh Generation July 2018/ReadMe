@@ -2,5 +2,6 @@ Converts Seventh Generation pdfs into text files using the comand line and pdfto
 Extracts data from each text file into a Pandas dataframe
 Creates csv from dataframe following the Seventh Generation template from factotum
 
+NOTE: <= sign is not recognized by xpdfreader
 To use: must download xpdfreader and edit all file paths
 Written in Spyder (Python 3.7)
