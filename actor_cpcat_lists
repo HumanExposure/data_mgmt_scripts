@@ -1,0 +1,3 @@
+Dummy extraction script for Actor CPCat data. Data was extracted by employees of Richard Judson, I believe manually, in recent past.
+
+To obtain extracted text data corresonding to Actor/CPCat sources, we are using the 'cat_code' to map sources back to the cpcat_chemicals.xlsx spreadsheet, and pulling extracted chemicals from there.
