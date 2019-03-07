@@ -1,0 +1,6 @@
+Converts Walmart group Clorox pdfs to text files with pdftotext application (download at https://www.xpdfreader.com/download.html).
+All composition information was extracted from the pdfs through the use of tabula and saved as a pandas dataframe. Issue date,
+revision date, revision number, product name, epa registration number, and recommended use were extracted from the text files and
+then added to the dataframe. A csv is then created with all the extracted data. 
+
+Note the encoding is cp1252
