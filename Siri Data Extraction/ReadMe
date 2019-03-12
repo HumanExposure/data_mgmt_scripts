@@ -1,16 +1,16 @@
-Siriall_find_html.py:
+Siriall_find_html.py (python 3.7):
 reads siriall.csv, checks to see if the corresponding html documents are in their corresponding folders, and makes columns for whether or not the file exists, and what the file name is (Note: this script makes a copy of the file and adds the columns to the copy. If you want to change the original, you must copy and paste the new columns into the original)
 
-html to pdf.py:
+html to pdf.py (python 2.7):
 reads siriall.csv (after adding columns using siriall_find_html.py), finds each file and converts it to a pdf
 
-siriall_factotum.py:
+siriall_factotum.py (python 3.7):
 reads siriall.csv (after adding columns using siriall_find_html.py) and fills in a template to be uploaded into factotum. Note: this template had to be split into smaller templates with fewer than 25,000 rows each to not time out the server. These templates were uploaded as separate datagroups
 
-siri pdf to txt.py:
+siri pdf to txt.py (python 3.7):
 converts siri pdfs into txt files 
 
-siri extraction.py:
+siri extraction.py (python 3.7):
 extracts composition data from siri txt files and writes it to a csv
 
 Paths to f1 and f2 folders:
