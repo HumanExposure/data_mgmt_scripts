@@ -7,9 +7,6 @@ Created on Mon Feb 25 13:06:21 2019
 
 from xhtml2pdf import pisa # import python module
 import csv
-# Define your data
-sourceHtml = open(r'C:\Users\alarger\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\bbfpz.html')
-outputFilename = "test.pdf"
 
 def main():
     with open(r'C:\Users\alarger\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\siriall_template.csv','r') as siriall:
@@ -27,10 +24,7 @@ def main():
             sourceHtml = open(path)
             outputFilename = url[6].replace('.html','.pdf')
             outpath = 'L://Lab//NCCT_ACToR//BUILD_2019Q1//data_collection_data//siri.org//DataPrep//msds//' + url[4] + '//siri.org//msds//' + url[4] + '//' + url[5] + '//' + outputFilename
-#            print path, outputFilename
             print i/252753*100, '%'
-#            if i > 10:
-#                break
             convertHtmlToPdf(sourceHtml, outpath)
     
 
