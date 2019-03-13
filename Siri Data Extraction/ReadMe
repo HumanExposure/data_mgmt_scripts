@@ -11,7 +11,7 @@ siri pdf to txt.py (python 3.7):
 converts siri pdfs into txt files 
 
 siri extraction.py (python 3.7):
-extracts composition data from siri txt files and writes it to a csv
+extracts composition data from siri f2 txt files and writes it to a csv (only works for data groups 2-11)
 
 Paths to f1 and f2 folders:
 L:\Lab\NCCT_ACToR\BUILD_2019Q1\data_collection_data\siri.org\DataPrep\msds\f1\siri.org\msds\f1
