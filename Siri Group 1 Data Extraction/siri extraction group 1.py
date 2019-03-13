@@ -188,6 +188,9 @@ def extract_data(file_list):
                     conc = conc.replace('percent by wt:','')
                     unit = 3
                     conc = conc.replace('%','')
+                    if 'ppm' in conc:
+                        conc = conc.replace('ppm','')
+                        unit = 16
                 elif '% low wt:' in cline:
                     f3 = False
                     unit = 3
@@ -198,10 +201,16 @@ def extract_data(file_list):
                     f3 = False
                     unit = 3
                     conc = '>' + cline.replace('> wt:','')
+                    if 'ppm' in conc:
+                        conc = conc.replace('ppm','')
+                        unit = 16
                 elif '< wt:' in cline:
                     f3 = False
                     unit = 3
                     conc = '<' + cline.replace('< wt:','')
+                    if 'ppm' in conc:
+                        conc = conc.replace('ppm','')
+                        unit = 16
                 elif 'limits:' in cline or 'osha pel:' in cline or 'acgih tlv:' in cline or '===' in cline:
                     f3 = False
                 elif f3 == True:
