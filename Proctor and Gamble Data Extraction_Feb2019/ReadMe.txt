@@ -1,4 +1,5 @@
 Downloaded PDFs are converted into text files
+Script to be used on Proctor and Gamble files from Walmart data source.
 
 Text Files are parsed for:
 - Revision Date (Header)
