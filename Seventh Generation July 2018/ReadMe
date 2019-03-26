@@ -1,4 +1,4 @@
-Converts Seventh Generation pdfs into text files using the comand line and pdftotxt converter (download at https://www.xpdfreader.com/download.html)
+Converts Seventh Generation pdfs into text files using the command line and pdftotxt converter (download at https://www.xpdfreader.com/download.html)
 Extracts data from each text file into a Pandas dataframe
 Creates csv from dataframe following the Seventh Generation template from factotum
 
