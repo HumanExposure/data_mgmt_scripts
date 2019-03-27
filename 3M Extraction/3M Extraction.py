@@ -50,7 +50,7 @@ def extract_data(file_list):
     units = [] #list of unit types (1=weight frac, 2=unknown, 3=weight percent,...)
     rank = [] #list of ingredient ranks
     centC = [] #list of central concentrations
-    kitList = []
+    kitList = [] #list of kits (multi-product pdfs) in the data group
     i = 0
     k=0
     numFiles=len(file_list)
@@ -189,7 +189,7 @@ def extract_data(file_list):
                 if conc == '': units.append(2)
                 else: units.append(3)
 
-    print(kitList)
+    print(kitList) #print data document ids of the kits for reference
     df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'prod_name':prodName, 'doc_date':msdsDate, 'rev_num':rev, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'raw_min_comp': minC, 'raw_max_comp':maxC, 'unit_type':units, 'ingredient_rank':rank, 'raw_central_comp':centC})
     df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M Occupational Health and Safety Extracted Text.csv',index=False, header=True, date_format=None)
         
