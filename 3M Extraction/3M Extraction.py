@@ -70,7 +70,7 @@ def extract_data(file_list):
         gotInfo = False
         kit = False
         kitIngList = [] #list of ingredients in kit to avoid repeats
-        template = csv.reader(open(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M_Occupational_Health_and_Safety_extract_template.csv'))
+        template = csv.reader(open(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division\3M_Automotive_Division_extract_template.csv'))
         for row in template:
             if row[0] == ID:
                 tname = row[1]
@@ -94,20 +94,20 @@ def extract_data(file_list):
                     k += 1
                     kitList.append(ID)
                     kit = True
-                    print('KIT!', ID)
             elif 'issue date:' in cline and gotInfo == False:
                 date = cline[-1]
             if 'product use:' in cline and gotInfo == False:
                 inUse = True
                 continue
             if inUse == True: #collect use information
-                if 'section 2: ingredients' in cline or 'limitations on use:' in cline or 'section 2:' in cline[0]:
+                if 'section 2: ingredients' in cline or 'limitations on use:' in cline or 'section' in cline[0]:
                     inUse = False
                     continue
                 elif len(cline)>1:
-                    if use == '': use = cline[-1]
-                    else: use = use + '/' + cline[-1]
-                else: use = use + ' ' + cline[0]
+                    if use == '': use = ''.join(cline[1:])
+                    else: use = use + '/' + ''.join(cline[1:])
+                else:
+                    use = use + ' ' + cline[0]
             if 'ingredient' in cline and 'c.a.s. no.' in cline and '% by wt' in cline:
                 inIngred = True
                 gotInfo = True
@@ -132,7 +132,7 @@ def extract_data(file_list):
                     casN[-1] = casN[-1] + ' ' + cline[1]
                     continue
                 elif len(cline) == 1: #Weird ingredient line case
-                    if cline[0][0] == '*' or 'the polyester film release liner' in cline[0]:
+                    if cline[0][0] == '*' or 'the polyester film release liner' in cline[0] or 'page' in cline[0]:
                         inIngred = False
                     else:
                         chemName[-1] = chemName[-1] + ' '+ cline[0]
@@ -142,14 +142,24 @@ def extract_data(file_list):
                         chem = cline[0] + cline[1]
                         cas = cline[2]
                         conc = cline[3]
+                    elif cline[2] == 'trade secret' or cline[2] == 'mixture':
+                        chem = cline[0] + ' ' + cline[1]
+                        cas = cline[2]
+                        conc = cline[3]
                     else:
                         chem = cline[0]
                         cas = cline[1]
-                        conc = cline[2] + '- ' + cline[3]
+                        if '-' in cline[2] or '-' in cline[3]:
+                            conc = cline[2] + cline[3]
+                        else:
+                            conc = cline[2] + '- ' + cline[3]
                 elif len(cline) == 5: #Weird ingredient line case
                     chem = cline[0]
                     cas = cline[1]
-                    conc = cline[2] + cline[3] + cline[4]
+                    if 'typically' in cline[4]:
+                        conc = cline[2] + '-' + cline[3] + cline[4]
+                    else:
+                        conc = cline[2] + cline[3] + cline[4]
                 else: #Lines at end of list often have 6+ items
                     inIngred = False
                     continue
@@ -176,9 +186,8 @@ def extract_data(file_list):
                 else: units.append(3)
 
     print(kitList)
-    print('data_document_id',len(prodID), 'data_document_filename',len(templateName), 'prod_name',len(prodName), 'doc_date',len(msdsDate), 'rev_num',len(rev), 'raw_category',len(recUse), 'raw_cas',len(casN), 'raw_chem_name',len(chemName), 'report_funcuse',len(funcUse), 'raw_min_comp', len(minC), 'raw_max_comp',len(maxC), 'unit_type',len(units), 'ingredient_rank',len(rank), 'raw_central_comp',len(centC))
-    df = pd.DataFrame({'data_docuL:\Labment_id':prodID, 'data_document_filename':templateName, 'prod_name':prodName, 'doc_date':msdsDate, 'rev_num':rev, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'raw_min_comp': minC, 'raw_max_comp':maxC, 'unit_type':units, 'ingredient_rank':rank, 'raw_central_comp':centC})
-    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M Occupational Health and Safety Extracted Text.csv',index=False, header=True, date_format=None)
+    df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'prod_name':prodName, 'doc_date':msdsDate, 'rev_num':rev, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'raw_min_comp': minC, 'raw_max_comp':maxC, 'unit_type':units, 'ingredient_rank':rank, 'raw_central_comp':centC})
+    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division\3M Automotive Division Extracted Text.csv',index=False, header=True, date_format=None)
         
 def cleanLine(line):
     """
@@ -196,7 +205,7 @@ def cleanLine(line):
     return(cline)
     
 def main():
-    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety')    
+    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division')    
     pdfs = glob("*.pdf")
     n_pdfs = len(pdfs)
     n_txts = len(glob("*.txt"))
