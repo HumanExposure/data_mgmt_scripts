@@ -70,7 +70,7 @@ def extract_data(file_list):
         gotInfo = False
         kit = False
         kitIngList = [] #list of ingredients in kit to avoid repeats
-        template = csv.reader(open(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division\3M_Automotive_Division_extract_template.csv'))
+        template = csv.reader(open(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M_Occupational_Health_and_Safety_extract_template.csv'))
         for row in template:
             if row[0] == ID:
                 tname = row[1]
@@ -104,10 +104,14 @@ def extract_data(file_list):
                     inUse = False
                     continue
                 elif len(cline)>1:
-                    if use == '': use = ''.join(cline[1:])
+                    if use == '': use = ' '.join(cline[1:])
                     else: use = use + '/' + ''.join(cline[1:])
                 else:
                     use = use + ' ' + cline[0]
+                if len(use) >= 100: #Use can't have >100 characters in factotum
+                    use = use[0:96] + '...'
+                    inUse = False
+                    continue
             if 'ingredient' in cline and 'c.a.s. no.' in cline and '% by wt' in cline:
                 inIngred = True
                 gotInfo = True
@@ -187,7 +191,7 @@ def extract_data(file_list):
 
     print(kitList)
     df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'prod_name':prodName, 'doc_date':msdsDate, 'rev_num':rev, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'raw_min_comp': minC, 'raw_max_comp':maxC, 'unit_type':units, 'ingredient_rank':rank, 'raw_central_comp':centC})
-    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division\3M Automotive Division Extracted Text.csv',index=False, header=True, date_format=None)
+    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M Occupational Health and Safety Extracted Text.csv',index=False, header=True, date_format=None)
         
 def cleanLine(line):
     """
@@ -205,7 +209,7 @@ def cleanLine(line):
     return(cline)
     
 def main():
-    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Automotive Division')    
+    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety')    
     pdfs = glob("*.pdf")
     n_pdfs = len(pdfs)
     n_txts = len(glob("*.txt"))
