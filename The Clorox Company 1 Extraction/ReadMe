@@ -1,0 +1,4 @@
+The product information (product name, document date, and product description) were extracted by running Clorox Product Info Extraction.py on text files that were creating using whole pdfs
+Since the MSDSs had two columns and the ingredient information was in the right columns and could not be easily separated from a full-page text file, a new set of text files were created with only the right halves of the pdfs. These were then processed with Clorox Ingredient Extraction.py, which extracted ingredient names, CAS numbers, concentrations, and units, matched them with the product information extracted previously, and compiled them into a csv.
+
+Written in Spyder Python 3.7 
