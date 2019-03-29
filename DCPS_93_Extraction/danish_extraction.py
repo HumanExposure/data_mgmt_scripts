@@ -6,7 +6,7 @@ import pandas as pd
 import string
 
 #Read in tables using tabula
-tables=read_pdf("document_1359510.pdf", pages="31-34",  multiple_tables= True, pandas_options={'header': None})     #reads all the pages of the pdf for all tables as pandas dateframes
+tables=read_pdf("document_1359510.pdf", pages="31-34",  multiple_tables= True, pandas_options={'header': None})     
 
 #clean up frames then concat into one large df
 frames=[]
