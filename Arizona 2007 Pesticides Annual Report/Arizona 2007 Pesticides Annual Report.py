@@ -13,7 +13,9 @@ import pandas as pd
 tables = camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\document_320436.pdf',pages='22,23,24', flavor='lattice')
 frames = [tables[0].df,tables[1].df,tables[2].df]
 df = pd.concat(frames, ignore_index=True)
-
+for index,row in df.iterrows(): #get rid of commas
+    row[6]=row[6].replace(',','_')
+    
 nIngredients = len(df)
 prodID = [320436]*nIngredients
 templateName = ['Arizona_PestUse_2006.pdf']*nIngredients
