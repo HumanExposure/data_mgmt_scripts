@@ -1,4 +1,5 @@
 Lauren Koval
 3/29/19
 
-Takes document_1359510.pdf from the Danish Group in the ACToR CPCat Lists and extracts tables 2.3, 2.4, 2.1.4, 2.1.5, 2.7, & 2.8 as pandas dataframes with tabula. The chemical name and cas information for each table are concatinated into a larger datframe that is cleaned and corrected, then duplicate entries are removed. The resulting dataframe is written to a csv. 
+Takes document_1359510.pdf from the Danish Group in the ACToR CPCat Lists and extracts tables 2.3, 2.4, 2.1.4, 2.1.5, 2.7, & 2.8 as pandas dataframes with tabula. The chemical name and cas information for each table are concatenated into a larger datframe that is cleaned and corrected, then duplicate entries are removed. The resulting dataframe is written to a csv. 
+data_document_id, data_document_filename, and doc_date were all add manually later.
