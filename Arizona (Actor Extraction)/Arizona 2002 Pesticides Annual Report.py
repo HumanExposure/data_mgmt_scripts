@@ -22,7 +22,7 @@ descrip = []
 code = []
 sourceType = []
 
-tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\Arizona\(2002) Pesticide Contamination Prevention Program Report A.R.S. 49-303.B/document_320431.pdf',pages='3-18', flavor='lattice'))
+tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\Arizona\(2002) Pesticide Contamination Prevention Program Report A.R.S. 49-303.B/document_320431.pdf',pages='3-24', flavor='lattice'))
 i=0 
 for table in tables:
     df = tables[i].df
