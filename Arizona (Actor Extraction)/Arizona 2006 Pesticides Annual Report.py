@@ -5,7 +5,7 @@ Created on Thu Apr 11 11:12:08 2019
 @author: ALarger
 
 Arizona 2006 Pesticides Annual Report
-Extract chemicals and CAS from tables 2,4,5
+Extract chemicals and CAS from tables 2,3,4
 """
 
 import camelot
