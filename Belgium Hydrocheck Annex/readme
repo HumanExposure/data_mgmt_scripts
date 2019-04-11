@@ -1,0 +1,4 @@
+Lauren Koval
+4/11/19
+
+Extracts the chemical name and cas number from the only table in Annex to the HYDROCHECK procedure for acceptance of Materials in contact with Drinking Water: Annex-Positive Lists. Extraction used taula-py version 1.1.1 in Python 3.7.2. 
