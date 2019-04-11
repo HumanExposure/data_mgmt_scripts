@@ -51,6 +51,7 @@ first_page=first_page[["raw_cas", "raw_chem_name"]]
 #Concats first_page to df with the rest of the table
 df=pd.concat([first_page, df], ignore_index=True)
 
+#takes care of chemicals whose names span multiple lines
 j_drop=[]
 for j in range(0, len(df)):
     if (pd.isnull(df["raw_cas"].iloc[j])==False) and (pd.isnull(df["raw_chem_name"].iloc[j])==False):
