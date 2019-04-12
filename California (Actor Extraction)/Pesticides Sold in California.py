@@ -35,10 +35,12 @@ for file in pdfs:
     i=0 
     for table in tables:
         df = tables[i].df
-        if len(df.columns) < 3:
-            print((k+1994),i,df)
-            i+=1
-            continue
+        try:
+            if len(df.columns) < 3 or df.iloc[3][0] == 'PESTICIDE  TYPE':
+                print((k+1994),i,df)
+                i+=1
+                continue
+        except: pass
         df = df.drop(df.index[0]) #Drop first 4 lines
         df = df.drop(df.index[0])
         df = df.drop(df.index[0])
@@ -56,12 +58,14 @@ for file in pdfs:
             chemName[j] = chemName[j].replace('\n',' ')
         chemName[j] = chemName[j].lower()
         chemName[j] = chemName[j].strip()
+        chemName[j] = chemName[j].replace('  ',' ')
         if chemName[j] == '' or chemName[j] == 'active ingredients' or 'no. chemicals:' in chemName[j]:
             del chemName[j]
             del casN[j]
             del lbs[j]
             continue
-        if lbs[j] == '':
+#        if lbs[j] == '':
+        if '.' not in lbs[j] and ',' not in lbs[j]:
             print(k+1994, chemName[j], lbs[j])
             chemName[j-1] = chemName[j-1] + ' ' + chemName[j]
             del chemName[j]
