@@ -25,6 +25,8 @@ for i in range(0,len(table)):
 
 #Remove column headers and add rest of information
 table=table.loc[table["raw_chem_name"]!= "medicinal product"]
+table=table.reset_index()
+table=table[["raw_chem_name"]]
 
 table["data_document_id"]="1370046"
 table["data_document_filename"]="EU_Orphan_Drugs_2005.pdf"
