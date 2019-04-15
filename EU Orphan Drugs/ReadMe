@@ -1,0 +1,4 @@
+Lauren Koval
+4/15/2019
+
+Extracts the chemical names from EU Orphan Drugs 2005 ("Fighting rare diseases: 22 new orphan drugs in five years"), and adds additional information. A csv is generated which is to be uploaded into Factotum. Extraction used tabula-py version 1.1.1 in Python 3.7.2. 
