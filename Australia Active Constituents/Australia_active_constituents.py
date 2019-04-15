@@ -5,7 +5,7 @@ from tabula import read_pdf
 import pandas as pd
 import string
 
-#Read in all pages of the table from Australia Record of Active Constituents as pandas df with tabula-py
+#Read in all pages of the table from Australia Record of Approved Active Constituents as pandas df with tabula-py
 table=read_pdf("document_1370040.pdf", pages="all", lattice=True, pandas_options={'header': None})
 
 #gets the chemical name column
