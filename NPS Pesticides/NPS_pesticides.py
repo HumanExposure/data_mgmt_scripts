@@ -14,7 +14,7 @@ good_tables=[]
 for i in good_indices:
     good_tables.append(tables[i])
 
-#Concatenate usefule elements into single df
+#Concatenate useful elements into single df
 df=pd.concat(good_tables, ignore_index=True)
 df["raw_chem_name"]=df.iloc[:,0]
 df=df.dropna(subset=["raw_chem_name"])
@@ -31,7 +31,6 @@ for j in range(0,len(df)):
     df["raw_chem_name"].iloc[j]=df["raw_chem_name"].iloc[j].strip().lower()
 
 #Remove column headers and add rest of information
-
 df=df.loc[df["raw_chem_name"]!= "pesticide"]
 df=df.drop_duplicates()
 df=df.reset_index()
