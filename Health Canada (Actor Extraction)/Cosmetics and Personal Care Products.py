@@ -8,7 +8,7 @@ Substances in cosmetics and personal care products regulated under the Food and 
 that were in commerce between January 1, 1987 and September 13, 2001: CAS Registry Number Known
 """
 
-import requests
+import requests, string
 import lxml.html as lh
 import pandas as pd
 
@@ -18,13 +18,14 @@ doc = lh.fromstring(page.content)
 tr_elements = doc.xpath('//tr')
 chemName = []
 casN = []
+clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 
 for j in range (1, len(tr_elements)):
     T = tr_elements[j]
     if len(T) != 2:
         break
-    chemName.append(T[0].text_content())
-    casN.append(T[1].text_content())
+    chemName.append(clean(T[0].text_content()))
+    casN.append(clean(T[1].text_content()))
     
 nIngredients = len(chemName)
 prodID = [1362866]*nIngredients
