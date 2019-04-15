@@ -25,6 +25,7 @@ for i in range(0,len(table)):
 
 #Remove column headers and add rest of information
 table=table.loc[table["raw_chem_name"]!= "medicinal product"]
+table=table.drop(7)
 table=table.reset_index()
 table=table[["raw_chem_name"]]
 
