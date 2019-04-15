@@ -5,7 +5,7 @@ from tabula import read_pdf
 import pandas as pd
 import string
 
-#Read in all pages of the table from Fighting Rare Diseases: 22 New Orphan Drugs in Five Years as pandas table with tabula-py
+#Read in all pages of the table from Fighting Rare Diseases: 22 New Orphan Drugs in Five Years as pandas df with tabula-py
 table=read_pdf("document_1370046.pdf", pages="3-7", lattice=True, pandas_options={'header': None})
 
 #gets the chemical name column
