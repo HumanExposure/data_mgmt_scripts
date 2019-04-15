@@ -30,6 +30,8 @@ for j in range (1, len(tr_elements)):
     else: 
         chemName.append(clean(T[2].text_content()))
     casN.append(clean(T[0].text_content()))
+    chemName[-1] = chemName[-1].replace(',','_').replace(';','_')
+    casN[-1] = casN[-1].replace(',','_').replace(';','_')
     
 nIngredients = len(chemName)
 prodID = [1362868]*nIngredients
