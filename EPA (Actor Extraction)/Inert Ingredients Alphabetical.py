@@ -18,13 +18,11 @@ def pdf_to_text(files):
     """
     execfile = "pdftotext.exe"
     execpath = 'C:\\Users\\alarger\\xpdf-tools-win-4.00\\bin64\\' #Path to execfile
-    numFiles = len(files)
     for file in files:
         pdf = '"'+file+'"'
         cmd = os.path.join(execpath,execfile)
         cmd = " ".join([cmd,"-nopgbrk","-table",pdf])
         os.system(cmd)
-        
     return
 
 def extract_data(file_list):
@@ -54,15 +52,9 @@ def extract_data(file_list):
         for line in ifile:
             cline = cleanLine(line)
             if cline == []: continue
-        
-
             if (cline[-1][-2:] == '4A' or cline[-1][-2:] == '4B') and len(cline[-1]) > 2: 
                 cline[-1] = cline[-1].replace('4A','').replace('4B','')
                 cline.append('4A')
-#                print(cline)
-#            if len(cline)==3 and '4' in cline[2] and cline[0].count('-') == 2:
-#                chem = cline[1]
-#                cas = cline[0]
             if len(cline) >= 3 and cline[0].count('-') == 2 and cline[0][0].isdigit() and cline[0][-1].isdigit() and (cline[-1] == '4B' or cline[-1] == '4A'): 
                 chem = chem + ' ' + ' '.join(cline[1:-1])
                 cas = cas + cline[0]
@@ -79,7 +71,6 @@ def extract_data(file_list):
                 else:
                     chem = chem + ' ' + ' '.join(cline[:-1])
             else: 
-#                print(ID,cline)
                 if cline[0][0].isdigit() and cline[0][1].isdigit():
                     cas = cas + cline[0]
                 else: 
@@ -98,7 +89,6 @@ def extract_data(file_list):
                 casN.append(cas)
                 chem=''
                 cas=''
-
 
     df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'doc_date':msdsDate, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'cat_code':catCode, 'description_cpcat': descrip, 'cpcat_code':code, 'cpcat_sourcetype':sourceType})
     df.to_csv(r"L:\Lab\HEM\ALarger\Actor Automated Extraction\EPA\Inert Ingredients Alphabetical\Inert Ingredients Alphabetical.csv",index=False, header=True, date_format=None)        
