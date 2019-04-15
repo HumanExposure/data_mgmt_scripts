@@ -1,1 +1,4 @@
+Uses lxml.html to scrape chemical names and CAS numbers from an html, appends the data to a pandas dataframe, and creates a csv. 
+Note: For FDA Regulated Products.py, the "CA index name" is extracted if available and the "sub name" is extracted if there is no CA index name available
 
+Written in Spyder, Python 3.7
