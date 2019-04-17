@@ -21,10 +21,10 @@ for i in range(0,len(table_2_10)):
 table_2_10["data_document_id"]="1372153"
 table_2_10["data_document_filename"]="DCPS_32_a.pdf"
 table_2_10["doc_date"]="2003"
-table_2_10["raw_category"]="raw category"
-table_2_10["cat_code"]="ACToR Assays"
-table_2_10["description_cpcat"]="cpcat description"
-table_2_10["cpcat_code"]="cpcat code"
+table_2_10["raw_category"]=""
+table_2_10["cat_code"]=""
+table_2_10["description_cpcat"]=""
+table_2_10["cpcat_code"]=""
 table_2_10["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 table_2_10.to_csv("dcps_32_table_2_10.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
