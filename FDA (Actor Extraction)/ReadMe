@@ -1,4 +1,6 @@
-These scripts extract chemicals and CAS numbers from the FDA group and places them in templates with other document information to be uploaded to Factotum.
-The ingredients and CAS numbers were extracted using the Python package Camelot. In order to use Camelot, you must first download Ghostscript, and then install Camelot in a Python 3.6 environment. DO NOT attempt to install Camelot in Python 3.7.
+Postmarket Drug Safety Eval.py uses lxml.html to scrape chemical names and CAS numbers from an html, appends the data to a pandas dataframe, and creates a csv. 
+(Written in Spyder, Python 3.7)
 
-Written in Spyder, Python 3.6
+The other scripts extract chemicals and CAS numbers from the FDA group and places them in templates with other document information to be uploaded to Factotum.
+The ingredients and CAS numbers were extracted using the Python package Camelot. In order to use Camelot, you must first download Ghostscript, and then install Camelot in a Python 3.6 environment. DO NOT attempt to install Camelot in Python 3.7.
+(Written in Spyder, Python 3.6)
