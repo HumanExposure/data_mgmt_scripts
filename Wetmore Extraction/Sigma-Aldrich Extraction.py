@@ -259,7 +259,7 @@ def extract_data(file_list):
 def cleanLine(line):
     """
     Takes in a line of text and cleans it
-    removes non-ascii characters, commas, semicolons and excess spaces, and makes all characters lowercase
+    removes non-ascii characters, excess spaces, and makes all characters lowercase
     """
     clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
     cline = clean(line)
