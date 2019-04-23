@@ -95,7 +95,6 @@ def extract_data(file_list):
         for line in ifile:
             cline = cleanLine(line)
             if cline == []: continue
-#            print(cline)
             if 'aldrich -' in cline[0]: continue
             if cline[0] == 'identified uses': uses = cline[-1]
             if 'version' in cline[0] and version[i] == '':
@@ -252,13 +251,9 @@ def extract_data(file_list):
             if 'reactivity' == cline[-1]:
                 inReac = True
             
-
         i+=1
-#        print(i/numFiles*100,'%')
-
 
     df = pd.DataFrame({'File Name':fileName, 'Version Number':version, 'Revision Date':revDate, 'Product Name':chemName, 'Product Number':chemNum, 'Brand':brand, 'CAS':cas, 'Supplier':supplier, 'Precautions for safe handling':safeHandling, 'Conditions for safe storage':safeStorage, 'Specific end uses':specUse, 'Appearance':appearance, 'Odour':odor, 'Odour threshold':odorThresh, 'pH':pH, 'Melting/freezing point':melt, 'Initial boiling point and boiling range':bp, 'Flash point':flashP, 'Evapouration rate':evapRate, 'Flammabitily (solid,gas)':flammability, 'Upper/lower flammability or explosive limits':feLimits, 'Vapour pressure':vp, 'Vapour density':vd, 'Relative density':relD, 'Water solubility':sol, 'Partition coefficient: n-octanol/water':partCoef, 'Auto-ignition temperature':ignitTemp, 'Decomposition Temperature':decompTemp, 'Viscosity':visc, 'Explosive properties':expProp, 'Oxidizing properties':oxProp, 'Other safety information':otherSafe, 'Reactivity':reac, 'Chemical stability':stable, 'Possibility of hazardous reactions':hazReac, 'Conditions to avoid':avoid, 'Incompatible materials':incompat, 'Hazardous decomposition products':decompProds})
-#    df.to_csv(r'L:\Lab\HEM\Wetmore-PFAS-PDFs\Sigma-Aldrich\Sigma-Aldrich Extracted Text.csv',index=False, header=True)
     df.to_excel(r'L:\Lab\HEM\Wetmore-PFAS-PDFs\Sigma-Aldrich\Sigma-Aldrich Extracted Text.xlsx',index=False, header=True)
 
 def cleanLine(line):
@@ -269,8 +264,6 @@ def cleanLine(line):
     clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
     cline = clean(line)
     cline = cline.lower()
-#    cline = cline.replace(',','_')
-#    cline = cline.replace(';','_')
     cline = cline.strip()
     cline = cline.split("  ")
     cline = [x.strip() for x in cline if x != ""]
