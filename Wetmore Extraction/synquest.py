@@ -7,7 +7,7 @@ import pandas as pd
 
 os.chdir("L://Lab//HEM//Wetmore-PFAS-PDFs//SynQuest Laboratories, Inc")
 
-#files that were a different format. These were manually added to the spreadsheet after the script was run.
+#files with different format. These were manually added to the end of the spreadsheet after the script was run.
 bad_files=["B02469222_MSDS.txt", "B02488489_msds.txt", "B02488507_msds.txt"]
 
 #get files in directory
