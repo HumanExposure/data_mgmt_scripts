@@ -5,7 +5,7 @@ Created on Mon Apr 29 10:13:40 2019
 @author: ALarger
 
 Harmonized Tariff Schedule of the United States (2019)
-INTERMEDIATE CHEMICALS FOR DYES APPENDIX
+PHARMACEUTICAL APPENDIX TO THE HARMONIZED TARIFF SCHEDULE
 """
 
 import camelot, string
@@ -23,7 +23,7 @@ code = []
 sourceType = []
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 
-#tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\PA, USITC, WADA, WA, WHO\(2019) Pharmaceutical Appendix to the Harmonized Tariff Schedule\document_1371499.pdf',pages='all', flavor='stream'))
+tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\PA, USITC, WADA, WA, WHO\(2019) Pharmaceutical Appendix to the Harmonized Tariff Schedule\Pharmaceutical Appendix (2019) Table 1.pdf',pages='all', flavor='stream'))
 i=0 
 for table in tables:
     df = tables[i].df
