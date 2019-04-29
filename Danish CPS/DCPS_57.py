@@ -1,8 +1,11 @@
+#lkoval
+#4-29-19
+
 from tabula import read_pdf
 import pandas as pd
 import string
 
-#Read in tables 1,3, & 5 as pandas dfs using tabula
+#Read in tables 1 & 3 as pandas dfs using tabula
 
 #Table 1
 table_1=read_pdf("document_1372200.pdf", pages="18-20", lattice=True, pandas_options={'header': None})
