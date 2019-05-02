@@ -5,7 +5,7 @@ from tabula import read_pdf
 import pandas as pd
 import string
 
-#Read in tables 18, as pandas dfs using tabula
+#Read in tables 18,20,21,22,23,24,25,26,28 & 29 as pandas dfs using tabula
 
 #Table 18
 tables=read_pdf("document_1359461.pdf", pages="38", lattice=True, multiple_tables=True, pandas_options={'header': None})
