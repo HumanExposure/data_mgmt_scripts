@@ -1,6 +1,6 @@
 These scripts extract chemicals and CAS numbers from the FDA group and places them in templates with other document information to be uploaded to Factotum.
 
-Postmarket Drug Safety Eval.py, Reviews of Pediatric Studies.py and Summary of Color Additives.py use lxml.html to scrape chemical names from an htmls, append the data to pandas dataframes, and create csvs. 
+Postmarket Drug Safety Eval.py, Reviews of Pediatric Studies.py, Summary of Color Additives.py, and Food Contact Substance.py use lxml.html to scrape chemical names from an htmls, append the data to pandas dataframes, and create csvs. 
 (Written in Spyder, Python 3.7)
 
 The other scripts use the Python package Camelot to extract ingredients and CAS numbers, appends the data to a pandas dataframe, and creates a csv. In order to use Camelot, you must first download Ghostscript, and then install Camelot in a Python 3.6 environment. DO NOT attempt to install Camelot in Python 3.7.
