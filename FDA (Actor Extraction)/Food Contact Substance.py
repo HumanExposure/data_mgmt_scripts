@@ -25,7 +25,7 @@ for j in range (1, len(tr_elements)):
     T = tr_elements[j]
     if len(T) != 4: break
     if T[1].text_content().lower().strip() == 'food contact substance' or clean(T[1].text_content()) == '': continue
-    chemName.append(clean(T[1].text_content()).strip()) #Get first column
+    chemName.append(clean(T[1].text_content()).strip()) #Get second column
     name = chemName[-1].split(' ')
     for n in name:
         n=n.split(')')[0].replace('No.','').strip(',').strip(';')
