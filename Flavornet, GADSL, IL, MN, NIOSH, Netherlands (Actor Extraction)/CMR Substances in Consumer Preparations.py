@@ -18,7 +18,7 @@ col3 = []
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 
-#tables = camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\Flavornet, GADSL, IL, MN, NIOSH, Netherlands\The occurrence of Carcinogenic, Mutagenic and Reprotoxic (CMR) substances in consumer preparations\document_1371492.pdf',pages='19-35,50-57', flavor='lattice')
+tables = camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\Flavornet, GADSL, IL, MN, NIOSH, Netherlands\The occurrence of Carcinogenic, Mutagenic and Reprotoxic (CMR) substances in consumer preparations\document_1371492.pdf',pages='19-35,50-57', flavor='lattice')
 i=0 
 for table in tables:
     df = tables[i].df
