@@ -9,21 +9,25 @@ import string
 import pandas as pd
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 
-
 ifile = open(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\USDA\Agricultural Chemical Usage 1993 Fruits Summary Overview Narrative\1993 Oranges.txt')
 
 chemName = []
 templateName = []
 prodID = []
 i = 1372432
+dashes = 0
+
 inChems = False
 fruit = ''
 for line in ifile:
     cline = clean(line)
     cline = cline.strip()
     if cline == []: continue
-    if inChems == True and '-------------' in cline and len(templateName) > 0 and templateName[-1] == ('1993 ' + fruit + '.txt'):
-        inChems = False
+    if inChems == True and '-------------' in cline:
+        dashes += 1
+        if dashes == 3:
+            inChems = False
+            dashes = 0
     if ':' in cline:
         if cline.split(':')[0].strip() in ['','Agricultural','Chemical 2/','Fertilizers','Herbicides','Insecticides','Other Chemicals', 'Fungicides']: 
             continue
@@ -37,7 +41,9 @@ for line in ifile:
             prodID.append(i)
             chemName.append(cline.split(':')[0].strip())
             templateName.append('1993 ' + fruit + '.txt')
-    
+            if chemName[-1][-1] == '/':
+                chemName[-1] = chemName[-1][:-2].strip()
+                
 nIngredients = len(chemName)
 msdsDate = ['']*nIngredients
 recUse = ['']*nIngredients
