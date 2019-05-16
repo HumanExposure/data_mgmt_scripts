@@ -14,15 +14,45 @@ ifile = open(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\USDA\Agricultural C
 chemName = []
 templateName = []
 prodID = []
-i = 1372432
+i = 1372651
 dashes = 0
 
 inChems = False
+inClasses = False
 fruit = ''
 for line in ifile:
     cline = clean(line)
+    if inClasses == True:
+        if '----------' in cline:
+            dashes += 1
+            continue
+        if dashes == 2:
+            dashes = 0
+            inClasses = False
+            continue
+        cline = cline.split('  ')
+        cline = [x.strip() for x in cline if x != ""]
+        if 'H' in cline[0]:
+            prodID.append('1372679')
+            templateName.append('1993 Herbicides.txt')
+            chemName.append(cline[1])
+        if 'I' in cline[0]:
+            prodID.append('1372680')
+            templateName.append('1993 Insecticides.txt')
+            chemName.append(cline[1])
+        if 'F' in cline[0]:
+            prodID.append('1372681')
+            templateName.append('1993 Fungicides.txt')
+            chemName.append(cline[1])
+        if 'O' in cline[0]:
+            prodID.append('1372682')
+            templateName.append('1993 Other Chemicals.txt')
+            chemName.append(cline[1])
+        continue
     cline = cline.strip()
-    if cline == []: continue
+    if cline == '': continue
+    if cline.split(':')[0].strip() == 'Class':
+        inClasses = True
     if inChems == True and '-------------' in cline:
         dashes += 1
         if dashes == 3:
@@ -43,7 +73,11 @@ for line in ifile:
             templateName.append('1993 ' + fruit + '.txt')
             if chemName[-1][-1] == '/':
                 chemName[-1] = chemName[-1][:-2].strip()
-                
+
+prodID.extend(['1372678']*3) #Add fertilizers (not in separate table)
+templateName.extend(['1993 Fertilizers.txt']*3)
+chemName.extend(['Nitrogen','Phosphate','Potash'])
+
 nIngredients = len(chemName)
 msdsDate = ['']*nIngredients
 recUse = ['']*nIngredients
