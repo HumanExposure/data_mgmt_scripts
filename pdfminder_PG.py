@@ -2,10 +2,6 @@ import glob
 import os
 import re
 import csv
-
-
-
-
 def readfixline(text_line, key_str):
 	str_clean=[]
 	str_raw = [s for s in text_line if key_str in s]
