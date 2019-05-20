@@ -71,9 +71,6 @@ for line in ifile:
             inChems = True
             continue
         elif inChems == True: 
-#            if ('1998 ' + fruit + '.pdf') not in templateName:
-#                chemName.extend(['Nitrogen','Phosphate','Potash'])
-#                templateName.extend(['1998 ' + fruit + '.pdf']*3)
             chemName.append(cline.split(':')[0].strip())
             templateName.append('1998 ' + fruit + '.pdf')
             if chemName[-1][-1] == '/':
