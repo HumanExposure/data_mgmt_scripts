@@ -1,1 +1,3 @@
+Reports after 1997 were converted from pdf to text using a pdftotxt converter (download at https://www.xpdfreader.com/download.html). Pre-1997 files were already text files. Chemical names for each crop and substance class were extracted into a pandas dataframe, and a csv was generated to be uploaded to Factotum. 
 
+Written in Spyder, Python 3.7
