@@ -174,7 +174,10 @@ for j in range(0, len(table_13)):
     if len(str(table_13["raw_cas"].iloc[j]).split())>1:
         table_13["raw_cas"].iloc[j]=" ".join(str(table_13["raw_cas"].iloc[j]).split())
 
-
+table_13=table_13.drop(7)
+table_13=table_13.reset_index()
+table_13=table_13[["raw_chem_name","raw_cas"]]
+        
 table_13["data_document_id"]="1372613"
 table_13["data_document_filename"]="DCPS_34_h.pdf"
 table_13["doc_date"]="2003"
