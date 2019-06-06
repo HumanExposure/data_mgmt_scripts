@@ -24,6 +24,9 @@ while m > 0: #Go backwards through chemical name list so that the indexing does 
     chemName[m] = chemName[m].strip()
     if chemName[m] == '' or chemName[m] == 'NONE' or chemName[m] == 'chem code':
         del chemName[m]
+        continue
+    if any(c.isalpha() for c in chemName[m]) == False:
+        del chemName[m]
   
 nIngredients = len(chemName)
 msdsDate = ['1998']*nIngredients
