@@ -12,7 +12,7 @@ import pandas as pd
 
 chemName = []
 
-#tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\California\Cal Pesticide Residues\document_1359541.pdf',pages='939-1407', flavor='stream')) #Chemicals don't start until page 939
+tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\California\Cal Pesticide Residues\document_1359541.pdf',pages='939-1407', flavor='stream')) #Chemicals don't start until page 939
 
 for table in tables: 
     df = table.df
