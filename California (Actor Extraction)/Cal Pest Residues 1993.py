@@ -19,7 +19,7 @@ for table in tables:
     chemName.extend(df.loc[:,0])
 
 m = len(chemName) 
-while m >= 0: #Go backwards through chemical name list so that the indexing does not get messed up when one is deleted
+while m > 0: #Go backwards through chemical name list so that the indexing does not get messed up when one is deleted
     m-=1
     chemName[m] = chemName[m].strip()
     if chemName[m] == '' or chemName[m] == 'NONE' or chemName[m] == 'chem code':
