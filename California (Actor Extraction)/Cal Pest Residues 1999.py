@@ -12,7 +12,7 @@ import pandas as pd
 
 chemName = []
 
-#tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\California\Cal Pesticide Residues\document_1359547.pdf',pages='1591-2120', flavor='stream')) 
+tables = (camelot.read_pdf(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\California\Cal Pesticide Residues\document_1359547.pdf',pages='1591-2120', flavor='stream')) 
 
 for table in tables: 
     df = table.df
