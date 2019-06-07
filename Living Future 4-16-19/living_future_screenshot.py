@@ -1,4 +1,4 @@
-#Lauren Koval
+#lkoval
 #4-2-19
 
 #Import necessary libraries
