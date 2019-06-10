@@ -1,4 +1,4 @@
 Lauren Koval
 4/16/19
 
-living_future_screenshot.py utilized the package selenium version 3.141.0 in Python 3.6.8. It is uses ChromeDriver 73.0.3683.68 to automate web browsing. A screenshot is taken at each valid url and saved as a png. 
+living_future_screenshot.py is the download script. It utilized the package selenium version 3.141.0 in Python 3.6.8. It is uses ChromeDriver 73.0.3683.68 to automate web browsing. A screenshot is taken at each valid url and saved as a png. 
