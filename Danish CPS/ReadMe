@@ -1,4 +1,4 @@
-Lauren Koval
+lkoval
 4/17/19
 
 Extracts the chemical names and cas numbers from tables in Danish CPS Surveys on Chemical Substances in Consumer Products. Extracted tables are noted in each script. A csv is then generated which is to be uploaded into Factotum. Extraction used tabula-py version 1.1.1 and pandas version 0.24.1 in Python 3.7.2.
