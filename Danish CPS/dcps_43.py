@@ -31,6 +31,7 @@ table_17["cat_code"]=""
 table_17["description_cpcat"]=""
 table_17["cpcat_code"]=""
 table_17["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_17["report_funcuse"]=""
 
 table_17.to_csv("dcps_43_table_17.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
@@ -61,6 +62,7 @@ table_18["cat_code"]=""
 table_18["description_cpcat"]=""
 table_18["cpcat_code"]=""
 table_18["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_18["report_funcuse"]=""
 
 table_18.to_csv("dcps_43_table_18.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
