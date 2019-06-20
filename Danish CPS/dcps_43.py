@@ -53,6 +53,9 @@ for j in range(0, len(table_18)):
     if len(table_18["raw_chem_name"].iloc[j].split())>1:
         table_18["raw_chem_name"].iloc[j]=" ".join(table_18["raw_chem_name"].iloc[j].split())
 
+table_18=table_18.drop([0,2,4,5,9,12,14,17,21,22,23,24])
+table_18=table_18.reset_index()
+table_18=table_18[["raw_chem_name","raw_cas"]]
 
 table_18["data_document_id"]="1373717"
 table_18["data_document_filename"]="DCPS_43_n.pdf"
