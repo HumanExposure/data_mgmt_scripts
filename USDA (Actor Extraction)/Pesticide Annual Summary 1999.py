@@ -20,9 +20,7 @@ for n in df:
         try:
             if any(c.isalpha() for c in row[0].split(' ')[0]) == False and row[0].split(' ')[0] != '^' and row[0].split(' ')[0] != '+':
                 chem = (' '.join(row[0].split(' ')[1:])).split('(')[0].strip()
-#                print(chem)
                 use = ', '.join(re.findall('\(.*?\)',row[0])).replace('(','').replace(')','')
-#                print(use)
             if any(c not in '1234567890 ' for c in row[1]) == False:
                 commodity = row[0].split('(')[0].strip()
                 if commodity == 'Total': continue
@@ -30,7 +28,6 @@ for n in df:
                     detected = row[1].split(' ')[-1].strip()
                 else:
                     detected = row[2].strip()
-#                print(commodity, detected)
                 if detected != '0':
                     chemName.append(chem)
                     templateName.append('1999 ' + commodity + '.pdf')
