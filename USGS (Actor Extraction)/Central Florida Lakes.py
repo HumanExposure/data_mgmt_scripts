@@ -28,7 +28,8 @@ sourceType = ['ACToR Assays and Lists']*nIngredients
 casN = ['']*nIngredients
 prodID = [1371472]*nIngredients
 templateName = ['sir2008-5178_choquette_a.pdf']*nIngredients
+funcUse = ['']*nIngredients
 
-df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'doc_date':msdsDate, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'cat_code':catCode, 'description_cpcat': descrip, 'cpcat_code':code, 'cpcat_sourcetype':sourceType})
+df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'doc_date':msdsDate, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'cat_code':catCode, 'description_cpcat': descrip, 'cpcat_code':code, 'cpcat_sourcetype':sourceType})
 df=df.drop_duplicates()
 df.to_csv(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\USGS\Water Quality and Evaluation of Pesticides in Lakes in the Ridge Citrus Region of Central Florida\Central Florida Lakes.csv',index=False, header=True)
