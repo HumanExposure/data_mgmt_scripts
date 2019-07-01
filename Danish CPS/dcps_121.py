@@ -320,7 +320,7 @@ for j in range(0, len(table_6_6)):
     if len(table_6_6["raw_chem_name"].iloc[j].split())>1:
         table_6_6["raw_chem_name"].iloc[j]=" ".join(table_6_6["raw_chem_name"].iloc[j].split())
 
-table_6_6=table_6_6.drop([3,7])
+table_6_6=table_6_6.drop([1,3,7])
 table_6_6=table_6_6.reset_index()
 table_6_6=table_6_6[["raw_chem_name"]]
 
