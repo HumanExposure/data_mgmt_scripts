@@ -415,6 +415,10 @@ for j in range(0, len(C1)):
     C1["raw_chem_name"].iloc[j]=str(C1["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("β","beta")
     C1["raw_chem_name"].iloc[j]=clean(str(C1["raw_chem_name"].iloc[j]))
 
+C1=C1.drop(42)
+C1=C1.reset_index()
+C1=C1[["raw_chem_name"]]
+
 C1["data_document_id"]="1374637"
 C1["data_document_filename"]="DCPS_116_z.pdf"
 C1["doc_date"]="2012"
