@@ -268,7 +268,7 @@ for table in tables:
         lastRow = row
     
 for t in templateName:
-    template = csv.reader(open(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\USDA\Pesticide Annual Summary 2007\usda_pesticide_annual_summary_2007_documents_20190627.csv'))
+    template = csv.reader(open(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\USDA\Pesticide Annual Summary 2007\usda_pesticide_annual_summary_2007_documents_20190708.csv'))
     prodID.append('')
     for row in template:
         if row[3] == t:
