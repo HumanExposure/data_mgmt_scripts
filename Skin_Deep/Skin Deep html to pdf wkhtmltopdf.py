@@ -25,14 +25,6 @@ def html_to_pdf(files):
         cmd = os.path.join(execpath,execfile)
         cmd = " ".join([cmd,'--disable-external-links','--disable-internal-links','--disable-javascript',file,newName])
         os.system(cmd)
-#        if i>=3:
-#            break
-
-#def makePdf(filename):
-#    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-#    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-#    newName = filename.replace('.html', '.pdf')
-#    pdfkit.from_file(filename,newName,configuration=config)
 
 def main():
     path = 'L://Lab//HEM//ALarger//Skin Deep//Sun//'
@@ -46,16 +38,6 @@ def main():
         else: 
             file_list.append(f)
     html_to_pdf(file_list)
-#    i=0
-#    for f in file_list:
-#        i+=1
-#        print(i/10393, '%')
-#        makePdf(f)
-##        newName = f.replace('.html',path + 'pdfs//' + '.pdf')
-##        try:
-##            pdfkit.from_file(f,newName,configuration=config)
-##        except:
-##            print(f)
         
 if __name__ == "__main__":
     main()
