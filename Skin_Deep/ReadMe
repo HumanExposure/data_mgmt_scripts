@@ -1,3 +1,3 @@
 Skin Deep urls.py finds product page urls and generates a csv
 Skin Deep Extract.py reads the csv of product page urls, goes to each page and gathers product and ingredient information, saves the web page as an html file, and generates a csv with all of the data collected for that product
-Skin Deep html to pdf wkhtmltopdf.py converts each html file into a pdf
+Skin Deep html to pdf wkhtmltopdf.py converts each html file into a pdf using wkhtmltopdf (can be downloaded here: https://wkhtmltopdf.org/downloads.html)
