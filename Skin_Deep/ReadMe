@@ -3,3 +3,5 @@ Skin Deep Extract.py reads the csv of product page urls, goes to each page and g
 Skin Deep html to pdf wkhtmltopdf.py converts each html file into a pdf using wkhtmltopdf (can be downloaded here: https://wkhtmltopdf.org/downloads.html)
 
 Written in Python 3.7
+
+NOTE: All Skin Deep groups were extracted using these scripts, but were registered as seperate scripts so they could be QA'd individually
