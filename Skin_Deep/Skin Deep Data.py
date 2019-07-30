@@ -88,11 +88,10 @@ for row in extracted:
                 ingredients[j] = ingredients[j][11:].strip(': ')
         except:
             pass
-#            
+
         try:
             if ingredients[j] == '':
                 if centComps[j] != '' and centComps[j-1] == '':
-    #                print('Working!',row[0])
                     del ingredients[j]
                     del centComps[j-1]
                     del units[j-1]
@@ -102,9 +101,6 @@ for row in extracted:
                     del units[j]
         except: 
             pass
-        
-#        if ingredients[j] == '':
-#            print('help')
            
     n = len(ingredients)
     chemList.extend(ingredients)
