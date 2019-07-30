@@ -4,7 +4,8 @@ Created on Fri Jul 19 10:20:37 2019
 
 @author: ALarger
 
-https://wkhtmltopdf.org/downloads.html
+Converts html files to pdfs
+Download wkhtmltopdf: https://wkhtmltopdf.org/downloads.html
 """
 
 import os
