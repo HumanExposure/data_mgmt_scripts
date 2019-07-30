@@ -3,15 +3,18 @@
 Created on Wed Jul 10 08:54:31 2019
 
 @author: ALarger
+
+Extracts data from Skin Deep product webpages and creates a csv
 """
 
-import time, csv, os
+import time, csv, os, string
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 
-path = r'L:\Lab\HEM\ALarger\Skin Deep\Sun' #Folder doc is in
+clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #Removes non-ASCII characters
+path = r'L:\Lab\HEM\ALarger\Skin Deep\Makeup' #Folder doc is in
 os.chdir(path)   
 
 idList = [] #Product ids
@@ -23,16 +26,14 @@ manufList = [] #Manufacturers (first element next to 'see all')
 brandList = [] #Brands (second element next to 'see all')
 typeList = [] #Product types (combination of elements after brand next to 'see all')
 picList = [] #List of picture urls
-rankList = [] #List of ingredient ranks (order they come in in the 'label information' section)
    
 chrome_options= Options()
 #chrome_options.add_argument("--headless") 
 driver = webdriver.Chrome(r"C:\Users\alarger\Documents\chromedriver.exe", options=chrome_options)
-urls = csv.reader(open('ewg sun urls.csv')) #csv of product urls
+urls = csv.reader(open('ewg makeup urls.csv')) #csv of product urls
 i=0
 for row in urls:
     i+=1
-    if i <= 7948: continue
     url = row[0]
     time.sleep(3)
     driver.get(url)
@@ -58,9 +59,9 @@ for row in urls:
 #    im = im.crop((int(x), int(y), int(width), int(height)))
 #    im.save(picName)
         driver.find_element_by_xpath('//*[@id="toc_ul"]/li[1]/a').click() #Click product summary button
-        name = driver.find_element_by_xpath('//*[@id="righttoptitleandcats"]/h1').text #Get product name
-        ingredients = driver.find_element_by_xpath('//*[@id="Warnings_and_Directions"]/p[1]').text.replace('; ',', ').split(', ') #Get ingredient list
-        date = driver.find_element_by_xpath('//*[@id="dateupdated2012"]').text.replace('Data last updated:','').strip() #Get date
+        name = clean(driver.find_element_by_xpath('//*[@id="righttoptitleandcats"]/h1').text) #Get product name
+        ingredients = clean(driver.find_element_by_xpath('//*[@id="Warnings_and_Directions"]/p[1]').text) #Get ingredient list
+        date = clean(driver.find_element_by_xpath('//*[@id="dateupdated2012"]').text.replace('Data last updated:','').strip()) #Get date
     except:
         print(url) #Some pages are slightly different and can't be extracted with this script. Print the url and move on
         continue
@@ -71,17 +72,17 @@ for row in urls:
     while gotType == False:
        j+=1
        if j == 1:
-           manuf = driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text
+           manuf = clean(driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text)
        elif j == 2:
            try:
-               brand = driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text
+               brand = clean(driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text)
            except:
                prodType = manuf
                manuf = ''
                brand = ''
        else:
            try:
-               prodType = (prodType + ', ' + driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text).strip(', ')
+               prodType = clean(prodType + ', ' + driver.find_element_by_xpath('//*[@id="insidecontentdiv01234a"]/a['+str(j)+']/div').text).strip(', ')
            except: 
                gotType = True
                if prodType == '':
@@ -96,21 +97,18 @@ for row in urls:
         print(url) #Some pages can't be saved. Print the url and move on
         continue
     #Add data to lists
-    n = len(ingredients)
-    ingredientList.extend(ingredients)
-    idList.extend([ID]*n)
-    urlList.extend([url]*n)
-    nameList.extend([name]*n)
-    dateList.extend([date]*n)
-    manufList.extend([manuf]*n)
-    brandList.extend([brand]*n)
-    typeList.extend([prodType]*n)
-    picList.extend([picLink]*n)
-    rankList.extend(list(range(1,n+1)))
-#    if i == 4: break
+    ingredientList.append(ingredients)
+    idList.append(ID)
+    urlList.append(url)
+    nameList.append(name)
+    dateList.append(date)
+    manufList.append(manuf)
+    brandList.append(brand)
+    typeList.append(prodType)
+    picList.append(picLink)
 
 driver.close()
 
 #Make csv
-df = pd.DataFrame({'ewg ID':idList, 'Product Name':nameList, 'Manufacturer':manufList, 'Brand':brandList, 'Date':dateList, 'Product Type':typeList, 'Ingredient':ingredientList, 'Ingredient Rank':rankList, 'url':urlList,'Picture url':picList})
-df.to_csv('Skin Deep Sun Products 7.csv',index=False, header=True)
+df = pd.DataFrame({'ewg ID':idList, 'Product Name':nameList, 'Manufacturer':manufList, 'Brand':brandList, 'Date':dateList, 'Product Type':typeList, 'Ingredient':ingredientList, 'url':urlList,'Picture url':picList})
+df.to_csv('Skin Deep Makeup Products 0.csv',index=False, header=True)
