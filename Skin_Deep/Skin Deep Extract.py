@@ -4,7 +4,7 @@ Created on Wed Jul 10 08:54:31 2019
 
 @author: ALarger
 
-Extracts data from Skin Deep product webpages and creates a csv
+Extracts data from Skin Deep product webpages, saves htmls and creates a csv
 """
 
 import time, csv, os, string
