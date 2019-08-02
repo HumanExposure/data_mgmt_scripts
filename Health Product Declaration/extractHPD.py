@@ -29,10 +29,12 @@ dateList = [] #list of msdsDates
 casList = [] #list of CAS numbers
 chemList = [] #list of chemical names
 funcList = [] #list of functional uses of each chemical
-unitList = [] #list of unit types (1=weight frac, 2=unknown, 3=weight percent,...14=percent volume,...)
+unitList = [] #list of unit types
 rankList = [] #list of ingredient ranks
 centList = [] #list of central concentrations
 nanoList = [] #nano? yes/no
+manufList = [] #Manufacturer
+classList = [] #Classification
 
 file_list = glob('*.pdf')
 numFiles=len(file_list)
@@ -41,9 +43,12 @@ numFiles=len(file_list)
 for file in file_list:
     name = ''
     date = ''
+    manuf = ''
+    classification = ''
     ingredients = []
     inContent = False #Flag for if you are in the content section
     inChem = False #Flag for collecting chemical data that spills over multiple lines
+    getClass = False #Flag for collecting classification
     txt = file.replace('.pdf','.txt').replace('.PDF','.txt')
     ifile = open(txt)
     
@@ -58,6 +63,22 @@ for file in file_list:
         if 'release date' in cline[0] and date == '':
             if 'x' not in cline[1] and 'self' not in cline[1]:
                 date = cline[1]
+        #Get manufacturer
+        if manuf == '' and len(cline) > 1 and (cline[0] == 'manufacturer' or cline[0] == 'm anufacturer') and 'contact' not in cline[1] and 'name' not in cline[1]:
+            manuf = cline[1]
+        #Get classification
+        if getClass == True and inContent == False and manuf == '' and date == '' and ingredients == []:
+            if any('ebsite' in c or 'www.' in c or '.com' in c for c in cline):
+                getClass = False
+            else:
+                classification = (classification + ' ' + ' '.join(cline)).strip()
+        if classification == '' and getClass == False and inContent == False and manuf == '' and date == '' and ingredients == []:
+            for c in cline:
+                if c == 'classification':
+                    getClass = True
+                    continue
+                if getClass == True:
+                    classification = (classification + ' ' + c).strip()
         #check if you enter content section
         if 'gs' in cline and 'rc' in cline:
             inContent = True
@@ -73,7 +94,7 @@ for file in file_list:
             if (any(all(x in '1234567890 ._-%' for x in cline[y]) and cline[y] != '-' for y in list(range(1,len(cline)-1))) or ('unknown' in cline and ('n' in cline or 'y' in cline or 'u' in cline or 'no' in cline or 'yes' in cline or 'unk' in cline))) and cline[0] != '' and len(cline) > 3 and inChem == False:
                 #Check if the name was split across multiple elements
                 for x in list(range(1,len(cline)-1)):
-                    if (any(c.isalpha() for c in cline[1]) or sum(c.isdigit() for c in cline[1]) == 1 or cline[1] == '-') and 'unknown' not in cline[1] and 'mixed' not in cline[1] and 'proprietary' not in cline[1] and 'undisclosed' not in cline[1] and 'not registered' not in cline[1] and '%' not in cline[1] and 'cas' not in cline[1] and 'n/a' not in cline[1] and len(cline) > 3:
+                    if (any(c.isalpha() for c in cline[1]) or sum(c.isdigit() for c in cline[1]) == 1 or cline[1] == '-') and 'unknown' not in cline[1] and 'mixed' not in cline[1] and 'proprietary' not in cline[1] and 'undisclosed' not in cline[1] and 'not registered' not in cline[1] and '%' not in cline[1] and 'cas' not in cline[1] and 'n/a' not in cline[1] and cline[1] != 'not' and len(cline) > 3:
                         cline = [cline[0] + ' ' + cline[1]] + cline[2:]
                     else: 
                         break
@@ -92,9 +113,9 @@ for file in file_list:
                     casList.append('')
                 #Concentration
                 if all(x in '1234567890-.%><= ' for x in cline[2]) and len(re.findall('-', cline[2])) <= 1:
-                    centList.append(cline[2].strip('% '))
+                    centList.append(cline[2].replace('%','').strip())
                 elif all(x in '1234567890-.%><= ' for x in cline[1]) and '%' in cline[1] and len(re.findall('-', cline[1])) <= 1:
-                    centList.append(cline[1].strip('% '))
+                    centList.append(cline[1].replace('%','').strip())
                 else: 
                     centList.append('')
                 #Unit (for concentration)
@@ -123,6 +144,10 @@ for file in file_list:
             elif inChem == True:
                 if cline[0] != '':
                     ingredients[-1] = ingredients[-1] + ' ' + cline[0]
+                for x in cline:
+                    if '%' in x and all(c in '1234567890-.%><= ' for c in x):
+                        centList[-1] = (centList[-1] + ' ' + x).replace('%','').strip()
+                        unitList[-1] = '%'
                 if len(cline) > 1:
                     if casList[-1] != '' and all(x in '1234567890- ' for x in cline[1]) and (len(re.findall('-', casList[-1])) < 2 or casList[-1][-1] == '-'):
                         casList[-1] = casList[-1] + cline[1]
@@ -136,8 +161,10 @@ for file in file_list:
     filenameList.extend([file]*n)
     prodList.extend([name]*n)
     dateList.extend([date]*n)
+    manufList.extend([manuf]*n)
+    classList.extend([classification]*n)
     rankList.extend(list(range(1,n+1)))
 
 #Make csv
-df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodList, 'doc_date':dateList, 'raw_cas':casList, 'raw_chem_name':chemList, 'Nano':nanoList, 'report_funcuse':funcList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList})
+df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodList, 'manufacturer':manufList, 'Classification':classList, 'doc_date':dateList, 'raw_cas':casList, 'raw_chem_name':chemList, 'Nano':nanoList, 'report_funcuse':funcList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList})
 df.to_csv('HPD Extracted Data.csv',index=False, header=True)
