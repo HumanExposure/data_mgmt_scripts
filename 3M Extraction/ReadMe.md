@@ -5,4 +5,4 @@ Identifies which products are a "kit" that contains multiple products
 Note: the unit code for weight percent is 3 and unknown is 2
 
 To use: must download xpdfreader and edit all file paths
-Written in Spyder (Python 3.7)
+Written in Python 3.7
