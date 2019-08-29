@@ -4,6 +4,6 @@
 
 **ewgCleaningGetCats.py** reads the csv created by ewgCleaningExtract.py, goes to each category, brand and company url, gets the full names, and creates a new csv with this data
 
-**ewgCleaningHtmlToPdf.py** converts html files to pdfs so they can be uploaded to Factotum
+**ewgCleaningHtmlToPdf.py** converts html files to pdfs so they can be uploaded to Factotum (wkhtmltopdf can be downloaded here: https://wkhtmltopdf.org/downloads.html)
 
 **ewgCleaningData.py** reads the csv created by ewgCleaningGetCats.py, separates the ingredients list into individual ingredients, matches documents with their Factotum document IDs, and creates a csv to upload the data to Factotum
