@@ -4,4 +4,4 @@
 
 **ewgCleaningGetCats.py** reads the csv created by ewgCleaningExtract.py, goes to each category, brand and company url, gets the full names, and creates a new csv with this data
 
-
+**ewgCleaningHtmlToPdf.py** converts html files to pdfs so they can be uploaded to Factotum
