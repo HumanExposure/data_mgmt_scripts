@@ -67,7 +67,6 @@ for n in range(len(manufList)):
         for url in urls:
             if 'https:' in url:
                 time.sleep(10)
-#                url = typeList[n]
                 driver.get(url)
                 newType = driver.find_element_by_xpath('//*[@id="productname"]/h1').text
                 for i in range(len(typeList)):
