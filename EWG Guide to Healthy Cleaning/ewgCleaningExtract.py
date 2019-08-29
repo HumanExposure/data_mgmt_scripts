@@ -75,8 +75,6 @@ for row in urls:
     brandList.append(brand)
     typeList.append(prodType)
     picList.append(picLink)
-#    if i == 3: break 
-
 
 driver.close()
 
