@@ -21,9 +21,6 @@ driver = webdriver.Chrome(r"C:\Users\alarger\Documents\chromedriver.exe", option
 driver.get('https://www.ewg.org/guides/cleaners')
 categories = []
 urls = []
-#soup = BeautifulSoup(page,"lxml")
-#for link in soup.findAll('a', attrs={'href': re.compile("^/guides/categories/"), 'class': 'graylink'}):
-#    categories.append('https://www.ewg.org'+link.get('href'))
 
 for x in driver.find_elements_by_class_name('graylink'):
     categories.append(x.get_attribute('href'))
