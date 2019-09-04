@@ -35,7 +35,7 @@ table_4["doc_date"]="December 2018"
 table_4["cat_code"]=""
 table_4["description_cpcat"]=""
 table_4["cpcat_code"]=""
-table_4["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_4["cpcat_sourcetype"]=""
 table_4["report_funcuse"]=""
 
 table_4.to_csv("dcps_173_table_4.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -73,7 +73,7 @@ table_6["doc_date"]="December 2018"
 table_6["cat_code"]=""
 table_6["description_cpcat"]=""
 table_6["cpcat_code"]=""
-table_6["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_6["cpcat_sourcetype"]=""
 table_6["report_funcuse"]=""
 
 table_6.to_csv("dcps_173_table_6.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -121,7 +121,7 @@ table_7["doc_date"]="December 2018"
 table_7["cat_code"]=""
 table_7["description_cpcat"]=""
 table_7["cpcat_code"]=""
-table_7["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_7["cpcat_sourcetype"]=""
 table_7["report_funcuse"]=""
 
 table_7.to_csv("dcps_173_table_7.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -168,7 +168,7 @@ table_8["doc_date"]="December 2018"
 table_8["cat_code"]=""
 table_8["description_cpcat"]=""
 table_8["cpcat_code"]=""
-table_8["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_8["cpcat_sourcetype"]=""
 table_8["report_funcuse"]=""
 
 table_8.to_csv("dcps_173_table_8.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -216,7 +216,7 @@ table_9["doc_date"]="December 2018"
 table_9["cat_code"]=""
 table_9["description_cpcat"]=""
 table_9["cpcat_code"]=""
-table_9["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_9["cpcat_sourcetype"]=""
 table_9["report_funcuse"]=""
 
 table_9.to_csv("dcps_173_table_9.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -256,7 +256,7 @@ table_10["doc_date"]="December 2018"
 table_10["cat_code"]=""
 table_10["description_cpcat"]=""
 table_10["cpcat_code"]=""
-table_10["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_10["cpcat_sourcetype"]=""
 table_10["report_funcuse"]=""
 
 table_10.to_csv("dcps_173_table_10.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
@@ -308,7 +308,7 @@ table_13["doc_date"]="December 2018"
 table_13["cat_code"]=""
 table_13["description_cpcat"]=""
 table_13["cpcat_code"]=""
-table_13["cpcat_sourcetype"]="ACToR Assays and Lists"
+table_13["cpcat_sourcetype"]=""
 table_13["report_funcuse"]=""
 
 table_13.to_csv("dcps_173_table_13.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
