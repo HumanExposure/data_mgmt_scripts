@@ -1,4 +1,4 @@
 These scripts extract the active ingredients and CAS numbers from the Arizona Pesticides Annual Reports and place them in templates with other document information to be uploaded to factotum.
 The ingredients and CAS numbers were extracted using the Python package Camelot. In order to use Camelot, you must first download Ghostscript, and then install Camelot in a Python 3.6 environment. DO NOT attempt to install Camelot in Python 3.7.
 
-Written in Spyder (Python 3.6)
+Written in Python 3.6
