@@ -67,9 +67,11 @@ split_data["central_wf_analysis"]=central
 split_data["upper_wf_analysis"]=upper
 
 split_data.lower_wf_analysis=pd.to_numeric(split_data.lower_wf_analysis.str.replace(">","").str.replace("<","").str.replace("=",""), errors='coerce')/100
+split_data.lower_wf_analysis=split_data.lower_wf_analysis.round(6)
 split_data.upper_wf_analysis=pd.to_numeric(split_data.upper_wf_analysis.str.replace(">","").str.replace("<","").str.replace("=",""), errors='coerce')/100
+split_data.upper_wf_analysis=split_data.upper_wf_analysis.round(6)
 split_data.central_wf_analysis=pd.to_numeric(split_data.central_wf_analysis.str.replace(">","").str.replace("<","").str.replace("=",""), errors='coerce')/100
-
+split_data.central_wf_analysis=split_data.central_wf_analysis.round(6)
 clean_data=split_data.fillna("")
 
 clean_data.to_csv("home_depot_icf_msds_all_cleaned.csv", index=False)
