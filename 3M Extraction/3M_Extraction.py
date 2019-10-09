@@ -211,7 +211,7 @@ def cleanLine(line):
     return(cline)
     
 def main():
-    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety')    
+    os.chdir(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety') #Folder pdfs are in
     pdfs = glob("*.pdf")
     n_pdfs = len(pdfs)
     n_txts = len(glob("*.txt"))
