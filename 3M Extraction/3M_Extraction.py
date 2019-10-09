@@ -5,6 +5,7 @@ Created on Mon Mar 25 11:45:14 2019
 @author: ALarger
 
 3M Data Extraction
+Note: Many documents are for multi-product "kits". For these, a list of all of the ingredients all components was made, and concentration was ignored
 """
 
 import os, string, csv
@@ -191,12 +192,13 @@ def extract_data(file_list):
 
     print(kitList) #print data document ids of the kits for reference
     df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'prod_name':prodName, 'doc_date':msdsDate, 'rev_num':rev, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'report_funcuse':funcUse, 'raw_min_comp': minC, 'raw_max_comp':maxC, 'unit_type':units, 'ingredient_rank':rank, 'raw_central_comp':centC})
-    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M Occupational Health and Safety Extracted Text.csv',index=False, header=True, date_format=None)
+    df.to_csv(r'L:\Lab\HEM\ALarger\3M\3M Occupational Health and Safety\3M Occupational Health and Safety Extracted Text.csv',index=False, header=True)
         
 def cleanLine(line):
     """
     Takes in a line of text and cleans it
     removes non-ascii characters, commas, semicolons and excess spaces, and makes all characters lowercase
+    splits lines into lists for extracting tables
     """
     clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
     cline = clean(line)
