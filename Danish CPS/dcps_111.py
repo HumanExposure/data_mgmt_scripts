@@ -235,7 +235,7 @@ table_7_1.to_csv("dcps_111_table_7_1.csv", columns=["data_document_id","data_doc
 
 
 #Table 2.1
-table_2_1=read_pdf("document_1374434.pdf", pages="95-120", lattice=True, multiple_tables=False, pandas_options={'header': None})
+table_2_1=read_pdf("document_1374435.pdf", pages="95-120", lattice=True, multiple_tables=False, pandas_options={'header': None})
 table_2_1["raw_chem_name"]=table_2_1.iloc[:,0]
 table_2_1["raw_cas"]=table_2_1.iloc[:,1]
 table_2_1["report_funcuse"]=table_2_1.iloc[:,3]
@@ -262,7 +262,7 @@ table_2_1=table_2_1.reset_index()
 table_2_1=table_2_1[["raw_chem_name","raw_cas","report_funcuse"]]
 
 
-table_2_1["data_document_id"]="1374434"
+table_2_1["data_document_id"]="1374435"
 table_2_1["data_document_filename"]="DCPS_111_o.pdf"
 table_2_1["doc_date"]="2011"
 table_2_1["raw_category"]=""
