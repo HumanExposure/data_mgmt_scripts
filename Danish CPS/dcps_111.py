@@ -275,7 +275,7 @@ table_2_1.to_csv("dcps_111_table_2_1.csv", columns=["data_document_id","data_doc
 
 
 #Table 3.1
-table_3_1=read_pdf("document_1374435.pdf", pages="147-161", lattice=True, multiple_tables=True, pandas_options={'header': None})
+table_3_1=read_pdf("document_1374436.pdf", pages="147-161", lattice=True, multiple_tables=True, pandas_options={'header': None})
 table_3_1=pd.concat(table_3_1[:-4], ignore_index=True)
 table_3_1["raw_chem_name"]=table_3_1.iloc[:,0]
 table_3_1["raw_cas"]=table_3_1.iloc[:,1]
@@ -303,7 +303,7 @@ table_3_1=table_3_1.reset_index()
 table_3_1=table_3_1[["raw_chem_name","raw_cas","report_funcuse"]]
 
 
-table_3_1["data_document_id"]="1374435"
+table_3_1["data_document_id"]="1374436"
 table_3_1["data_document_filename"]="DCPS_111_p.pdf"
 table_3_1["doc_date"]="2011"
 table_3_1["raw_category"]=""
@@ -315,7 +315,7 @@ table_3_1["cpcat_sourcetype"]="ACToR Assays and Lists"
 table_3_1.to_csv("dcps_111_table_3_1.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
 
 #Table 3.2
-table_3_2=read_pdf("document_1374436.pdf", pages="161-180", lattice=True, multiple_tables=True, pandas_options={'header': None})
+table_3_2=read_pdf("document_1374437.pdf", pages="161-180", lattice=True, multiple_tables=True, pandas_options={'header': None})
 table_3_2=pd.concat(table_3_2[2:], ignore_index=True)
 table_3_2["raw_chem_name"]=table_3_2.iloc[:,0]
 table_3_2["raw_cas"]=table_3_2.iloc[:,1]
@@ -343,7 +343,7 @@ table_3_2=table_3_2.reset_index()
 table_3_2=table_3_2[["raw_chem_name","raw_cas","report_funcuse"]]
 
 
-table_3_2["data_document_id"]="1374436"
+table_3_2["data_document_id"]="1374437"
 table_3_2["data_document_filename"]="DCPS_111_q.pdf"
 table_3_2["doc_date"]="2011"
 table_3_2["raw_category"]=""
