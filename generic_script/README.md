@@ -19,8 +19,8 @@ The script will output a CSV file containing a list of chemicals for each PDF in
 * SQLAlchemy
 * xlrd
 * libiconv
-* nltk
+* NLTK
 * python-Levenshtein
 * fuzzywuzzy (conda-forge)
 * Tika (conda-forge)
-* tesseract (conda-forge)
+* Tesseract (conda-forge)
