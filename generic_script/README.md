@@ -24,3 +24,9 @@ The script will output a CSV file containing a list of chemicals for each PDF in
 * fuzzywuzzy (conda-forge)
 * Tika (conda-forge)
 * Tesseract (conda-forge)
+
+## Todo
+* Extract product name
+* Extract manufacturer name
+* Extract date
+* Extract units
