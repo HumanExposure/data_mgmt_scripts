@@ -25,7 +25,7 @@ The script will output a CSV file containing a list of chemicals for each PDF in
 * Tika (conda-forge)
 * Tesseract (conda-forge)
 
-## Todo
+### Todo
 * Extract product name
 * Extract manufacturer name
 * Extract date
