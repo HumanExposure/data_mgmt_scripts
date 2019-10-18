@@ -23,7 +23,7 @@ The script will output a CSV file containing a list of chemicals for each PDF in
 * python-Levenshtein
 * fuzzywuzzy (conda-forge)
 * Tika (conda-forge)
-* Tesseract (conda-forge)
+* Tesseract (conda-forge) (if you install this after running Tika, restart Tika)
 
 ### Todo
 * Extract product name
