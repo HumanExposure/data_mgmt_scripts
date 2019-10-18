@@ -185,7 +185,7 @@ def read_df():
         tcomb (list): A list containing uique chemical names.
 
     """
-    # search list from actor
+    # search list from comptox
     df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
     df = df_names[['casrn', 'preferred_name']].copy()
     # df['casrn'].nunique() == len(df)
@@ -193,7 +193,7 @@ def read_df():
     df['sort'] = df['preferred_name'].apply(len)
     df1 = df.sort_values(by='sort')[['preferred_name']].copy()
 
-    # get chemicla from factotum
+    # get chemicals from factotum
     with open('mysql.json', 'r') as f:
         cfg = json.load(f)['mysql']
     conn = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
@@ -1298,7 +1298,7 @@ split_pdfs = []  # list of pdfs that had multiple msds (successful only)
 # label_search2: key to list (not anymore)
 
 info_df = []
-df_store = {}  # temp
+# df_store = {}  # temp
 tcomb = read_df()
 
 # iterate through files
@@ -1413,7 +1413,7 @@ for f in pdfs:
 
     df_comb.to_csv(os.path.join(out_folder, f.split('.pdf')[0] + '.csv'),
                    index=False)
-    df_store[f] = df_comb
+    # df_store[f] = df_comb
 
 # write info file
 file_prop = pd.DataFrame(info_df)
