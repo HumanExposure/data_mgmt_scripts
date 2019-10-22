@@ -10,7 +10,7 @@ vp_bad_format=["vp1.7","vp13.4","vp25.3"]
 
 #Tabula couldn't read all the pages at once but can read them individually so extract the table on each page
 #then concat everything into one df. Note that the melting point and boiling point for each chemical are initially in the same cell,
-#as well as vapor pressure and denisty.These are split into seperate columns later on.
+#as well as vapor pressure and denisty.These are split into separate columns later on.
 for i in range(1,7):
     table=read_pdf("library_refrigerant_ref_table.pdf", pages="%d"%i, lattice=True, pandas_options={'header': None})
     table=table.iloc[3:,[0,2,3,4]] #select data only relevant columns starting from the third row down, which is the first row containg information
