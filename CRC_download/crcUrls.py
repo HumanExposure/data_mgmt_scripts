@@ -5,11 +5,10 @@ Created on Tue Oct 22 08:38:27 2019
 @author: ALarger
 """
 
-import time, csv, os, string, random
+import time, os, string, random
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from PIL import Image
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #Removes non-ASCII characters
 path = r'L:\Lab\HEM\ALarger\CRC\Automotive' #Folder doc is in
