@@ -25,12 +25,13 @@ driver = webdriver.Chrome(r"C:\Users\alarger\Documents\chromedriver.exe", option
 url = 'https://www.crcindustries.com/products/automotive.html' #url of the starting page
 driver.get(url)
 driver.maximize_window()
-time.sleep(random.randint(2,10))
-driver.find_element_by_xpath('//*[@id="chweb_layered_container"]/div[1]/div[1]/div[2]/div[2]/div/a').click()
-time.sleep(random.randint(2,10))
-driver.find_element_by_xpath('//*[@id="top"]/body/ul[2]/li[3]/a').click() #Change items per page to 36
-nPages = driver.find_element_by_xpath('//*[@id="chweb_layered_container"]/div[1]/div[1]/div[2]/div[2]/span').text
-nPages = float(nPages.strip(' RESULTS'))/36
+nProducts = float(driver.find_element_by_xpath('//*[@id="chweb_layered_container"]/div[1]/div[1]/div[2]/div/span').text.strip(' RESULTS'))
+if nProducts > 12:
+    time.sleep(random.randint(2,10))
+    driver.find_element_by_xpath('//*[@id="chweb_layered_container"]/div[1]/div[1]/div[2]/div[2]/div/a').click()
+    time.sleep(random.randint(2,10))
+    driver.find_element_by_xpath('//*[@id="top"]/body/ul[2]/li[3]/a').click() #Change items per page to 36
+nPages = nProducts/36
 
 while finished == False: 
     time.sleep(random.randint(2,10))
