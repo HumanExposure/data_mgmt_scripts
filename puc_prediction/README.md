@@ -67,7 +67,7 @@ for i in range(len(puclist)):
 ct = ct / len(puclist)
 print(ct)
 ```
-Example output: `[0.98521985 0.97093238 0.96194113]'`
+Example output: `[0.98521985 0.97093238 0.96194113]`
 Represents the accuracy of gen_cat, prod_fam, and prod_type respectively.
 
 ## Requirements
