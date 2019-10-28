@@ -3,7 +3,7 @@ The purpose of this set of scripts is to use a product name to predict a PUC. Be
 
 ## How to Use
 ### Generate model data
-As a perquisite for using this model, a few pieces need to be generated. Both of these scripts will take a while to run, but only need to be run once. I would also recommend using a computer that has a decent amount of ram and free storage space (i.e. not your laptop).
+As a perquisite for using this model, a few pieces need to be generated. Both of these scripts will take a while to run, but only need to be run once. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop).
 * Run `data_processing.py`. This script pulls every product name and PUC from factotum and cleans them up. `mysql.json` needs to be filled out for this to work. Two CSV files will be created containing the data that was retrieved, with `clean.csv` being the important one.
 * Run `puc_model.py`. This script will take a while to run. Here is a list of important files that will be generated:
   * `xdata.joblib`: A file containing the result of converting every product name to a vector.
