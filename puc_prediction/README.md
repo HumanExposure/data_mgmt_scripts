@@ -83,7 +83,7 @@ Unless otherwise notes, packages are on the main Anaconda channel. Many packages
 * spaCy-lookups-data (conda-forge)
 * Flair (pip, **see below**)
 
-Before installing Flair, install `pytorch` via the following command: `conda install pytorch torchvision cpuonly -c pytorch`. Also, the following are all dependencies to Flair that are available via Anaconda. If you want to install these via Anaconda, do it before installing Flair. If you just want to use `pip`, you don't need to do anything with the packages below. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
+Before installing Flair, install `pytorch` via the following command: `conda install pytorch torchvision cpuonly -c pytorch`. Also, the following are all dependencies to Flair that are available via Anaconda. This is especially important if you already have some of these packages installed already but need a different version (e.g. Spyder installs IPython but it's the wrong version). If you want to install these via Anaconda, do it before installing Flair. If you just want to use `pip`, you don't need to do anything with the packages below. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
 * matplotlib (Flair dependency)
 * mpld3=0.3 (Flair dependency)
 * pymongo (Flair dependency)
