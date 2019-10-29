@@ -24,3 +24,9 @@ As an example, if the product name is `extra fancy bleach`, the output array wou
 
 ### Modeling the PUC
 Modeling is done with an SVM, with the vector representing the product name as the input. Given that PUCs have three separate levels, a classifier was trained for each part. This means three models are used for each product to make a prediction. Because the higher level PUCs have a higher prediction accuracy, a misclassified product should still have a prediction that is more accurate that if only one classifier was used for each product. Additionally, bootstrap aggregation exists as an option in the script to guard against overfitting.
+
+**Example model definition
+```python
+clf = svm.SVC(decision_function_shape='ovo', C=100,
+              cache_size=20000, kernel='linear')
+```
