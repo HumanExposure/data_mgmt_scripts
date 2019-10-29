@@ -21,6 +21,7 @@ The script `model_helper.py` contains functions to make building a model straigh
 * `bootstrap`: Whether to sample `df_train` with replacement or not (recommended to be set to `True` if `num_runs` is more than 1).
 * `sample_size`: Size of the training set for each run (sampled from the training set). If there are multiple runs, each sample from the training set will be this large. Can be a number, or `all` (recommended).
 * `label`: A label for the saved models. This label is used for running model predictions, as well. Any models with the same label will be overwritten.
+* `probab`: Whether to calculate probabilities for the classes. Enabling this will increase computation time.
 
 ```python
 from model_helper import model_build
