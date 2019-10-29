@@ -1,6 +1,8 @@
 # PUC Prediction
 The purpose of this set of scripts is to use a product name to predict a PUC. Below are instructions for running the code.
 
+**NOTE: Scripts will be uploaded once finalized**
+
 ## How to Use
 ### Generate model data
 As a perquisite for using this model, a few pieces need to be generated. Both of these scripts will take a while to run, but only need to be run once. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop).
