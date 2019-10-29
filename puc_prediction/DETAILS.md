@@ -20,8 +20,7 @@ In order to classify text using a machine learning model, we need to be able to 
 As an example, if the product name is `extra fancy bleach`, the output array would be `array([-0.02843909, -0.05943272,  0.04102759, ...,  0.03814392, 0.04666945, -0.02749158], dtype=float32)` with a size of 4496 (length is dependent on the word embedding model used, not the document length).
 
 **Word similarity with word embedding**
-![word embed example](images/word_embed_example.png)
-https://res.cloudinary.com/springboard-images/image/upload/q_auto,f_auto,fl_lossy/wordpress/2017/08/wmd-Copy.png
+![https://res.cloudinary.com/springboard-images/image/upload/q_auto,f_auto,fl_lossy/wordpress/2017/08/wmd-Copy.png](images/word_embed_example.png)
 
 ### Modeling the PUC
 Modeling is done with an SVM, with the vector representing the product name as the input. Given that PUCs have three separate levels, a classifier was trained for each part. This means three models are used for each product to make a prediction. Because the higher level PUCs have a higher prediction accuracy, a misclassified product should still have a prediction that is more accurate that if only one classifier was used for each product. Additionally, bootstrap aggregation exists as an option in the script to guard against overfitting.
