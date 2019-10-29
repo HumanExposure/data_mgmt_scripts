@@ -23,7 +23,7 @@ As an example, if the product name is `extra fancy bleach`, the output array wou
 ![https://res.cloudinary.com/springboard-images/image/upload/q_auto,f_auto,fl_lossy/wordpress/2017/08/wmd-Copy.png](images/word_embed_example.png)
 
 ### Modeling the PUC
-Modeling is done with an SVM, with the vector representing the product name as the input. Given that PUCs have three separate levels, a classifier was trained for each part. This means three models are used for each product to make a prediction. Because the higher level PUCs have a higher prediction accuracy, a misclassified product should still have a prediction that is more accurate that if only one classifier was used for each product. Additionally, bootstrap aggregation exists as an option in the script to guard against overfitting.
+Modeling is done with an SVM, with the vector representing the product name as the input. Given that PUCs have three separate levels, a classifier was trained for each part. This means three models are used for each product to make a prediction. Because the higher level PUCs have a higher prediction accuracy, a misclassified product should still have a prediction that is more accurate than if only one classifier were used for each product. Additionally, bootstrap aggregation exists as an option in the script to guard against variance in classes with only a few products.
 
 **Example model definition**
 ```python
