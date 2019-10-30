@@ -10,6 +10,7 @@ As a perquisite for using this model, a few pieces need to be generated. Both of
 * Run `puc_model.py`. This script will take a while to run. Here is a list of important files that will be generated:
   * `xdata.joblib`: A file containing the result of converting every product name to a vector.
   * `PUC_doc_embeddings.joblib`: The model used for generating the above data. If this is lost, any saved models become useless.
+  * `scale.joblib`: The parameters use for scaling the data.
   * `PUD_key.csv`: A key for converting predicted PUCs back into their respective categories. This can easily be regenerated.
 If you ever want to refresh the model with new data from factotum, you will need to run both of these scripts again.
 
@@ -43,36 +44,6 @@ import pandas as pd
 prod_names = [['clorox', 'extra fancy bleach'], ['crayola', 'purple crayons']]
 puclist = model_run(prod_names, 'boot')
 ```
-
-### Testing accuracy
-```python
-from model_helper import model_build, model_run
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-
-df = pd.read_csv('clean.csv', index_col='key')
-df_train, df_test = train_test_split(df, test_size=0.2)
-sen_test = df_test['name'].to_list()
-model_build(df, df_train, bootstrap=True, num_runs=5, label='test')
-puclist = model_run(sen_test, 'test')
-
-PUC_act = df_test[['gen_cat', 'prod_fam', 'prod_type']].fillna('').apply(
-    lambda x: x.to_list(), axis=1).to_list()
-ct = np.array([0] * 3)
-for i in range(len(puclist)):
-    if puclist[i] == PUC_act[i]:
-        ct += 1
-    else:
-        for n in range(3):
-            if puclist[i][n] == PUC_act[i][n]:
-                ct[n] += 1
-ct = ct / len(puclist)
-print(ct)
-```
-Example output: `[0.98521985 0.97093238 0.96194113]`
-Represents the accuracy of gen_cat, prod_fam, and prod_type respectively.
-
 ## Requirements
 Unless otherwise notes, packages are on the main Anaconda channel. Many packages exist as dependencies to Flair.
 * Python (tested on 3.7)
