@@ -35,9 +35,9 @@ do_OCR = True  # requires tessaract
 all_OCR = False
 
 # change the folder names here
-folder = os.path.join(os.getcwd(), 'pdf')
+folder = os.path.join(os.getcwd(), 'pdf_test')
 pdfs = os.listdir(folder)
-out_folder = os.path.join(os.getcwd(), 'output')
+out_folder = os.path.join(os.getcwd(), 'output_test')
 
 # regex patterns
 s3 = re.compile(r'^[\W]{0,8}(?:sectio|chapte)?[rn]?\W{0,2}[^\d]' +
@@ -931,7 +931,11 @@ def chem_format(val):
         """Format the input string."""
         if v.startswith('CASRN='):
             return ''
-        v_new = v.lstrip('-., ').rstrip('( ').replace('  ', ' ').strip(' \\/')
+        v_new = v.lstrip('-., ').rstrip('( ').replace('  ', ' ').strip(' \\/|')
+        v_new = re.sub(r'(?:^[\(\)]|[\(\)]$)', '', v_new).strip() \
+            if ('(' in v_new and ')' not in v_new) or \
+            (')' in v_new and '(' not in v_new) \
+            else v_new
         return escape_string(re.sub(r_words, '', symbol_cleanup(v_new)))
 
     def wt_format(v):
@@ -942,11 +946,11 @@ def chem_format(val):
         v2 = v.replace(',', '.').split('-')
         if len(v2) == 1:
             if '<' in v2[0]:
-                wt_new['max_wt'] = str(float(v2[0].strip('<= ')))
+                wt_new['max_wt'] = str(float(v2[0].strip('<>= ')))
             elif '>' in v2[0]:
-                wt_new['min_wt'] = str(float(v2[0].strip('>= ')))
+                wt_new['min_wt'] = str(float(v2[0].strip('<>= ')))
             else:
-                wt_new['cent_wt'] = str(float(v2[0]))
+                wt_new['cent_wt'] = str(float(v2[0].strip('= ')))
         elif len(v2) == 2:
             wt_t = [float(i.strip('<>= ')) for i in v2]
             wt_new['max_wt'] = str(max(wt_t))
