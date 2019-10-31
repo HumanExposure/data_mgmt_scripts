@@ -37,13 +37,12 @@ model_build(df, df, bootstrap=True, num_runs=5, label='boot')
 
 ```python
 from model_helper import model_run
-import pandas as pd
 
 prod_names = [['clorox', 'extra fancy bleach'], ['crayola', 'purple crayons']]
 puclist = model_run(prod_names, 'boot')
 ```
 ## Requirements
-Unless otherwise notes, packages are on the main Anaconda channel. Many packages exist as dependencies to Flair.
+Unless otherwise noted, packages are on the main Anaconda channel. Flair has many dependencies, which you may want to install via `conda` rather than `pip`. See below for details.
 * Python (tested on 3.7)
 * Pandas
 * SQLAlchemy
