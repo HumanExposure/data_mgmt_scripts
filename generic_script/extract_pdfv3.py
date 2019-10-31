@@ -35,9 +35,9 @@ do_OCR = True  # requires tessaract
 all_OCR = False
 
 # change the folder names here
-folder = os.path.join(os.getcwd(), 'pdf_test')
+folder = os.path.join(os.getcwd(), 'pdf')
 pdfs = os.listdir(folder)
-out_folder = os.path.join(os.getcwd(), 'output_test')
+out_folder = os.path.join(os.getcwd(), 'output')
 
 # regex patterns
 s3 = re.compile(r'^[\W]{0,8}(?:sectio|chapte)?[rn]?\W{0,2}[^\d]' +
