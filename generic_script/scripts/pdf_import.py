@@ -10,6 +10,7 @@ import re
 import numpy as np
 import pandas as pd
 from tika import parser
+import logging
 
 sds = re.compile(r'(?:s\s?d\s?s|d\s?a\s?t\s?a\s{0,3}s\s?h\s?e\s?e\s?t)',
                  re.IGNORECASE)
@@ -76,6 +77,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
         # read and process files
         data = {}
         print('----- '+f+' -----')
+        logging.debug('%s: Beginning extraction.', f)
         path = os.path.join(folder, f)
 
         if os.path.splitext(f)[1] != '.pdf':
@@ -83,6 +85,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
             not_pdf.append(f)
             failed_files.append(f)
             step0_fail += 1
+            logging.warning('%s: Not a PDF.', f)
             continue
 
         headers = {'X-Tika-PDFextractInlineImages': 'false', }
@@ -92,6 +95,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
             print('Failed to parse')
             failed_files.append(f)
             step0_fail += 1
+            logging.error('%s: Failed to read.', f)
             continue
 
         if proc1['content'] is None:
@@ -101,6 +105,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
                 print(f+' needs OCR')
                 failed_files.append(f)
                 step0_fail += 1
+                logging.warning('%s: Needs OCR but OCR is not enabled.', f)
                 continue
         else:
             raw1 = [i for i in proc1['content'].splitlines() if
@@ -122,11 +127,13 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
                     # hasOCR = True
                     f = f+'_OCR'
                     print('Uses OCR: '+f)
+                    logging.debug('%s: Uses OCR.', f)
                     proc = proc2
                     raw = raw2
             else:
                 print('OCR Failed: '+f)
                 print('Make sure tesseract is installed and restart tika')
+                logging.error('%s: OCR failed.', f)
                 failed_files.append(f)
                 step0_fail += 1
                 continue
@@ -137,6 +144,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
             # print('Not an SDS: '+f)
             not_sds.append(f)
             step1_success += 1
+            logging.debug('%s: Not an MSDS.', f)
             data['raw'] = proc['content']
             to_label[f] = data
             continue
@@ -219,12 +227,16 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
         c3 = len(ind3)
         c4 = len(ind4)
         if c3 > 1 and c3 != c4:
+            logging.debug('%s: Too many section 3 matches.', f)
             print('Too many section 3 matches: '+f)
         if c3 == 0:
+            logging.debug('%s: No section 3 matches.', f)
             print('No section 3 matches: '+f)
         if c4 > 1 and c3 != c4:
+            logging.debug('%s: Too many section 4 matches', f)
             print('Too many section 4 matches: '+f)
         if c4 == 0:
+            logging.debug('%s: No section 4 matches.', f)
             print('No section 4 matches: '+f)
 
         data['ind3'] = ind3
@@ -250,6 +262,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
             if len([1 for i in range(len(ind3)-1)
                     if ind3[i+1] > ind4[i]]) != len(ind3)-1:
                 print('Mixed up index: '+f)
+                logging.debug('%s: Mixed up index.', f)
                 to_old[f] = data
                 step1_fail += 1
                 continue

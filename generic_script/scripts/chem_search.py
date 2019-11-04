@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import re
 import time
+import logging
 
 from chem_match import fuzzy_match, match2
 
@@ -47,6 +48,7 @@ def fun_chemicals(key, val):  # to_sec
     else:
         doc.append([])
         print('No hazards: '+key)
+        logging.debug('%s: No hazards.', key)
     return doc
 
 
@@ -151,6 +153,7 @@ def fun_sec_search(key, val):  # to_sec
                 keep.append(dd)
         newchems.append(keep)
     print(key+': '+str(round(time.time()-ss)))
+    logging.debug(key+': '+str(round(time.time()-ss)))
     return newchems
 
 

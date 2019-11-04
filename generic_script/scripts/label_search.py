@@ -8,6 +8,7 @@ Created on Thu Oct 31 17:43:34 2019
 
 import re
 import pandas as pd
+import logging
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -154,6 +155,7 @@ def fun_label_search(key, val):
         if len(all2) > 0 and len(t2) - free[-1] <= 3:
             t22 = [i for nn, i in enumerate(t2) if nn not in all2]
     elif len(free) > 1:
+        logging.debug('Error with free thing')
         print('hmmmm free')
 
     t225 = [i.strip() for i in re.sub(re_2per, '', '@ '.join(t22)

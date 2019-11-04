@@ -11,6 +11,7 @@ Created on Thu Oct 31 17:57:13 2019
 import re
 import json
 import pandas as pd
+import logging
 from sqlalchemy import create_engine
 from fuzzywuzzy import fuzz  # used to use this more but was inefficient
 # from fuzzywuzzy import process
@@ -98,6 +99,7 @@ def read_df():
 
     """
     print('Getting chem list...')
+    logging.debug('Getting chem list...')
     # search list from comptox
     df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
     df = df_names[['casrn', 'preferred_name']].copy()
@@ -125,6 +127,7 @@ def read_df():
     df = cc
     df_u = pd.unique(df.str.strip().str.lower())
     tcomb = [i for i in df_u if not re.search(cas2, i)]
+    logging.debug('Done.')
     print('Done')
     return tcomb
 
@@ -267,6 +270,7 @@ def match2(r, chems, val):
                 gwt3 = re.search(r_wt_pig2, rem2)
                 gwt = gwt3 if gwt3 else gwt
             print(rem2)
+            logging.debug(str(rem2))
 
         # create weights
         wt = ''
@@ -278,6 +282,7 @@ def match2(r, chems, val):
                 wt = str(gp[0]) + '-' + str(gp[1])
             elif len(gp) > 2:
                 print('WT Error: ' + str(gp))
+                logging.warning('WT Error: ' + str(gp))
             wt = wt.replace(' ', '') + unit
 
         # get name from beginning, use regex to remove strange patterns
@@ -304,6 +309,7 @@ def match2(r, chems, val):
                                       for j in i.split(',')
                                       if len(j.strip()) > 0]
                 print(d)
+                logging.debug(str(d))
 
             # sometimes there are 2 dicts when there should be 1
             if len(d) == 2:
@@ -325,6 +331,7 @@ def match2(r, chems, val):
                                               for j in i.split(',')
                                               if len(j.strip()) > 0]
                         print(d)
+                        logging.debug(str(d))
 
             # fixes regex interpreting a color (e.g. red 5) as a weight
             for k, v in d.copy().items():
@@ -361,6 +368,8 @@ def match2(r, chems, val):
                                                      str(gp[1])
                                             elif len(gp) > 2:
                                                 print('WT Error: ' + str(gp))
+                                                logging.warning('WT Error: ' +
+                                                                str(gp))
                                             wt = wt.replace(' ', '') + unit
                                         tmp = v.copy()
                                         tmp['wt'] = wt
@@ -369,6 +378,8 @@ def match2(r, chems, val):
                                         print(rem2)
                                         print(d)
                                         print('-------')
+                                        logging.debug('Fixed %s ---> %s',
+                                                      str(rem2), str(d))
                                         del d[k]
                                         break
     return d

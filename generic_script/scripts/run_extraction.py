@@ -8,6 +8,8 @@ Created on Fri Oct 18 11:34:22 2019
 
 import os
 import pandas as pd
+import logging
+import time
 
 from pdf_import import pdf_sort
 from label_search import fun_label_search
@@ -16,45 +18,19 @@ from chem_search import (fun_chemicals, fun_chemicals_add, fun_chemicals_old,
 from formatting import chem_format, fix_dict
 
 
-# blank variables
-# step0_fail = 0  # pdfs which were not read successfully
-# step1_fail = 0  # where a section was not found
-# step1_success = 0  # pdfs with text successfully extracted
-
-# not_pdf = []  # don't do anything with these
-# not_sds = []  # not detected as an SDS
-# too_3or4 = []  # examine and fix
-# no_3or4 = []  # examine and fix
-# needs_ocr = []  # pdfs that need ocr
-# failed_files = []  # files that failed to load
-# split_pdfs = []  # list of pdfs that had multiple msds (successful only)
-
-# keys for all these were removed
-# chemicals: key to section to list
-# chemicals_old: key to list
-# chemicals_add: key to list
-
-# sec_search: key to section to list of dicts
-# sec_search_wide: key to list of dicts
-# old_search: key to list of dicts
-
-# label_search: key to list
-# label_search2: key to list (not anymore)
-
-
 def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
     """Take a filename and return chemical info."""
     # read pdf
     comb = pdf_sort(f, folder, do_OCR, all_OCR)
 
     # break out output (this info will be used to log)
-    step0_fail = comb[3]
-    step1_fail = comb[4]
-    step1_success = comb[5]
-    not_pdf = comb[6]
-    not_sds = comb[7]
-    too_3or4 = comb[8]
-    no_3or4 = comb[9]
+    # step0_fail = comb[3]
+    # step1_fail = comb[4]
+    # step1_success = comb[5]
+    # not_pdf = comb[6]
+    # not_sds = comb[7]
+    # too_3or4 = comb[8]
+    # no_3or4 = comb[9]
     needs_ocr = comb[10]
     failed_files = comb[11]
     split_pdfs = comb[12]
@@ -69,6 +45,18 @@ def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
     named = []
     casno = []
     nlabel = []
+
+    # keys for all these were removed
+    # chemicals: key to section to list
+    # chemicals_old: key to list
+    # chemicals_add: key to list
+
+    # sec_search: key to section to list of dicts
+    # sec_search_wide: key to list of dicts
+    # old_search: key to list of dicts
+
+    # label_search: key to list
+    # label_search2: key to list (not anymore)
 
     # search for information
     # all of these loops are 1 item long
@@ -152,29 +140,58 @@ def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
         dinfo['debug'] = ','.join(list(pd.unique(sc)))
         if len(sc) > 1:
             print(sc)
+            logging.warning('%s: Sorted into multiple sections.', f)
     dinfo['num_found'] = len(df_comb)
+
+    logging.debug('%s: OCR=%s, split=%s, section=%s', dinfo['filename'],
+                  str(dinfo['OCR']), str(dinfo['split']), dinfo['debug'])
+    logging.info('%s: %s chemicals found.', dinfo['filename'],
+                 str(dinfo['num_found']))
 
     # info_df.append(dinfo)
 
     return df_comb, dinfo
 
 
-# change the folder names here
-folder = os.path.join(os.getcwd(), 'pdf')
-out_folder = os.path.join(os.getcwd(), 'output')
+if __name__ == '__main__':
+    # change parameters here
+    do_OCR = True
+    all_OCR = False
+    folder = os.path.join(os.getcwd(), 'pdf')
+    out_folder = os.path.join(os.getcwd(), 'output')
 
-# iterate through files
-df_store = []
-info_df = []
-for f in os.listdir(folder):
-    d1, d2 = pdf_extract(f, folder)
-    df_store.append(d1)
-    info_df.append(d2)
+    # starting main part
+    stime = time.strftime('%Y-%m-%d_%H-%M-%S')
+    logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + stime +
+                                              '.log'), filemode='w',
+                        format='[%(levelname)s] %(asctime)s: %(message)s',
+                        level=logging.INFO)
 
+    if do_OCR and not all_OCR:
+        logging.info('OCR is enabled for files with no text.')
+    elif do_OCR and all_OCR:
+        logging.info('OCR is enabled for all files.')
+    elif not do_OCR and all_OCR:
+        logging.warning('OCR is not enabled.')
+    else:
+        logging.info('OCR is not enabled.')
 
-df_all = pd.concat(df_store).reset_index(drop=True)
-file_prop = pd.DataFrame(info_df)
+    logging.info(str(len([i for i in os.listdir(folder) if
+                          os.path.splitext(i)[1] == '.pdf'])) + ' PDFs found.')
 
-# write info file
-df_all.to_csv(os.path.join(out_folder, 'chemical_data.csv'), index_label='row')
-file_prop.to_csv(os.path.join(out_folder, 'file_info.csv'), index=False)
+    # iterate through files
+    df_store = []
+    info_df = []
+    for f in os.listdir(folder):
+        d1, d2 = pdf_extract(f, folder, do_OCR, all_OCR)
+        df_store.append(d1)
+        info_df.append(d2)
+
+    df_all = pd.concat(df_store).reset_index(drop=True)
+    file_prop = pd.DataFrame(info_df)
+
+    # write info file
+    df_all.to_csv(os.path.join(out_folder, 'chemical_data_' + stime + '.csv'),
+                  index_label='row')
+    file_prop.to_csv(os.path.join(out_folder, 'file_info_' + stime + '.csv'),
+                     index=False)

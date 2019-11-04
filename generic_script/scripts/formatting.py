@@ -9,6 +9,7 @@ Created on Thu Oct 31 18:03:43 2019
 import re
 from pymysql import escape_string
 import pandas as pd
+import logging
 
 r_words = re.compile(r'[^\w\s\d\-\_\=\+\)\(\*\&\^\%\$\#\@\!\~\}\]\{\[\'\"\;' +
                      r'\:\/\?\.\>\,\|\<\\]', re.I)
@@ -83,6 +84,7 @@ def chem_format(val):
             wt_new['min_wt'] = str(min(wt_t))
         else:
             print('WT Error' + ' - ' + v)
+            logging.debug('WT Error - %s', str(v))
         return wt_new
 
     # loop through list items, call earlier functions and change dict format
@@ -102,6 +104,7 @@ def chem_format(val):
             val_new.append(dnew)
         else:
             print('Type error: ' + str(type(i)) + ' - ' + str(val))
+            logging.warning('Type error: ' + str(type(i)) + ' - ' + str(val))
 
     return val_new
 
@@ -139,10 +142,12 @@ def fix_dict(d):
                     ct_color += 1
         if ct_color > 1:
             print('Too many colors')  # should never happen
+            logging.warning('Too many colors.')
         nm = nm.strip(' /')
         if ct_cas2 != ct_wt2 and check:
             print('Dict error:')
             print(d)
+            logging.warning('Dict error: %s', str(d))
             return [{i: d[i]} for i in d.keys()]
         else:
             return [{nm: newd}]
