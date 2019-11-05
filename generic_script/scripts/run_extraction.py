@@ -109,8 +109,6 @@ def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
 
     # search for information
     # all of these loops are 1 item long
-    chemct1 = 0
-    chemct2 = 0
     for key, val in to_sec.items():
         sc.append('sec')
 
@@ -124,9 +122,6 @@ def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
         casno = casno + [j for i in chemicals for j in i]
         casno = casno + chemicals_add
 
-        chemct1 += len(pd.unique(named))
-        chemct2 += len(pd.unique(casno))
-
     for key, val in to_old.items():
         sc.append('old')
 
@@ -136,9 +131,6 @@ def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
         named = named + old_search
         casno = casno + chemicals_old
 
-        chemct1 += len(pd.unique(named))
-        chemct2 += len(pd.unique(casno))
-
     for key, val in to_label.items():
         sc.append('label')
 
@@ -146,10 +138,12 @@ def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
 
         nlabel = nlabel + label_search
 
-        chemct2 += len(pd.unique(nlabel))
-
     # aggregate names
     named = [j for i in named for j in fix_dict(i)]
+    chemct1 = len(named)
+    chemct2 = len(pd.unique(casno)) + len(pd.unique(nlabel))
+    logging.debug('%s: %s chems to df_search, %s other.', f, str(chemct1),
+                  str(chemct2))
     df_search = pd.DataFrame(chem_format(named))
     df_search.drop_duplicates(inplace=True)
 
