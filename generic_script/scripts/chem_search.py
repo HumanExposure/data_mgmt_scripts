@@ -126,7 +126,7 @@ def fun_chemicals_old(key, val):  # to_old
     return chems_out
 
 
-def fun_sec_search(key, val):  # to_sec
+def fun_sec_search(key, val, tcomb):  # to_sec
     """Search for chemical names.
 
     This function searches the Section 3 for chemical names. It calls
@@ -136,6 +136,7 @@ def fun_sec_search(key, val):  # to_sec
         key (str): Filename.
         val (dict): Dict containing info from searching the file (see pdf_sort
                     function).
+        tcomb (DataFrame): df of chemicals to pass.
 
     Returns:
         newchems (list): List of lists of chemical names.
@@ -147,7 +148,7 @@ def fun_sec_search(key, val):  # to_sec
     for filt in val['filt']:
         keep = []
         for r in filt:
-            chems = fuzzy_match(r)  # outputs list of chem names in each row
+            chems = fuzzy_match(r, tcomb=tcomb)  # outputs list of names in row
             dd = match2(r, chems, val)  # processes line
             if len(dd) > 0 and len(list(dd.keys())[0]) > 2:
                 keep.append(dd)
@@ -157,7 +158,7 @@ def fun_sec_search(key, val):  # to_sec
     return newchems
 
 
-def fun_wide_search(key, val):  # used in old_serch and sec_search_wide
+def fun_wide_search(key, val, tcomb):  # used in old_serch and sec_search_wide
     """Search for chemical names.
 
     This function searches the document for chemical names. It calls
@@ -168,6 +169,7 @@ def fun_wide_search(key, val):  # used in old_serch and sec_search_wide
         key (str): Filename.
         val (dict): Dict containing info from searching the file (see pdf_sort
                     function).
+        tcomb (DataFrame): df of chemicals to pass.
 
     Returns:
         keep (list): List of chemical names.
@@ -192,7 +194,7 @@ def fun_wide_search(key, val):  # used in old_serch and sec_search_wide
     # call functions
     keep = []
     for r in filt:
-        chems = fuzzy_match(r)
+        chems = fuzzy_match(r, tcomb=tcomb)
         dd = match2(r, chems, val)
 
         if len(dd) > 0 and len(list(dd.keys())[0]) > 2:

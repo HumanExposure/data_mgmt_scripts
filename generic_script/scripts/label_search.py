@@ -65,7 +65,7 @@ amino_all = [qq for q in [['l-'+j, 'd-'+j, j] for j in amino] for qq in q]
 
 
 # search labels
-def fun_label_search(key, val):
+def fun_label_search(key, val, tcomb):
     """Search for chemical names in labels.
 
     This function looks at product labels for chemical names. It looks at both
@@ -276,7 +276,7 @@ def fun_label_search(key, val):
                 for i in asg] if asg else []
 
     # search chemical list
-    chems_fuzz_all = fuzzy_match(filt, sds=False)
+    chems_fuzz_all = fuzzy_match(filt, sds=False, tcomb=tcomb)
     chems_fuzz = [i.strip(',. ') for i in chems_fuzz_all
                   if re.search(re.compile(
                           r'(?<![\-])\b(?:' + re.escape(i) + r')\b(?![\-])',

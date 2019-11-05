@@ -193,9 +193,9 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
                 s1 = ' '.join(raw[ind3[0]:ind3[1]])
                 s2 = ' '.join(raw[ind3[1]:ind4[0]])
                 if 'CAS' in s1:
-                    ind3 = [ind3[0]]
                     if 'CAS' not in s2:
                         ind4[0] = ind3[1]
+                    ind3 = [ind3[0]]
                 else:
                     if 'CAS' in s2:
                         ind3 = [ind3[1]]

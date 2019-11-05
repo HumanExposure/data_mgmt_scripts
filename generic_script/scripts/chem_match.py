@@ -9,10 +9,8 @@ Created on Thu Oct 31 17:57:13 2019
 """
 
 import re
-import json
 import pandas as pd
 import logging
-from sqlalchemy import create_engine
 from fuzzywuzzy import fuzz  # used to use this more but was inefficient
 # from fuzzywuzzy import process
 # NEEDS MANUAL FIX https://github.com/seatgeek/fuzzywuzzy/pull/243/files
@@ -26,8 +24,6 @@ from formatting import symbol_cleanup
 
 cas = re.compile(r'(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}([\d])',
                  re.IGNORECASE)
-cas2 = re.compile(r'^(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}([\d])$',
-                  re.IGNORECASE)
 ecno = re.compile(r'\s?(\d{3})[\—\–\-\° ]{1,3}(\d{3})[\—\–\-\° ]{1,3}' +
                   r'([\d])\s?', re.IGNORECASE)
 
@@ -88,54 +84,7 @@ exclude = ['secret', 'proprietary', 'n/a', 'cbi', 'trade', 'not available']
 re_cont4 = re.compile(r'\b(?:contain[s]?)\b', re.I)
 
 
-def read_df():
-    """Produce a list of chemical names.
-
-    This function pulls data from factotum and from an Excel file to create a
-    list of unique chemical names.
-
-    Returns:
-        tcomb (list): A list containing uique chemical names.
-
-    """
-    print('Getting chem list...')
-    logging.debug('Getting chem list...')
-    # search list from comptox
-    df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
-    df = df_names[['casrn', 'preferred_name']].copy()
-    # df['casrn'].nunique() == len(df)
-    df = df.set_index('casrn').dropna().copy()
-    df['sort'] = df['preferred_name'].apply(len)
-    df1 = df.sort_values(by='sort')[['preferred_name']].copy()
-
-    # get chemicals from factotum
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
-    conn = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
-                         f'{cfg["password"]}@{cfg["server"]}:' +
-                         f'{cfg["port"]}/{cfg["database"]}?charset=utf8',
-                         convert_unicode=True, echo=False).connect()
-    sql = 'SELECT DISTINCT raw_chem_name from dashboard_rawchem;'
-    df = pd.read_sql(sql, conn)
-    df = df.rename(columns={'raw_chem_name': 'preferred_name'}).dropna()
-    conn.close()
-
-    cq = pd.concat([df1, df]).apply(lambda x: x.str.lower().str.strip())
-    cc = cq['preferred_name'].drop_duplicates()
-
-    # format and compile the list of chemicals
-    df = cc
-    df_u = pd.unique(df.str.strip().str.lower())
-    tcomb = [i for i in df_u if not re.search(cas2, i)]
-    logging.debug('Done.')
-    print('Done')
-    return tcomb
-
-
-tcomb = read_df()
-
-
-def fuzzy_match(row, sds=True):
+def fuzzy_match(row, tcomb, sds=True):
     """Find chemical names in a string.
 
     Using the list of chemicals from before, search the input string for
@@ -144,6 +93,7 @@ def fuzzy_match(row, sds=True):
 
     Args:
         row (str): String in which to search for matches.
+        tcomb(df): DataFrame of chemicals.
         sds (bool): Whether the source file is an SDS. Defaults to True.
 
     Returns:

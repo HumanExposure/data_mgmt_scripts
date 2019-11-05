@@ -10,6 +10,9 @@ import os
 import pandas as pd
 import logging
 import time
+from sqlalchemy import create_engine
+import json
+import re
 
 from pdf_import import pdf_sort
 from label_search import fun_label_search
@@ -18,7 +21,53 @@ from chem_search import (fun_chemicals, fun_chemicals_add, fun_chemicals_old,
 from formatting import chem_format, fix_dict
 
 
-def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
+def read_df():
+    """Produce a list of chemical names.
+
+    This function pulls data from factotum and from an Excel file to create a
+    list of unique chemical names.
+
+    Returns:
+        tcomb (list): A list containing uique chemical names.
+
+    """
+    print('Getting chem list...')
+    cas2 = re.compile(r'^(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}' +
+                      r'([\d])$', re.IGNORECASE)
+    logging.debug('Getting chem list...')
+    # search list from comptox
+    df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
+    df = df_names[['casrn', 'preferred_name']].copy()
+    # df['casrn'].nunique() == len(df)
+    df = df.set_index('casrn').dropna().copy()
+    df['sort'] = df['preferred_name'].apply(len)
+    df1 = df.sort_values(by='sort')[['preferred_name']].copy()
+
+    # get chemicals from factotum
+    with open('mysql.json', 'r') as f:
+        cfg = json.load(f)['mysql']
+    conn = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
+                         f'{cfg["password"]}@{cfg["server"]}:' +
+                         f'{cfg["port"]}/{cfg["database"]}?charset=utf8',
+                         convert_unicode=True, echo=False).connect()
+    sql = 'SELECT DISTINCT raw_chem_name from dashboard_rawchem;'
+    df = pd.read_sql(sql, conn)
+    df = df.rename(columns={'raw_chem_name': 'preferred_name'}).dropna()
+    conn.close()
+
+    cq = pd.concat([df1, df]).apply(lambda x: x.str.lower().str.strip())
+    cc = cq['preferred_name'].drop_duplicates()
+
+    # format and compile the list of chemicals
+    df = cc
+    df_u = pd.unique(df.str.strip().str.lower())
+    tcomb = [i for i in df_u if not re.search(cas2, i)]
+    logging.debug('Done.')
+    print('Done')
+    return tcomb
+
+
+def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
     """Take a filename and return chemical info."""
     # read pdf
     comb = pdf_sort(f, folder, do_OCR, all_OCR)
@@ -60,34 +109,44 @@ def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
 
     # search for information
     # all of these loops are 1 item long
+    chemct1 = 0
+    chemct2 = 0
     for key, val in to_sec.items():
         sc.append('sec')
 
         chemicals = fun_chemicals(key, val)
         chemicals_add = fun_chemicals_add(key, val, chemicals)
-        sec_search = fun_sec_search(key, val)
-        sec_search_wide = fun_wide_search(key, val)
+        sec_search = fun_sec_search(key, val, tcomb)
+        sec_search_wide = fun_wide_search(key, val, tcomb)
 
         named = named + [j for i in sec_search for j in i]
         named = named + sec_search_wide
         casno = casno + [j for i in chemicals for j in i]
         casno = casno + chemicals_add
 
+        chemct1 += len(pd.unique(named))
+        chemct2 += len(pd.unique(casno))
+
     for key, val in to_old.items():
         sc.append('old')
 
         chemicals_old = fun_chemicals_old(key, val)
-        old_search = fun_wide_search(key, val)
+        old_search = fun_wide_search(key, val, tcomb)
 
         named = named + old_search
         casno = casno + chemicals_old
 
+        chemct1 += len(pd.unique(named))
+        chemct2 += len(pd.unique(casno))
+
     for key, val in to_label.items():
         sc.append('label')
 
-        label_search = fun_label_search(key, val)
+        label_search = fun_label_search(key, val, tcomb)
 
         nlabel = nlabel + label_search
+
+        chemct2 += len(pd.unique(nlabel))
 
     # aggregate names
     named = [j for i in named for j in fix_dict(i)]
@@ -96,21 +155,20 @@ def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
 
     # aggregate cas
     casno = [i for i in list(pd.unique(casno))
-             if'cas' in df_search.columns and i not in df_search['cas'].values]
-    to_add = []
-    for n in casno:
-        to_add.append({'name': '', 'cas': n, 'min_wt': '', 'cent_wt': '',
-                       'max_wt': '', 'ci_color': ''})
+             if ('cas' in df_search.columns and
+                 i not in df_search['cas'].values)
+             or ('cas' not in df_search.columns)]
+    to_add = [{'name': '', 'cas': n, 'min_wt': '', 'cent_wt': '',
+                       'max_wt': '', 'ci_color': ''} for n in casno]
     to_add_df = pd.DataFrame(to_add)
 
     # aggregate label info
     nlabel = chem_format([i for i in list(pd.unique(nlabel))
-                          if 'name' in df_search.columns and
-                          i not in df_search['name'].values])
-    to_add_label = []
-    for n in nlabel:
-        to_add_label.append({'name': n, 'cas': '', 'min_wt': '', 'cent_wt': '',
-                             'max_wt': '', 'ci_color': ''})
+                          if ('name' in df_search.columns and
+                              i not in df_search['name'].values)
+                          or ('name' not in df_search.columns)])
+    to_add_label = [{'name': n, 'cas': '', 'min_wt': '', 'cent_wt': '',
+                     'max_wt': '', 'ci_color': ''} for n in nlabel]
     to_add_label_df = pd.DataFrame(to_add_label)
 
     # combine
@@ -122,6 +180,9 @@ def pdf_extract(f, folder, do_OCR=True, all_OCR=False):
                                index=[0])
     df_comb = df_comb.loc[df_comb.apply(lambda x: 0 if x.sum().strip()
                                         == '' else 1, axis=1) == 1]
+
+    if (chemct1 == 0 and chemct2 != 0) and len(df_comb) == 0:
+        logging.warning('%s: Check documents for removed chemicals.', f)
 
     df_comb.insert(0, 'filename', f.split('.pdf')[0] + '.csv')
     # df_store.append(df_comb)
@@ -180,10 +241,11 @@ if __name__ == '__main__':
                           os.path.splitext(i)[1] == '.pdf'])) + ' PDFs found.')
 
     # iterate through files
+    tcomb = read_df()
     df_store = []
     info_df = []
     for f in os.listdir(folder):
-        d1, d2 = pdf_extract(f, folder, do_OCR, all_OCR)
+        d1, d2 = pdf_extract(f, folder, tcomb, do_OCR, all_OCR)
         df_store.append(d1)
         info_df.append(d2)
 
