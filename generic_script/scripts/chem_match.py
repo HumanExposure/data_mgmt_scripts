@@ -250,7 +250,13 @@ def match2(r, chems, val):
                 nm2 = 'CASRN='+tcas
             for i in chems:
                 ntmp = re.sub(r_ci, ' ', i).strip().split('(ci')[0]
-                if fuzz.ratio(nm2, ntmp) > 95 or ntmp in nm2:
+                if fuzz.ratio(nm2, ntmp) > 95 or (
+                        (ntmp in nm2 or nm2 in ntmp) or
+                        ((ntmp in nm or nm in ntmp) and re.search(r'\w', nm))):
+                    # if (ntmp not in nm2 and nm2 not in ntmp) and (
+                    #         (ntmp in nm or nm in ntmp) and
+                    #         re.search(r'\w', nm)):
+                    #     print('CHECK: ' + ntmp + ' - ' + nm2 + ' ++++++++++')
                     del d[i]
             nm2 = nm2.strip() + ' - secret' if ts == 1 else nm2
             d[nm2] = {'cas': tcas, 'wt': wt}

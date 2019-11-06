@@ -215,7 +215,7 @@ if __name__ == '__main__':
     folder = os.path.join(os.getcwd(), 'pdf')
     out_folder = os.path.join(os.getcwd(), 'output')
 
-    # starting main part
+    # start logging
     stime = time.strftime('%Y-%m-%d_%H-%M-%S')
     logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + stime +
                                               '.log'), filemode='w',
