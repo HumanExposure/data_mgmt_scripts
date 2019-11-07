@@ -242,21 +242,42 @@ def match2(r, chems, val):
             nm2 = re.sub(cl, '', nm).strip(' .')
             nm2 = re.sub(cl2, '', nm2).strip(' .')
             nm2 = re.sub(r'\s+', ' ', nm2)
+            nm2 = re.sub(r'^\d{1,2}[\)\.\:]\s?', '', nm2)
             nm2_old = re.sub(cl_old, '', nm).strip(' .')
             if nm2 != nm2_old:
                 print(nm2_old + ' ---> ' + nm2)
             nm2 = nm2 if re.search(r'\w', nm2) else ''
             if nm2 == '' and tcas != '':
                 nm2 = 'CASRN='+tcas
-            for i in chems:
+            cl_chem = []
+            for nn, i in enumerate(chems):
                 ntmp = re.sub(r_ci, ' ', i).strip().split('(ci')[0]
-                if fuzz.ratio(nm2, ntmp) > 95 or (
+                ntmp = re.sub(cl, '', ntmp).strip(' .')
+                ntmp = re.sub(cl2, '', ntmp).strip(' .')
+                ntmp = re.sub(r'\s+', ' ', ntmp)
+                ntmp = re.sub(r'^\d{1,2}[\)\.\:]\s?', '', ntmp)
+                cl_chem.append(ntmp)
+            newlist = []
+            for i in cl_chem:
+                inside = False
+                for j in cl_chem:
+                    if i in j and i != j:
+                        inside = True
+                        break
+                newlist.append(i if not inside else None)
+            for nn, i in enumerate(chems):
+                ntmp = newlist[nn]
+                if (fuzz.ratio(nm2, ntmp) > 60 or ntmp is None) or (
                         (ntmp in nm2 or nm2 in ntmp) or
                         ((ntmp in nm or nm in ntmp) and re.search(r'\w', nm))):
                     # if (ntmp not in nm2 and nm2 not in ntmp) and (
                     #         (ntmp in nm or nm in ntmp) and
                     #         re.search(r'\w', nm)):
                     #     print('CHECK: ' + ntmp + ' - ' + nm2 + ' ++++++++++')
+                    if d[i]['cas'] != '' or d[i]['wt'] != '':
+                        print('Dict not blank: ' + str(d))
+                        logging.warning('Dict not blank: ' + str(d))
+                        continue
                     del d[i]
             nm2 = nm2.strip() + ' - secret' if ts == 1 else nm2
             d[nm2] = {'cas': tcas, 'wt': wt}
@@ -306,7 +327,8 @@ def match2(r, chems, val):
                                     q = gwt.group(0)
                                     score = [0] * len(test1)
                                     for ns, si in enumerate(test1):
-                                        if k in si.lower():
+                                        if k in re.sub(r'\s+', ' ',
+                                                       si.lower()):
                                             score[ns] += 1
                                         if q in si.lower():
                                             score[ns] += 1
