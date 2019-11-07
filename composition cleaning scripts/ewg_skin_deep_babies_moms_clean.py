@@ -1,5 +1,5 @@
 #lkoval
-#11-6-19
+#11-7-19
 
 import pandas as pd
 import string
@@ -15,6 +15,7 @@ raw_data=raw_data[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw
 
 split_data=raw_data.rename(columns={"raw_min_comp":"lower_wf_analysis","raw_central_comp":"central_wf_analysis","raw_max_comp":"upper_wf_analysis"})
 split_data.central_wf_analysis=split_data.central_wf_analysis/100
+split_data.central_wf_analysis=split_data.central_wf_analysis.round(10)
 
 clean_data=split_data.fillna("")
 clean_data.to_csv("ewg_skin_deep_babies_moms_cleaned.csv", index=False)
