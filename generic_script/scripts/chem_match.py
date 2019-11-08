@@ -265,6 +265,7 @@ def match2(r, chems, val):
                         inside = True
                         break
                 newlist.append(i if not inside else None)
+            keep = []
             for nn, i in enumerate(chems):
                 ntmp = newlist[nn]
                 if (fuzz.ratio(nm2, ntmp) > 60 or ntmp is None) or (
@@ -278,7 +279,12 @@ def match2(r, chems, val):
                         print('Dict not blank: ' + str(d))
                         logging.warning('Dict not blank: ' + str(d))
                         continue
-                    del d[i]
+                elif ntmp is not None:
+                    keep.append(ntmp)
+                del d[i]
+            nm2 = (nm2.strip() + ' / ' + ' / '.join(keep)).strip(' /')
+            if len(keep) > 0:
+                logging.debug('Chems combined: ' + nm2)
             nm2 = nm2.strip() + ' - secret' if ts == 1 else nm2
             d[nm2] = {'cas': tcas, 'wt': wt}
             if ci_color:
