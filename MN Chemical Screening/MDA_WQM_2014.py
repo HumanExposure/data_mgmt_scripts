@@ -41,7 +41,7 @@ table_1_gw=table_1_gw.applymap(str.lower)
 
 table_1_gw["data_document_id"]="1496301"
 table_1_gw["data_document_filename"]="MDA_2014_WQMReport_b.pdf"
-table_1_gw["doc_date"]="January-December 2014"
+table_1_gw["doc_date"]="June 2015"
 table_1_gw["raw_category"]=""
 table_1_gw["raw_cas"]=""
 table_1_gw["cat_code"]=""
