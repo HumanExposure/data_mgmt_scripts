@@ -3,6 +3,10 @@
 Created on Tue Nov 12 13:24:47 2019
 
 @author: ALarger
+
+Extracts the detected chemicals from tables 2 and 3 of MPCA 2015 Pharms PCPs and EAC Monitoring Lakes and Rivers 2013
+Combines chemicals found in lakes and rivers into one list
+Written in python 3.6
 """
 
 import camelot, os
