@@ -35,10 +35,10 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 `model_helper.py` also contains a function to help with predictions, `model_run`. It takes a list of product names as the input. The list should be in the form `[['brand1', 'title1'], ['brand2', 'title2']]`, but can also just be a list of names. This script will clean and vectorize the product names before using the model to make a prediction. There is also a label field; this field needs to be the same as when training the model. The output will be an array of PUCs in the form `[['gen_cat', 'prod_fam', 'prod_type'], ...]`.
 
 `model_run` takes the following as inputs:
-* sen_itr: List of product names in the form `['brand', 'title']`
-* label: Model label, should match the label used when building the model
-* mode: Whether to take the mode of the different runs or just output the results of all runs
-* proba: Whether to output probabilities (need to enable the flag when building the model, as well)
+* `sen_itr`: List of product names in the form `['brand', 'title']`
+* `label`: Model label, should match the label used when building the model
+* `mode`: Whether to take the mode of the different runs or just output the results of all runs
+* `proba`: Whether to output probabilities (need to enable the flag when building the model, as well)
 
 There are three lists that are returned by the function:
 * A list of predicted PUCs (form depending on `mode` flag)
