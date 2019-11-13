@@ -40,6 +40,11 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 * mode: Whether to take the mode of the different runs or just output the results of all runs
 * proba: Whether to output probabilities (need to enable the flag when building the model, as well)
 
+There are three lists that are returned by the function:
+* A list of predicted PUCs (form depending on `mode` flag)
+* A list of probabilities (blank if `proba=False`)
+* A list of predicted PUC for each level (used for formatting the list of probabilities, blank if `proba=False`)
+
 ```python
 from model_helper import model_run
 
