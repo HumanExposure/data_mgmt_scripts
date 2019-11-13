@@ -13,6 +13,16 @@ You should put the edited 'mysql.json' in the folder with the scripts, as well a
 
 The script will output a CSV file containing a list of chemicals for each PDF in the output folder. It will also output a generic info file in the output folder.
 
+Tika will still be running in the background after running the script, you need to kill it manually.
+```bash
+ps aux | grep java | grep Tika
+kill -9 PID
+```
+OR
+```bash
+kill -9 $(ps aux | grep java | grep Tika | grep -oP -m1 "^\w{3,10}\s{1,}\K\w{4,5}")
+```
+
 ### Packages
 * Python (tested on 3.7, I know you need at least 3.5)
 * NumPy
