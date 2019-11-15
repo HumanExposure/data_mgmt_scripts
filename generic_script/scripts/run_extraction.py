@@ -250,6 +250,8 @@ if __name__ == '__main__':
             df_store.append(d1)
             info_df.append(d2)
 
+    if len(df_store) == 0:
+        df_store.append(pd.DataFrame())
     df_all = pd.concat(df_store).reset_index(drop=True)
     file_prop = pd.DataFrame(info_df)
 
