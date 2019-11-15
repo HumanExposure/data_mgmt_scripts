@@ -5,7 +5,7 @@ The purpose of this set of scripts is to use a product name to predict a PUC. Be
 All of the following methods can be imported from `model_helper.py`. See this file for more info about the parameters.
 
 ### Generate model data
-As a perquisite for using this model, a few pieces need to be generated. This takes a while to do, but only needs to be done once as long as the training data doesn't change. Additionally, if you run this again after building a model, that model will no longer work. If you ever want to refresh the model with new data from factotum, you will need to run this function again. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop). Many files ending in `.joblib` are saved by running this function; do not delete them.
+As a perquisite for using this model, a few pieces need to be generated. This takes a while to do, but only needs to be done once as long as the training data doesn't change. If you ever want to refresh the model with new data from factotum, you will need to run this function again. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop). Many files ending in `.joblib` are saved by running this function; do not delete them.
 
 `model_initialize` is the required function and takes the following inputs:
 * `add_groups`: List of data groups with additional products to add. These products should be ones that have no PUCs and should not have PUCs. The purpose of adding these groups is to train the model on products that shouldn't be assigned PUCs. This argument is optional if you don't want to add any data groups.
@@ -14,6 +14,7 @@ As a perquisite for using this model, a few pieces need to be generated. This ta
 from model_helper import model_initialize
 model_initialize([47])
 ```
+**Important:** If you run this again after building a model, that model will no longer work because the file containing the word embedding information will overwritten. 
 
 ### Building a model
 The script `model_helper.py` contains functions to make building a model straightforward. The function you will want to use is called `model_build`. Multiple files are saved after running this method; these are the actual trained models. After training these models once, they do not need to be trained again.
