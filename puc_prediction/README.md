@@ -5,7 +5,7 @@ The purpose of this set of scripts is to use a product name to predict a PUC. Be
 All of the following methods can be imported from `model_helper.py`. See this file for more info about the parameters.
 
 ### Generate model data
-As a perquisite for using this model, a few pieces need to be generated. This takes a while to do, but only needs to be done once as long as the training data doesn't change. If you ever want to refresh the model with new data from factotum, you will need to run this function again. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop). Many files ending in `.joblib` are saved by running this function; do not delete them.
+As a perquisite for using this model, a few pieces need to be generated. This takes a while to do, but only needs to be done once as long as the training data doesn't change. Additionally, if you run this again after building a model, that model will no longer work. If you ever want to refresh the model with new data from factotum, you will need to run this function again. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop). Many files ending in `.joblib` are saved by running this function; do not delete them.
 
 `model_initialize` is the required function and takes the following inputs:
 * `add_groups`: List of data groups with additional products to add. These products should be ones that have no PUCs and should not have PUCs. The purpose of adding these groups is to train the model on products that shouldn't be assigned PUCs. This argument is optional if you don't want to add any data groups.
