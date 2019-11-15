@@ -239,9 +239,16 @@ if __name__ == '__main__':
     df_store = []
     info_df = []
     for f in os.listdir(folder):
-        d1, d2 = pdf_extract(f, folder, tcomb, do_OCR, all_OCR)
-        df_store.append(d1)
-        info_df.append(d2)
+        try:
+            d1, d2 = pdf_extract(f, folder, tcomb, do_OCR, all_OCR)
+        except (KeyboardInterrupt, SystemExit, GeneratorExit):
+            logging.exception('%s: Run stopped', f)
+            raise
+        except:
+            logging.exception('%s: Unexpected error, continuing run', f)
+        else:
+            df_store.append(d1)
+            info_df.append(d2)
 
     df_all = pd.concat(df_store).reset_index(drop=True)
     file_prop = pd.DataFrame(info_df)
