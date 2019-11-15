@@ -10,7 +10,7 @@ import pandas as pd
 from flair.embeddings import (WordEmbeddings, FlairEmbeddings,
                               DocumentPoolEmbeddings, Sentence,
                               BytePairEmbeddings)
-from sklearn import svm, preprocessing
+from sklearn import svm
 import joblib
 import numpy as np
 
@@ -37,18 +37,13 @@ def get_vector(sen, document_embeddings):
     return sentence.get_embedding().detach().numpy()
 
 
-def build_model(df, label='', restart=False, sample='all', proba=False):
+def build_model(label='', sample='all', proba=False):
     """Build models.
 
     Builds the and saves the models for predicting the PUCs.
 
     Args:
-        df (pd.DataFrame): Dataframe from data processing script. Don't sample
-            it (use sample parameter).
-        document_embeddings: Word embeddings model.
         label (str, optional): File labels. Defaults to ''.
-        restart (boolean, optional): Whether to rerun word embeddings. Set this
-            to True if you reran the data processing script. Defaults to False.
         sample (optional): Specifies how to sample the data. See script for
             details. Defaults to 'all'.
         proba (bool): Whether to calculate probabilities.
@@ -60,22 +55,12 @@ def build_model(df, label='', restart=False, sample='all', proba=False):
     print('building model')
     label = '' if len(label) == 0 else '_' + label.strip('_')
 
+    df = joblib.load('training_data.joblib')
+
     data = df[['name', 'gen_cat', 'prod_fam',
                'prod_type']].copy()
 
-    if restart:
-        print('Remaking xdata')
-        document_embeddings = joblib.load('PUC_doc_embedding.joblib')
-        xdata = data['name'].apply(get_vector, args=(document_embeddings,
-                                                     )).to_list()
-        joblib.dump(xdata, 'xdata_orig.joblib')
-
-        min_max_scaler = preprocessing.MinMaxScaler()
-        xdata = min_max_scaler.fit_transform(xdata)
-        joblib.dump(xdata, 'xdata.joblib')
-        joblib.dump(min_max_scaler, 'scale.joblib')
-    else:
-        xdata = joblib.load('xdata.joblib')
+    xdata = joblib.load('xdata.joblib')
 
     ydata1 = (data['gen_cat']).str.strip().to_list()
 
@@ -105,15 +90,15 @@ def build_model(df, label='', restart=False, sample='all', proba=False):
         ydata_s3 = [ydata3[i] for i in inds]
 
     # c parameter values
-    cval1 = 100
-    cval2 = 100
-    cval3 = 100
+    cval1 = 500
+    cval2 = 500
+    cval3 = 500
 
     # fit gen_cat model
     print('Fitting gen_cat')
     clf = svm.SVC(gamma='scale', decision_function_shape='ovo',
                   cache_size=20000, kernel='linear', C=cval1,
-                  probability=proba)
+                  probability=proba, class_weight='balanced')
     clf.fit(xdata_s, ydata_s1)
 
     # fit prod_fam models
@@ -128,7 +113,7 @@ def build_model(df, label='', restart=False, sample='all', proba=False):
             continue
         clf_s2 = svm.SVC(gamma='scale', decision_function_shape='ovo',
                          cache_size=20000, kernel='linear', C=cval2,
-                         probability=proba)
+                         probability=proba, class_weight='balanced')
         clf_s2.fit(X2, Y2)
         clf_d2[name] = clf_s2
 
@@ -144,7 +129,7 @@ def build_model(df, label='', restart=False, sample='all', proba=False):
             continue
         clf_s3 = svm.SVC(gamma='scale', decision_function_shape='ovo',
                          cache_size=20000, kernel='linear', C=cval3,
-                         probability=proba)
+                         probability=proba, class_weight='balanced')
         clf_s3.fit(X3, Y3)
         clf_d3[name] = clf_s3
 
@@ -152,18 +137,3 @@ def build_model(df, label='', restart=False, sample='all', proba=False):
     joblib.dump(clf, 'PUC_model1' + label + '.joblib')
     joblib.dump(clf_d2, 'PUC_model2_dict' + label + '.joblib')
     joblib.dump(clf_d3, 'PUC_model3_dict' + label + '.joblib')
-
-
-if __name__ == '__main__':
-    # load data
-    df = pd.read_csv('clean.csv', index_col='key')
-
-    pkey = pd.concat([df[['gen_cat', 'prod_fam', 'prod_type']],
-                      (df['gen_cat'] + ' ' + df['prod_fam'].fillna('none')
-                       + ' ' + df['prod_type'].fillna('none'))],
-                     axis=1).drop_duplicates().set_index(0).fillna('')
-    pkey.to_csv('PUC_key.csv', index_label='cat')
-
-    doc_embeddings = load_model()
-    joblib.dump(doc_embeddings, 'PUC_doc_embedding.joblib')
-    build_model(df, restart=True)

@@ -10,6 +10,7 @@ import pandas as pd
 import nltk
 from nltk.corpus import stopwords
 import spacy
+from pymysql import escape_string
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -35,18 +36,74 @@ def read_df():
                            f'{cfg["password"]}@{cfg["server"]}:' +
                            f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
                            convert_unicode=True, echo=False)
+    """
+    The reason this statement looks so ugly it because it deals with
+    products that have more than 1 puc. It will only include products that
+    have a classification method of 'MA' or 'MB' and will prioritize 'MA'.
+    """
     sqq = 'SELECT puc_id, product_id, brand_name, title, gen_cat, ' + \
           'prod_fam, prod_type, description ' + \
           'FROM ( SELECT brand_name, title, puc_id, product_id ' + \
           'FROM (select id, brand_name, ' + \
           'title from dashboard_product) as product ' + \
-          'INNER JOIN (select puc_id, product_id ' + \
-          'from dashboard_producttopuc) as prod_to_puc ' + \
+          'INNER JOIN (' + \
+          'select product_id, puc_id from (' + \
+          '(select x1.product_id, puc_id, classification_method, ' + \
+          'classification_confidence as done from (select product_id, ' + \
+          'count(puc_id) from dashboard_producttopuc group by product_id ' + \
+          'having count(puc_id) > 1) as x1 INNER JOIN (select * from ' + \
+          'dashboard_producttopuc where classification_method = "MA") as ' + \
+          'x2 on x1.product_id = x2.product_id) UNION (select ' + \
+          'q3.product_id, puc_id, classification_method, ' + \
+          'classification_confidence as done from (select q6.product_id ' + \
+          'from (select q1.product_id, classification_confidence as done ' + \
+          'from (select product_id from dashboard_producttopuc group by ' + \
+          'product_id having count(puc_id) > 1) as q1 INNER JOIN (select ' + \
+          '* from dashboard_producttopuc where classification_method = ' + \
+          '"MA") as q2 on q1.product_id = q2.product_id) as q5 RIGHT JOIN ' + \
+          '(select product_id from dashboard_producttopuc group by ' + \
+          'product_id having count(puc_id) > 1) as q6 on q5.product_id = ' + \
+          'q6.product_id where done is null) as q3 INNER JOIN (select * ' + \
+          'from dashboard_producttopuc where classification_method = "MB")' + \
+          ' as q4 on q3.product_id = q4.product_id) UNION (select ' + \
+          'r1.product_id, puc_id, classification_method, ' + \
+          'classification_confidence as done from ((select product_id ' + \
+          'from dashboard_producttopuc group by product_id having ' + \
+          'count(puc_id) = 1) as r1 INNER JOIN (select * from ' + \
+          'dashboard_producttopuc where classification_method = "MB" or ' + \
+          'classification_method = "MA") as r2 on r1.product_id = ' + \
+          'r2.product_id))) as prod_to_puc_temp) as prod_to_puc ' + \
           'ON product.id = prod_to_puc.product_id ) as product_match ' + \
           'INNER JOIN (select * from dashboard_puc) as puc ' + \
           'ON product_match.puc_id = puc.id;'
     df = pd.read_sql(sqq, engine)
-    return df
+    return df.fillna('').apply(lambda x: x.str.strip().str.lower()
+                               if x.dtype == object else x)
+
+
+def read_group(group):
+    """Read df of brand name and puc from factotum."""
+    with open('mysql.json', 'r') as f:
+        cfg = json.load(f)['mysql']
+    engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
+                           f'{cfg["password"]}@{cfg["server"]}:' +
+                           f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
+                           convert_unicode=True, echo=False)
+    sqq = 'select product_id as id, brand_name, title, data_group_id from ' + \
+          '(select DISTINCT product_id as p2 from dashboard_producttopuc) ' + \
+          'as q1 RIGHT JOIN (SELECT DISTINCT product_id, brand_name, ' + \
+          'title, data_group_id FROM (SELECT product_id, brand_name, ' + \
+          'title, document_id FROM (SELECT id, brand_name, title FROM ' + \
+          'dashboard_product) AS p1 INNER JOIN (SELECT document_id, ' + \
+          'product_id FROM dashboard_productdocument) AS p2 ON p1.id = ' + \
+          'p2.product_id) AS p3 INNER JOIN (SELECT id as d_id, ' + \
+          'data_group_id FROM dashboard_datadocument ' + \
+          f'WHERE data_group_id = {group}) ' + \
+          'AS p4 ON p3.document_id = p4.d_id) as q2 on q1.p2 = ' + \
+          'q2.product_id where p2 is null;'
+    df = pd.read_sql(escape_string(sqq), engine)
+    return df.fillna('').apply(lambda x: x.str.strip().str.lower()
+                               if x.dtype == object else x)
 
 
 # name processing
@@ -131,25 +188,4 @@ def clean(brand, title):
     lem = re.sub(r'^[a-zA-Z]\s+', ' ', lem)
     lem = re.sub(r'\s+[a-zA-Z]{1,2}$', ' ', lem)
 
-    return lem
-
-
-if __name__ == '__main__':
-    df = read_df()
-    df = df.fillna('').apply(lambda x: x.str.strip().str.lower()
-                             if x.dtype == object else x)
-    df['brand_name'] = df['brand_name'].apply(lambda x: '' if x in
-                                              ['generic', 'unknown'] else x)
-
-    name = df[['brand_name', 'title']].apply(lambda x: clean(x['brand_name'],
-                                                             x['title']),
-                                             axis=1)
-    name.name = 'name'
-    cat = df['gen_cat']  # .apply(lambda x: clean('', x))
-    fam = df['prod_fam']  # .apply(lambda x: clean('', x))
-    typ = df['prod_type']  # .apply(lambda x: clean('', x))
-
-    comb = pd.concat([name, cat, fam, typ], axis=1)
-
-    df.to_csv('database.csv', index_label='key')
-    comb.to_csv('clean.csv', index_label='key')
+    return lem.strip()
