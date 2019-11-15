@@ -15,7 +15,6 @@ Cleaning is done using regular expressions to remove symbols and other irregular
 
 **After Cleaning:**
 ![clean_after](images/clean_after.PNG)
-*Process changed, PUC names no longer cleaned like this (need to update photo)
 
 ### Word embedding
 In order to classify text using a machine learning model, we need to be able to represent the text with some sort of numerical values. This script uses word embedding, which have the advantage of being able to account for similarities between different words. Pre-trained models also exist for word embedding models. In the context of this script, cleaned product names are loaded into a word embedding model, and a vector of numbers is given as the output to be used in further analysis. This vector is the aggregate of all the words in the product name.
