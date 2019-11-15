@@ -241,7 +241,7 @@ if __name__ == '__main__':
     for f in os.listdir(folder):
         try:
             d1, d2 = pdf_extract(f, folder, tcomb, do_OCR, all_OCR)
-        except (KeyboardInterrupt, SystemExit, GeneratorExit):
+        except (KeyboardInterrupt, SystemExit):
             logging.exception('%s: Run stopped', f)
             raise
         except:
