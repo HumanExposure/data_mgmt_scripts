@@ -67,7 +67,7 @@ conda install pytorch torchvision cpuonly -c pytorch  # can install the cuda ver
 
 echo "$(curl "https://raw.githubusercontent.com/zalandoresearch/flair/master/requirements.txt")" | while read requirement; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done > /dev/null 2>&1
 
-conda install cython sortedcontainers networkx=2.2  # some more dependencies
+conda install cython sortedcontainers networkx==2.2  # some more dependencies
 
 python -m spacy download en_core_web_sm
 
