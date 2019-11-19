@@ -56,12 +56,17 @@ puclist = model_run(prod_names, 'boot')
 ## Requirements
 
 ### TLDR: Run these commands in a new conda environment
-```bash
-conda install python pandas sqlalchemy nltk pymysql scikit-learn joblib matplotlib mpld3=0.3 pymongo pytest regex cython sortedcontainers urllib3=1.24.2 ipython=7.6.1 ipython_genutils=0.2.0 ipython_genutils=0.2.0 networkx=2.2
 
-conda install -c conda-forge spacy spacy-lookups-data transformers langdetect sqlitedict tabulate hyperopt deprecated gensim
+```bash
+conda install python pandas sqlalchemy nltk pymysql scikit-learn joblib
+
+conda install -c conda-forge spacy spacy-lookups-data
 
 conda install pytorch torchvision cpuonly -c pytorch  # can install the cuda version if you have an nvidia gpu, see https://pytorch.org/get-started/locally/
+
+echo "$(curl "https://raw.githubusercontent.com/zalandoresearch/flair/master/requirements.txt")" | while read requirement; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done > /dev/null 2>&1
+
+conda install cython sortedcontainers networkx=2.2  # some more dependencies
 
 python -m spacy download en_core_web_sm
 
