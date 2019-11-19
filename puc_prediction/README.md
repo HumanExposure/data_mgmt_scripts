@@ -81,6 +81,6 @@ Unless otherwise noted, packages are on the main Anaconda channel. Flair has man
 * spacy-lookups-data (conda-forge)
 * Flair (pip, **see below**)
 
-Before installing Flair, install `pytorch` by copying the command [here](https://pytorch.org/get-started/locally/). If you don't have an Nvidia GPU , select 'None' for CUDA. Also, there are many flair dependencies that are available via anaconda. If you want to install these via Anaconda, do it before installing Flair, or else they will be automatically installed via `pip`. If you just want to use `pip`, you don't need to do anything with the other packages. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
+Before installing Flair, install `pytorch` by copying the command [here](https://pytorch.org/get-started/locally/). If you don't have an Nvidia GPU , select 'None' for CUDA. Also, there are many flair dependencies that are available via Anaconda. If you want to install these via Anaconda, do it before installing Flair, or else they will be automatically installed via `pip`. If you just want to use `pip`, you don't need to do anything with the other packages. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
 
 Finally, you will need to run this in the command line: `python -m spacy download en_core_web_sm`.
