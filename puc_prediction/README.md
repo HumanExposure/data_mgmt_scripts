@@ -81,23 +81,6 @@ Unless otherwise noted, packages are on the main Anaconda channel. Flair has man
 * spacy-lookups-data (conda-forge)
 * Flair (pip, **see below**)
 
-Before installing Flair, install `pytorch` via the following command: `conda install pytorch torchvision cpuonly -c pytorch`. Also, the following are all dependencies to Flair that are available via Anaconda. This is especially important if you already have some of these packages installed already but need a different version (e.g. Spyder installs IPython but it's the wrong version). If you want to install these via Anaconda, do it before installing Flair. If you just want to use `pip`, you don't need to do anything with the packages below. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
-* matplotlib (Flair dependency)
-* mpld3=0.3 (Flair dependency)
-* pymongo (Flair dependency)
-* pytest (Flair dependency)
-* regex (Flair dependency)
-* cython (Flair dependency)
-* sortedcontainers (Flair dependency)
-* urllib3=1.24.2 (Flair dependency)
-* ipython=7.6.1 (Flair dependency)
-* ipython_genutils=0.2.0 (Flair dependency)
-* transformers (conda-forge; Flair dependency)
-* langdetect (conda-forge; Flair dependency)
-* sqlitedoct (conda-forge; Flair dependency)
-* tabulate (conda-forge; Flair dependency)
-* hyperopt (conda-forge; Flair dependency)
-* deprecated (conda-forge; Flair dependency)
-* gensim (conda-forge; Flair dependency)
+Before installing Flair, install `pytorch` by copying the command [here](https://pytorch.org/get-started/locally/). If you don't have an Nvidia GPU , select 'None' for CUDA. Also, there are many flair dependencies that are available via anaconda. If you want to install these via Anaconda, do it before installing Flair, or else they will be automatically installed via `pip`. If you just want to use `pip`, you don't need to do anything with the other packages. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
 
 Finally, you will need to run this in the command line: `python -m spacy download en_core_web_sm`.
