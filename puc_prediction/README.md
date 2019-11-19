@@ -56,6 +56,7 @@ puclist = model_run(prod_names, 'boot')
 ## Requirements
 
 ### TLDR: Run these commands in a new conda environment
+This will install all the required packages, getting them using `conda` before `pip`.
 
 ```bash
 conda install python pandas sqlalchemy nltk pymysql scikit-learn joblib
