@@ -27,9 +27,6 @@ raw_data.loc[(raw_data.raw_min_comp!="") & (raw_data.raw_central_comp!=""), ["ra
 raw_data.loc[(raw_data.raw_min_comp!="") & (raw_data.raw_central_comp!=""), ["raw_central_comp"]]=""
 raw_data=raw_data.applymap(str)
 
-raw_data.loc[raw_data["raw_min_comp"].str.contains("wt", regex=False), ["raw_min_comp"]]=raw_data["raw_min_comp"].str.strip("wt")
-
-
 #removes all rows that have uninterpretable comp data in the raw_min_comp field due to alphabetic characters
 raw_data=raw_data.loc[~raw_data.raw_min_comp.str.contains("[a-zA-Z]")]
 
@@ -43,7 +40,7 @@ raw_data.loc[(raw_data["raw_central_comp"].str.contains(">", regex=False)) | (ra
 raw_data.loc[(raw_data["raw_central_comp"].str.contains(">", regex=False)) | (raw_data["raw_central_comp"].str.contains("min", regex=False)) | (raw_data["raw_central_comp"].str.endswith("+")), ["raw_max_comp"]]="100"
 raw_data.loc[(raw_data["raw_central_comp"].str.contains(">", regex=False)) | (raw_data["raw_central_comp"].str.contains("min", regex=False)) | (raw_data["raw_central_comp"].str.endswith("+")), ["raw_central_comp"]]=""
 
-raw_data.loc[(raw_data["raw_central_comp"].str.contains("<", regex=False)) | (raw_data["raw_central_comp"].str.contains("max", regex=False)) , ["raw_max_comp"]]=raw_data["raw_central_comp"].str.strip("max").str.strip("/")
+raw_data.loc[(raw_data["raw_central_comp"].str.contains("<", regex=False)) | (raw_data["raw_central_comp"].str.contains("max", regex=False)) , ["raw_max_comp"]]=raw_data["raw_central_comp"].str.strip("max")
 raw_data.loc[(raw_data["raw_central_comp"].str.contains("<", regex=False)) | (raw_data["raw_central_comp"].str.contains("max", regex=False)) , ["raw_min_comp"]]="0"
 raw_data.loc[(raw_data["raw_central_comp"].str.contains("<", regex=False)) | (raw_data["raw_central_comp"].str.contains("max", regex=False)) , ["raw_central_comp"]]=""
 
