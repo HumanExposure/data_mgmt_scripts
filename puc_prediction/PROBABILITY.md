@@ -13,8 +13,8 @@ The accuracy of the products that were removed for the level in which it was rem
 ![Removed Product Accuracy](images/prob_rem_acc.png)
 
 Accuracy compared to PUC size for different cutoffs (note the x-axis is log)
-![prob_puc_size_0.png](prob_puc_size_0.png)
+![prob_puc_size_0.png](images/prob_puc_size_0.png)
 
-![prob_puc_size_1.png](prob_puc_size_1.png)
+![prob_puc_size_1.png](images/prob_puc_size_1.png)
 
-![prob_puc_size_2.png](prob_puc_size_2.png)
+![prob_puc_size_2.png](images/prob_puc_size_2.png)
