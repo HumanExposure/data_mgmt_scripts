@@ -1,6 +1,3 @@
-#lkoval
-#12-9-19
-
 import pandas as pd
 import string
 import os
@@ -57,8 +54,11 @@ def max_split(df=pd.DataFrame()):
 def convert_2_wf(df=pd.DataFrame()):
     df=raw_data.rename(columns={"raw_min_comp":"lower_wf_analysis","raw_central_comp":"central_wf_analysis","raw_max_comp":"upper_wf_analysis"})
     df.lower_wf_analysis=pd.to_numeric(df.lower_wf_analysis.str.replace(">","").str.replace("<","").str.replace("+","").str.replace("=","").str.replace("/","", regex=False))/100
+    df.lower_wf_analysis=df.lower_wf_analysis.round(10)
     df.central_wf_analysis=pd.to_numeric(df.central_wf_analysis, errors="coerce")/100
+    df.central_wf_analysis=df.central_wf_analysis.round(10)
     df.upper_wf_analysis=pd.to_numeric(df.upper_wf_analysis.str.replace("<","").str.replace(">","").str.replace("=","").str.replace("/","", regex=False))/100
+    df.upper_wf_analysis=df.upper_wf_analysis.round(10)
     df=df.dropna(subset=["lower_wf_analysis","central_wf_analysis","upper_wf_analysis"], how="all")
     return df
 
@@ -69,6 +69,8 @@ def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
+    df=df.reset_index()
+    df=df[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
     return df
 
 
