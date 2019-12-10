@@ -4,6 +4,7 @@
 import pandas as pd
 import string
 import os
+import math
 
 #takes a dataframe and only keeps rows that have unit type of percent, replaces all spaces with empty strings, replaces all null values with empty strings, and removes rows that have comp data that
 #is entirely alphabetic. The index is reset and the dataframe is returned with the columns ExtractedChemical_id, raw_min_comp, raw_central_comp, and raw_max_comp.
@@ -57,8 +58,11 @@ def max_split(df=pd.DataFrame()):
 def convert_2_wf(df=pd.DataFrame()):
     df=raw_data.rename(columns={"raw_min_comp":"lower_wf_analysis","raw_central_comp":"central_wf_analysis","raw_max_comp":"upper_wf_analysis"})
     df.lower_wf_analysis=pd.to_numeric(df.lower_wf_analysis.str.replace(">","").str.replace("<","").str.replace("+","").str.replace("=","").str.replace("/","", regex=False))/100
+    df.lower_wf_analysis=df.lower_wf_analysis.round(10)
     df.central_wf_analysis=pd.to_numeric(df.central_wf_analysis, errors="coerce")/100
+    df.central_wf_analysis=df.central_wf_analysis.round(10)
     df.upper_wf_analysis=pd.to_numeric(df.upper_wf_analysis.str.replace("<","").str.replace(">","").str.replace("=","").str.replace("/","", regex=False))/100
+    df.upper_wf_analysis=df.upper_wf_analysis.round(10)
     df=df.dropna(subset=["lower_wf_analysis","central_wf_analysis","upper_wf_analysis"], how="all")
     return df
 
@@ -69,6 +73,9 @@ def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
+    df=df.loc[~(df.central_wf_analysis==0)]
+    df=df.reset_index()
+    df=df[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
     return df
 
 
@@ -119,4 +126,9 @@ split_data=convert_2_wf(raw_data)
 split_data=remove_bad_rows(split_data)
 clean_data=split_data.fillna("")
 
-clean_data.to_csv("siri_2_cleaned.csv", index=False)
+start=0
+for i in range(1,math.ceil(len(clean_data)/7500)+1):
+    stop=i*7500
+    x=clean_data.iloc[start:stop]
+    clean_data.to_csv("siri_2_cleaned_%d.csv"%i, index=False)
+    start=stop
