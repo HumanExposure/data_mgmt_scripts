@@ -63,7 +63,7 @@ conda install python pandas sqlalchemy nltk pymysql scikit-learn joblib
 
 conda install -c conda-forge spacy spacy-lookups-data
 
-conda install pytorch torchvision cpuonly -c pytorch  # can install the cuda version if you have an nvidia gpu, see https://pytorch.org/get-started/locally/
+conda install pytorch cpuonly -c pytorch  # can install the cuda version if you have an nvidia gpu, see https://pytorch.org/get-started/locally/
 
 echo "$(curl "https://raw.githubusercontent.com/zalandoresearch/flair/master/requirements.txt")" | while read requirement; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done > /dev/null 2>&1
 
