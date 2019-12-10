@@ -69,6 +69,7 @@ def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
+    df=df.loc[~(df.central_wf_analysis==0)]
     df=df.reset_index()
     df=df[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
     return df
@@ -117,5 +118,6 @@ raw_data=raw_data[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw
 split_data=convert_2_wf(raw_data)
 split_data=remove_bad_rows(split_data)
 clean_data=split_data.fillna("")
+
 
 clean_data.to_csv("siri_1_cleaned.csv", index=False)
