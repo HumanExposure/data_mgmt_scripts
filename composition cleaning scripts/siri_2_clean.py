@@ -66,14 +66,15 @@ def convert_2_wf(df=pd.DataFrame()):
     df=df.dropna(subset=["lower_wf_analysis","central_wf_analysis","upper_wf_analysis"], how="all")
     return df
 
-#takes a dataframe and removes rows where any comp data is larger than 1, the lower_wf_analysis is larger thena the upper_wf_analysis, or the lower_wf_analysis=upper_wf_analysis. The adjusted
-#dataframe is returned.
+#takes a dataframe and removes rows where any comp data is larger than 1, the lower_wf_analysis is larger then the upper_wf_analysis, the lower_wf_analysis=upper_wf_analysis,
+#either the lower_wf_analysis or upper_wf_analysisis empty when the other is populated, or if the central_wf_analysis is 0. The adjusted dataframe is returned.
 def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
     df=df.loc[~(df.central_wf_analysis==0)]
+    df=df.loc[~(((pd.isnull(df.lower_wf_analysis)) & (pd.isnull(df.upper_wf_analysis)==False)) | ((pd.isnull(df.lower_wf_analysis)==False) & (pd.isnull(df.upper_wf_analysis))))]
     df=df.reset_index()
     df=df[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
     return df
@@ -129,6 +130,6 @@ clean_data=split_data.fillna("")
 start=0
 for i in range(1,math.ceil(len(clean_data)/7500)+1):
     stop=i*7500
-    x=clean_data.iloc[start:stop]
-    clean_data.to_csv("siri_2_cleaned_%d.csv"%i, index=False)
+    temp=clean_data.iloc[start:stop]
+    temp.to_csv("siri_2_cleaned_%d.csv"%i, index=False)
     start=stop
