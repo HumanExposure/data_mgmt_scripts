@@ -9,6 +9,7 @@ As a perquisite for using this model, a few pieces need to be generated. This ta
 
 `model_initialize` is the required function and takes the following inputs:
 * `add_groups`: List of data groups with additional products to add. These products should be ones that have no PUCs and should not have PUCs. The purpose of adding these groups is to train the model on products that shouldn't be assigned PUCs. This argument is optional if you don't want to add any data groups.
+* `label`: A label for the saved data. This label lets you run and save multiple models at the same time. This label should be used for building and running the model, as well.
 
 ```python
 from model_helper import model_initialize
