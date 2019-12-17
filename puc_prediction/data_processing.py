@@ -175,7 +175,7 @@ def clean(brand, title):
     lem_test = ' '.join([i.strip() for i in lem.split() if i not in
                          stop_words and i not in exclude])
     if len(lem) > 0 and len(lem_test) == 0:
-        print('Name error: ' + lem_test)
+        print('Name error: ' + lem + ' - ' + lem_test)
         lem = ' '.join([i.strip() for i in lem.split() if i not in exclude])
     else:
         lem = lem_test

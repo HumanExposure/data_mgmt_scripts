@@ -34,16 +34,20 @@ def get_vector(sen, document_embeddings):
     """Get the document vector for input."""
     sentence = Sentence(sen)
     document_embeddings.embed(sentence)
-    return sentence.get_embedding().detach().numpy()
+    get_embed = sentence.get_embedding().detach()
+    if get_embed.device.type == 'cuda':
+        return get_embed.cpu().numpy()
+    return get_embed.numpy()
 
 
-def build_model(label='', sample='all', proba=False):
+def build_model(label='', nrun='0', sample='all', proba=False):
     """Build models.
 
     Builds the and saves the models for predicting the PUCs.
 
     Args:
         label (str, optional): File labels. Defaults to ''.
+        nrun (str, optional): Run number for label. Defaults to '0'.
         sample (optional): Specifies how to sample the data. See script for
             details. Defaults to 'all'.
         proba (bool): Whether to calculate probabilities.
@@ -54,13 +58,14 @@ def build_model(label='', sample='all', proba=False):
     """
     print('building model')
     label = '' if len(label) == 0 else '_' + label.strip('_')
+    lab = label + '_' + nrun
 
-    df = joblib.load('training_data.joblib')
+    df = joblib.load('training_data' + label + '.joblib')
 
     data = df[['name', 'gen_cat', 'prod_fam',
                'prod_type']].copy()
 
-    xdata = joblib.load('xdata.joblib')
+    xdata = joblib.load('xdata' + label + '.joblib')
 
     ydata1 = (data['gen_cat']).str.strip().to_list()
 
@@ -134,6 +139,6 @@ def build_model(label='', sample='all', proba=False):
         clf_d3[name] = clf_s3
 
     print('Done')
-    joblib.dump(clf, 'PUC_model1' + label + '.joblib')
-    joblib.dump(clf_d2, 'PUC_model2_dict' + label + '.joblib')
-    joblib.dump(clf_d3, 'PUC_model3_dict' + label + '.joblib')
+    joblib.dump(clf, 'PUC_model1' + lab + '.joblib')
+    joblib.dump(clf_d2, 'PUC_model2_dict' + lab + '.joblib')
+    joblib.dump(clf_d3, 'PUC_model3_dict' + lab + '.joblib')

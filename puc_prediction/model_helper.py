@@ -108,8 +108,9 @@ def model_run(sen_itr, label='', mode=True, proba=False):
         puc_list (list): List of predicted PUC for each level.
 
     """
-    doc_embeddings = joblib.load('PUC_doc_embedding.joblib')
-    pkey = joblib.load('PUC_key.joblib')
+    label = '' if len(label) == 0 else '_' + label.strip('_')
+    doc_embeddings = joblib.load('PUC_doc_embedding' + label + '.joblib')
+    pkey = joblib.load('PUC_key' + label + '.joblib')
 
     # clean input
     print('Cleaning input')
@@ -123,7 +124,6 @@ def model_run(sen_itr, label='', mode=True, proba=False):
     num_runs = 0
     for i in range(len(os.listdir())):
         lab = label + '_' + str(i)
-        lab = '' if len(lab) == 0 else '_' + lab.strip('_')
         fname = 'PUC_model1' + lab + '.joblib'
         if os.path.exists(fname):
             num_runs += 1
@@ -138,7 +138,7 @@ def model_run(sen_itr, label='', mode=True, proba=False):
     print('Converting text')
     sen_vec = [get_vector(i, doc_embeddings) for i in sen_clean]
 
-    minmax = joblib.load('scale.joblib')
+    minmax = joblib.load('scale' + label + '.joblib')
     sen_vec = minmax.transform(sen_vec)
 
     puc_pred = []
@@ -181,14 +181,13 @@ def model_build(df_train='all', bootstrap=False, num_runs=1,
     sz = len(df) if type(sample_size) == str else sample_size
 
     for n in range(num_runs):
-        lab = label + '_' + str(n)
-        print('----- Training ' + lab + ' -----')
+        print('----- Training ' + label + '_' + str(n) + ' -----')
         boot_sample = np.random.choice(df.index, size=sz,
                                        replace=bootstrap)
-        build_model(label=lab, sample=boot_sample, proba=probab)
+        build_model(label=label, nrun=str(n), sample=boot_sample, proba=probab)
 
 
-def model_initialize(add_groups=[]):
+def model_initialize(add_groups=[], label=''):
     """Initialize the model by pulling and cleaning data.
 
     Will pull all of the products with PUCs, as well as all of the products
@@ -198,9 +197,12 @@ def model_initialize(add_groups=[]):
 
     Args:
         add_groups (list, optional): A list of data groups. Defaults to [].
+        label (str, optional): Label for the saved data. Defaults to ''.
 
     """
     print('----- Initializing model -----')
+    label = '' if len(label) == 0 else '_' + label.strip('_')
+
     if type(add_groups) is int:
         add_groups = [add_groups]
 
@@ -232,7 +234,7 @@ def model_initialize(add_groups=[]):
 
     df_comb = pd.concat([comb] + df_add) \
         .replace('', np.nan).sample(frac=1)  # .drop_duplicates()
-    joblib.dump(df_comb, 'training_data.joblib')
+    joblib.dump(df_comb, 'training_data' + label + '.joblib')
 
     pkey = pd.concat([df_comb[['gen_cat', 'prod_fam', 'prod_type']],
                       (df_comb['gen_cat'] + ' ' + df_comb['prod_fam']
@@ -240,23 +242,24 @@ def model_initialize(add_groups=[]):
                        + ' ' + df_comb['prod_type'].fillna('none'))
                       .str.strip()],
                      axis=1).drop_duplicates().set_index(0).fillna('')
-    joblib.dump(pkey, 'PUC_key.joblib')
+    joblib.dump(pkey, 'PUC_key' + label + '.joblib')
 
     doc_embeddings = load_model()
-    joblib.dump(doc_embeddings, 'PUC_doc_embedding.joblib')
+    joblib.dump(doc_embeddings, 'PUC_doc_embedding' + label + '.joblib')
 
     print('Making xdata')
     data = df_comb[['name', 'gen_cat', 'prod_fam', 'prod_type']].copy()
     xdata = data['name'].apply(get_vector, args=(doc_embeddings,
                                                  )).to_list()
-    joblib.dump(xdata, 'xdata_orig.joblib')
+    joblib.dump(xdata, 'xdata_orig' + label + '.joblib')
 
     min_max_scaler = preprocessing.MinMaxScaler()
     xdata = min_max_scaler.fit_transform(xdata)
-    joblib.dump(xdata, 'xdata.joblib')
-    joblib.dump(min_max_scaler, 'scale.joblib')
+    joblib.dump(xdata, 'xdata' + label + '.joblib')
+    joblib.dump(min_max_scaler, 'scale' + label + '.joblib')
 
 
-def load_df():
+def load_df(label=''):
     """Load the training data."""
-    return joblib.load('training_data.joblib')
+    label = '' if len(label) == 0 else '_' + label.strip('_')
+    return joblib.load('training_data' + label + '.joblib')
