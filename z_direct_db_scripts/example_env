@@ -1,0 +1,8 @@
+# Copy this file and name it .env in this same directory
+
+# MySQL Factotum Variables
+USER="SomeUserName
+PASSWD="SomePassword"
+HOST="host.example.com"
+PORT="3306"
+DB="Factotum"
