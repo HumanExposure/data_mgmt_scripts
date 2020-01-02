@@ -72,6 +72,7 @@ def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
+    df=df.loc[~((pd.isnull(df.lower_wf_analysis)==False) & (df.lower_wf_analysis<0))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
     df=df.loc[~(df.central_wf_analysis==0)]
     df=df.loc[~(((pd.isnull(df.lower_wf_analysis)) & (pd.isnull(df.upper_wf_analysis)==False)) | ((pd.isnull(df.lower_wf_analysis)==False) & (pd.isnull(df.upper_wf_analysis))))]
