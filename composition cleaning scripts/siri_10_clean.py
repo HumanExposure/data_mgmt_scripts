@@ -1,5 +1,5 @@
 #lkoval
-#12-20-19
+#1-3-2020
 
 import pandas as pd
 import string
@@ -37,18 +37,18 @@ def plus_minus(df=pd.DataFrame()):
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the minimum possible value ("min x", ">x", etc.) and places numerical value in
 #raw_min_comp, 100 in raw_max_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def min_split(df=pd.DataFrame()):
-    min_keys=["^>","<$","min"]
-    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))) | (df["raw_central_comp"].str.endswith("+")), ["raw_min_comp"]]=df["raw_central_comp"].str.replace("[minor\+\(\)/=<>]","")
-    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))) | (df["raw_central_comp"].str.endswith("+")), ["raw_max_comp"]]="100"
-    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))) | (df["raw_central_comp"].str.endswith("+")), ["raw_central_comp"]]=""
+    min_keys=["^>","min","\+$","<$"]
+    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_min_comp"]]=df["raw_central_comp"].str.replace("[minor()<>+_/=]","").str.strip(".")
+    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_max_comp"]]="100"
+    df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_central_comp"]]=""
     return df
 
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the maximum possible value ("max x", "<x", etc.) and places numerical value in
 #raw_max_comp, 0 in raw_min_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def max_split(df=pd.DataFrame()):
-    max_keys=["^<","m[a]*x","upto","low"]
+    max_keys=["^<","m[a]*x","upto"]
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_min_comp"]]="0"
-    df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_max_comp"]]=df["raw_central_comp"].str.replace("[maxuptow<\_\(\)]","")
+    df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_max_comp"]]=df["raw_central_comp"].str.replace("^upto|[maxuptw<_()/]","")
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_central_comp"]]=""
     return df
 
@@ -56,7 +56,7 @@ def max_split(df=pd.DataFrame()):
 #is turned in a null value. This is used to eliminate any missed odd cases such as data with bizzare unit types that we shouldn't be cleaing anyway. All rows where this is the case are removed and
 #the dataframe of weight fractions is returned.
 def convert_2_wf(df=pd.DataFrame()):
-    df=raw_data.rename(columns={"raw_min_comp":"lower_wf_analysis","raw_central_comp":"central_wf_analysis","raw_max_comp":"upper_wf_analysis"})
+    df=df.rename(columns={"raw_min_comp":"lower_wf_analysis","raw_central_comp":"central_wf_analysis","raw_max_comp":"upper_wf_analysis"})
     df.lower_wf_analysis=pd.to_numeric(df.lower_wf_analysis.str.replace(">","").str.replace("<","").str.replace("+","").str.replace("=","").str.replace("/","", regex=False))/100
     df.lower_wf_analysis=df.lower_wf_analysis.round(10)
     df.central_wf_analysis=pd.to_numeric(df.central_wf_analysis, errors="coerce")/100
@@ -66,13 +66,13 @@ def convert_2_wf(df=pd.DataFrame()):
     df=df.dropna(subset=["lower_wf_analysis","central_wf_analysis","upper_wf_analysis"], how="all")
     return df
 
-#takes a dataframe and removes rows where any comp data is greater than 1 or less than 0, the lower_wf_analysis is larger then the upper_wf_analysis,the lower_wf_analysis=upper_wf_analysis, or the lower or upper wf_analysis is
+#takes a dataframe and removes rows where any comp data is larger than 1, the lower_wf_analysis is larger thena the upper_wf_analysis,the lower_wf_analysis=upper_wf_analysis, or the lower or upper wf_analysis is
 #empty when the other is populated. The adjusted dataframe is returned.
 def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis>1))]
     df=df.loc[~((pd.isnull(df.central_wf_analysis)==False) & (df.central_wf_analysis>1))]
-    df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((pd.isnull(df.lower_wf_analysis)==False) & (df.lower_wf_analysis<0))]
+    df=df.loc[~((pd.isnull(df.upper_wf_analysis)==False) & (df.upper_wf_analysis<df.lower_wf_analysis))]
     df=df.loc[~((df.lower_wf_analysis==df.upper_wf_analysis) & (pd.isnull(df.lower_wf_analysis)==False))]
     df=df.loc[~(df.central_wf_analysis==0)]
     df=df.loc[~(((pd.isnull(df.lower_wf_analysis)) & (pd.isnull(df.upper_wf_analysis)==False)) | ((pd.isnull(df.lower_wf_analysis)==False) & (pd.isnull(df.upper_wf_analysis))))]
@@ -82,41 +82,38 @@ def remove_bad_rows(df=pd.DataFrame()):
 
 
 os.chdir("//home//lkoval//comp_data_cleaning")
-raw_data=pd.read_csv("siri_cpcat_data_6_raw_extracted_records.csv", usecols=["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type__title"], dtype=str)
+raw_data=pd.read_csv("siri_cpcat_data_10_raw_extracted_records.csv", usecols=["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type__title"], dtype=str)
 
 raw_data=initial_clean(raw_data)
 raw_data=plus_minus(raw_data)
 raw_data=min_split(raw_data)
 raw_data=max_split(raw_data)
 
-#splits raw central comp of format x to y into min and max fields
-raw_data.loc[raw_data.raw_central_comp.str.contains("\d+to"),["raw_min_comp"]]=raw_data.raw_central_comp.str.split("to",expand=True)[0]
-raw_data.loc[raw_data.raw_central_comp.str.contains("\d+to"),["raw_max_comp"]]=raw_data.raw_central_comp.str.split("to",expand=True)[1]
-raw_data.loc[raw_data.raw_central_comp.str.contains("\d+to"),["raw_central_comp"]]=""
 
-#removes "w","wt", & "apprx" from raw_central_comp point estimate values
-raw_data.loc[raw_data["raw_central_comp"].str.contains("/*w[t]*|(abo)+|(ap)+[p]*"), ["raw_central_comp"]]=raw_data["raw_central_comp"].str.replace("[abproxwut/()*]","")
-raw_data=raw_data.loc[~(raw_data.raw_central_comp.str.contains("[a-zA-Z/_+*?]"))]
+# #splits raw central comp of format x to y into min and max fields
+# raw_data.loc[raw_data.raw_central_comp.str.contains("\d+or\d+"), ["raw_min_comp"]]=raw_data.raw_central_comp.str.split("to",expand=True)[0]
+# raw_data.loc[raw_data.raw_central_comp.str.contains("\d+or\d+"), ["raw_max_comp"]]=raw_data.raw_central_comp.str.split("to",expand=True)[1]
+# raw_data.loc[raw_data.raw_central_comp.str.contains("\d+or\d+"), ["raw_central_comp"]]=""
+
+
+#removes "wt", "about" from raw_central_comp point estimate values then removes all remaining rows with alphabetic characters and extraneous characters
+raw_data.loc[raw_data["raw_central_comp"].str.contains("/*w[t]*|about"), ["raw_central_comp"]]=raw_data["raw_central_comp"].str.replace("[wtabou/()]","")
+raw_data=raw_data.loc[~(raw_data.raw_central_comp.str.contains("[a-zA-Z/_+*]"))]
 
 #There are cases where on the original document the comp data has the format <x-y. y was kept in the raw_max_comp field and 0 was placed in the raw_min_comp field.
 raw_data.loc[raw_data.raw_min_comp.str.startswith("<"), ["raw_max_comp"]]=raw_data["raw_max_comp"].str.strip("<")
 raw_data.loc[raw_data.raw_min_comp.str.startswith("<"), ["raw_min_comp"]]="0"
 
-
+#There are cases where on the original document the comp data has the format >x-y. x was kept in the raw_min_comp field and 100 was placed in the raw_max_comp field.
+raw_data.loc[raw_data.raw_min_comp.str.startswith(">"), ["raw_min_comp"]]=raw_data["raw_min_comp"].str.strip(">")
 raw_data.loc[raw_data.raw_min_comp.str.startswith(">"), ["raw_max_comp"]]="100"
-raw_data.loc[raw_data.raw_min_comp.str.startswith(">"), ["raw_min_comp"]]=raw_data.raw_min_comp.str.strip(">")
 
 
 #drops all rows in raw_min_comp that contain alphabetic characters and extraneous characters
-raw_data.loc[raw_data.raw_min_comp.str.contains("w"), ["raw_min_comp"]]=raw_data.raw_min_comp.str.replace("w","")
-raw_data=raw_data.loc[~(raw_data.raw_min_comp.str.contains("[a-zA-Z_+*/)(><]"))]
-
-# case where raw_min_comp is 0 and raw_max_comp is <x
-raw_data.loc[(raw_data.raw_max_comp.str.startswith("<")) & (raw_data.raw_min_comp=="0"), ["raw_max_comp"]]=raw_data["raw_max_comp"].str.strip("<")
-
+raw_data=raw_data.loc[~(raw_data.raw_min_comp.str.contains("[a-zA-Z_+*/#?)(]|\.{2}"))]
 
 #drops all rows in raw_max_comp that contain alphabetic characters and extraneous characters
-raw_data=raw_data.loc[~(raw_data.raw_max_comp.str.contains("[a-zA-Z*_+()/?<>]"))]
+raw_data=raw_data.loc[~(raw_data.raw_max_comp.str.contains("[a-zA-Z*_+()/#?]|]"))]
 
 raw_data=raw_data.reset_index()
 raw_data=raw_data[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
@@ -130,5 +127,5 @@ start=0
 for i in range(1,math.ceil(len(clean_data)/7500)+1):
     stop=i*7500
     temp=clean_data.iloc[start:stop]
-    temp.to_csv("siri_6_cleaned_%d.csv"%i, index=False)
+    temp.to_csv("siri_10_cleaned_%d.csv"%i, index=False)
     start=stop

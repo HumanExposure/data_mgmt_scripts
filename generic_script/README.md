@@ -9,7 +9,7 @@ In the same directory as the scripts, there should be a folder called 'pdfs'. Al
 
 The boolean parameter `do_OCR` can be passed when calling `pdf_extract`, and determines if the script should attempt OCR. Additionally, setting 'all_OCR' to True will allow the script to perform OCR on every file, not just the ones with no text. This may be necessary when an MSDS has useful information in both images and text, or when multiple MSDSs are combined and a subset of them are scanned.
 
-You should put the edited 'mysql.json' in the folder with the scripts, as well as this file: ftp://newftp.epa.gov/COMPTOX/Sustainable_Chemistry_Data/Chemistry_Dashboard/2019/April/DSSTox_Identifiers_and_CASRN.xlsx.
+You should put the edited 'mysql.json' in the folder with the scripts, as well as this file: `ftp://newftp.epa.gov/COMPTOX/Sustainable_Chemistry_Data/Chemistry_Dashboard/2019/April/DSSTox_Identifiers_and_CASRN.xlsx`.
 
 The script will output a CSV file containing a list of chemicals for each PDF in the output folder. It will also output a generic info file in the output folder.
 
