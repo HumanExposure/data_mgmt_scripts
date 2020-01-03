@@ -110,7 +110,7 @@ with open(sys.argv[1], newline='', ) as csvfile:
                     print(sql)
                     cursor.execute(sql)
                     link = cursor.fetchone()
-                    sql = "UPDATE dashboard_rawchem set dsstox_id=%i, rid=%s WHERE id = %i" % \
+                    sql = "UPDATE dashboard_rawchem set dsstox_id=%i, rid='%s' WHERE id = %i" % \
                           (link[0], dsstox_rid, factotum_id)
                     print("data = ")
                     print(data)
