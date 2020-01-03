@@ -86,9 +86,11 @@ with open(sys.argv[1], newline='', ) as csvfile:
                 lookup = cursor.fetchone()
                 if lookup:
                     logging.info("Entry exists in dsstox_lookup, linking to rawchem")
-                    sql = "UPDATE dashboard_rawchem SET dsstox_id = '%i', rid = '%s'" \
+                    sql = "UPDATE dashboard_rawchem SET dsstox_id = '%i', rid = '%s' " \
                           "WHERE id = '%i'" % (lookup[0], dsstox_rid, factotum_id)
-                    print(sql)
+		    print(sql)
+		    print("data = %s" % data)
+		    print("row = %s" % row)
                     cursor.execute(sql)
                     db.commit()
                 else:
