@@ -108,6 +108,8 @@ with open(sys.argv[1], newline='', ) as csvfile:
                     link = cursor.fetchone()
                     sql = "UPDATE dashboard_rawchem set dsstox_id=%i, rid=%s, updated_at=%s WHERE id = %i" % \
                           (link[0], dsstox_rid, now, factotum_id)
+                    print("data = %s" % data)
+                    print("row = %s" % row)
                     print(sql)
                     cursor.execute(sql)
                     db.commit()
