@@ -89,14 +89,14 @@ with open(sys.argv[1], newline='', ) as csvfile:
                     sql = "UPDATE dashboard_rawchem SET dsstox_id = '%i', rid = '%s' " \
                           "WHERE id = '%i'" % (lookup[0], dsstox_rid, factotum_id)
                     print(sql)
-                    print("data = %s" % data)
-                    print("row = %s" % row)
+                    print("data = " + data)
+                    print("row = " + row)
                     cursor.execute(sql)
                     db.commit()
                 else:
                     logging.info("%s : adding rid and sid to factotum")
-                    print("data = %s" % data)
-                    print("row = %s" % row)
+                    print("data = " + data)
+                    print("row = " + row)
                     sql = "INSERT INTO dashboard_dsstoxlookup (created_at, sid, true_cas, true_chemname) " \
                           "VALUES ('%s', '%s', '%s', '%s')" % (now, dsstox_sid, casrn, preferred_name)
                     print(sql)
@@ -108,8 +108,8 @@ with open(sys.argv[1], newline='', ) as csvfile:
                     link = cursor.fetchone()
                     sql = "UPDATE dashboard_rawchem set dsstox_id=%i, rid=%s, updated_at=%s WHERE id = %i" % \
                           (link[0], dsstox_rid, now, factotum_id)
-                    print("data = %s" % data)
-                    print("row = %s" % row)
+                    print("data =" + data)
+                    print("row = " + row)
                     print(sql)
                     cursor.execute(sql)
                     db.commit()
