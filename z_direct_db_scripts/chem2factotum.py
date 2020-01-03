@@ -102,7 +102,7 @@ with open(sys.argv[1], newline='', ) as csvfile:
                     print("row = ")
                     print(row)
                     sql = "INSERT INTO dashboard_dsstoxlookup (created_at, sid, true_cas, true_chemname) " \
-                          "VALUES ('%s', '%s', '%s', '%s')" % (now, dsstox_sid, casrn, preferred_name)
+                          'VALUES ("%s", "%s", "%s", "%s")' % (now, dsstox_sid, casrn, preferred_name)
                     print(sql)
                     cursor.execute(sql)
                     db.commit()
