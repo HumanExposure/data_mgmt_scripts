@@ -1,5 +1,5 @@
 #lkoval
-#12-18-19
+#1-8-19
 
 import pandas as pd
 import string
@@ -37,6 +37,8 @@ def plus_minus(df=pd.DataFrame()):
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the minimum possible value ("min x", ">x", etc.) and places numerical value in
 #raw_min_comp, 100 in raw_max_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def min_split(df=pd.DataFrame()):
+    bad_comps=list(df.ExtractedChemical_id.loc[df.raw_central_comp.str.contains('^>(\d+).o')])
+    df=df.loc[lambda df: df.ExtractedChemical_id.isin(bad_comps)==False]
     min_keys=["^>","min","high","<$","\+$"]
     df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_min_comp"]]=df["raw_central_comp"].str.replace("[minhgorw\+><()/=_]","")
     df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_max_comp"]]="100"
@@ -46,9 +48,11 @@ def min_split(df=pd.DataFrame()):
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the maximum possible value ("max x", "<x", etc.) and places numerical value in
 #raw_max_comp, 0 in raw_min_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def max_split(df=pd.DataFrame()):
+    bad_comps=list(df.ExtractedChemical_id.loc[df.raw_central_comp.str.contains('^<(\d+).(\d+)ea')])
+    df=df.loc[lambda df: df.ExtractedChemical_id.isin(bad_comps)==False]
     max_keys=["^<","max","upto","low","under","upto",">$"]
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_min_comp"]]="0"
-    df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_max_comp"]]=df["raw_central_comp"].str.replace("[maxuptonderlwby><_()]","")
+    df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_max_comp"]]=df["raw_central_comp"].str.replace("[maxunderlwby><_()/]","").str.replace("pto","")
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_central_comp"]]=""
     return df
 
