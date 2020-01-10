@@ -10,7 +10,7 @@ Accuracy, [balanced accuracy](https://scikit-learn.org/stable/modules/generated/
 
 
 The accuracy of the products that were removed for the level in which it was removed.
-![Removed Product Accuracy](images/rem_acc_overall_nochem.png) ![Removed Product Accuracy](images/rem_acc_overall_chem.png)
+![Removed Product Accuracy](images/rem_acc_overall_nochem.png) ![Removed Product Accuracy](images/rem_acc_overall_withchem.png)
 
 
 Accuracy compared to PUC size for different cutoffs (note the x-axis is log). Note: These were made with the old test set
