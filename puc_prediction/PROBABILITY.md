@@ -14,21 +14,21 @@ The accuracy of the products that were removed for the level in which it was rem
 
 Below is a list of simple accuracies of `gen_cat` for each category. `not_applicable` consists of the Airgas and Declare datagroups.
 
-| `gen_cat`  | Number in Test Set | Accuracy |
-| ------------- | ------------- | ------------- |
-| personal care  | 7437  | 99.9% |
-| cleaning products and household care | 1440 | 99.1% |
-| home maintenance | 710 | 98.0% |
-| electronics/small appliances | 408 | 100% |
-| not_applicable | 2690 | 99.8% |
-| arts and crafts/office supplies | 625 | 99.4% |
-| vehicle | 278 | 96.8% |
-| pet care | 197 | 98.0% |
-| landscape/yard | 62 | 96.8% |
-| pesticides | 106 | 98.1% |
-| industrial ingredients | 7 | 100% |
-| sports equiptment | 8 | 100% |
-| industrial products | 5 | 60.0% |
+| `gen_cat`  | Number in Test Set | Accuracy (with Airgas/Declare) | Accuracy (Products Only) |
+| ------------- | ------------- | ------------- | ------------- |
+| personal care  | 7437  | 99.9% | 99.9% |
+| cleaning products and household care | 1440 | 99.1% | 99.1% |
+| home maintenance | 710 | 98.0% | 98.0% |
+| electronics/small appliances | 408 | 100% | 100% |
+| not_applicable | 2690 | 99.8% | N/A |
+| arts and crafts/office supplies | 625 | 99.4% | 99.4% |
+| vehicle | 278 | 96.8% | 96.8% |
+| pet care | 197 | 98.0% | 98.0% |
+| landscape/yard | 62 | 96.8% | 96.8% |
+| pesticides | 106 | 98.1% | 98.1% |
+| industrial ingredients | 7 | 100% | 100% |
+| sports equiptment | 8 | 100% | 100% |
+| industrial products | 5 | 60.0% | 60.0% |
 
 Accuracy compared to PUC size for different cutoffs (note the x-axis is log). Note: These were made with the old test set
 ![prob_puc_size_0.png](images/prob_puc_size_0.png) ![prob_puc_cutoff_0.png](images/prob_puc_cutoff_0.png)
