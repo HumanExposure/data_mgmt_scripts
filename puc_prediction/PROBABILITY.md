@@ -26,7 +26,7 @@ Below is a list of simple accuracies of `gen_cat` for each category. `not_applic
 | pet care | 197/197 | 98.0% | 99.4% |
 | landscape/yard | 62/69 | 96.8% | 97.1% |
 | pesticides | 106/121 | 98.1% | 95.9% |
-| industrial ingredients/9 | 7 | 100% | 100% |
+| industrial ingredients | 7/9 | 100% | 100% |
 | sports equiptment | 8/6 | 100% | 83.3% |
 | industrial products | 5/5 | 60.0% | 80.0% |
 
