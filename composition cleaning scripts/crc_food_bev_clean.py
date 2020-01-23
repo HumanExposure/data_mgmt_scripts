@@ -2,7 +2,6 @@
 #1-23-2020
 
 import pandas as pd
-import string
 import os
 
 os.chdir("//home//lkoval//comp_data_cleaning")
