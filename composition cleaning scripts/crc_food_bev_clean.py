@@ -21,7 +21,7 @@ raw_data.loc[raw_data.raw_central_comp.str.startswith("<"), ["raw_max_comp"]]=ra
 raw_data.loc[raw_data.raw_central_comp.str.startswith("<"), ["raw_min_comp"]]="0"
 raw_data.loc[raw_data.raw_central_comp.str.startswith("<"), ["raw_central_comp"]]=""
 
-#split data in the form ">=x" in the raw_central_comp field into "x" in raw_min_comp and "100" in raw_max_comp
+#split data in the form ">=x"  or ">x" in the raw_central_comp field into "x" in raw_min_comp and "100" in raw_max_comp
 raw_data.loc[raw_data.raw_central_comp.str.startswith(">"), ["raw_min_comp"]]=raw_data.raw_central_comp.str.replace(">","").str.replace("=","")
 raw_data.loc[raw_data.raw_central_comp.str.startswith(">"), ["raw_max_comp"]]="100"
 raw_data.loc[raw_data.raw_central_comp.str.startswith(">"), ["raw_central_comp"]]=""
