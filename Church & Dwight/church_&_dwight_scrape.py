@@ -1,5 +1,5 @@
 #lkoval
-#1-29-2020
+#1-31-2020
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -10,6 +10,7 @@ import os
 import string
 import requests
 import pdfkit
+import re
 
 os.chdir("C:\\Users\\lkoval\\Documents\\church&dwight")
 
@@ -31,6 +32,9 @@ date_list=[]
 bad=[]
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))#function to remove non-printable characters
+
+#regular expression to match material numbers
+mat_pat=re.compile("^\d+|(N/A)|^$")
 
 #establish webdriver
 chromedriver="C:\\Users\\lkoval\\Documents\\chromedriver.exe"
@@ -54,9 +58,9 @@ for i in range(1, len(sections)):
     print("section %d"%i)
     links=driver.find_elements_by_xpath('//*[@class="row"]/ul[%d]/li'%i)
 
-
     #loop over each listed product in each category
     for j in range(1, len(links)+1):
+
 
         #try navigating to the product page and get the product name, the category, and the material number. Save the page as a pdf.
         try:
@@ -66,11 +70,26 @@ for i in range(1, len(sections)):
             driver.get(url)
             time.sleep(random.randint(min_time,max_time))
             product=clean(driver.find_element_by_xpath('//*[@class="WordSection1"]/span[2]').text)
-            cat=clean(driver.find_element_by_xpath('//*[@class="WordSection1"]/span[4]').text)
-            mat_num=driver.find_element_by_xpath('//*[@class="WordSection1"]/span[6]').text
+            third_line=clean(driver.find_element_by_xpath('//*[@class="WordSection1"]/span[6]').text)
+
+            #test if the third line is a product name synonym or the material number
+            if bool(mat_pat.match(third_line))==False:
+                cat=third_line
+                mat_num=driver.find_element_by_xpath('//*[@class="WordSection1"]/span[8]').text
+            else:
+                cat=driver.find_element_by_xpath('//*[@class="WordSection1"]/span[4]').text
+                mat_num=third_line
             print(product)
             pdf_file_name="C:\\Users\\lkoval\\Documents\\church&dwight_pdfs\\"+product.replace(" ","_").strip()+".pdf"
-            pdfkit.from_url(url,pdf_file_name, configuration=config)
+
+            #deals with case if different products have the same name so the filenames don't overwrite
+            if os.path.isfile(pdf_file_name)==False:
+                pdfkit.from_url(url,pdf_file_name, configuration=config)
+            else:
+                pdf_file_name=pdf_file_name.replace(".pdf","_2.pdf")
+                pdfkit.from_url(url,pdf_file_name, configuration=config)
+
+            pdf_file_name=pdf_file_name.split("\\")[-1]
             tables=driver.find_elements_by_xpath('//*[@class="WordSection1"]/table')
             rank=1
 
@@ -94,7 +113,7 @@ for i in range(1, len(sections)):
                         raw_cas.append(cas)
                         report_funcuse.append(use)
                         rank_list.append(rank)
-                        filename_list.append(product.replace(" ","_").strip()+".pdf")
+                        filename_list.append(pdf_file_name)
                         date_list.append(date)
                         rank+=1
                     filename=product.replace(" ","_").strip()+"_sds.pdf"
@@ -118,7 +137,7 @@ for i in range(1, len(sections)):
                         raw_cas.append("")
                         report_funcuse.append(use)
                         rank_list.append(rank)
-                        filename_list.append(product.replace(" ","_").strip()+".pdf")
+                        filename_list.append(pdf_file_name)
                         date_list.append("2020")
                         rank+=1
 
@@ -143,7 +162,7 @@ for i in range(1, len(sections)):
                     report_funcuse.append(use)
                     rank_list.append(rank)
                     date_list.append(date)
-                    filename_list.append(product.replace(" ","_").strip()+".pdf")
+                    filename_list.append(pdf_file_name)
                     rank+=1
 
                 #get chemical names and cas numbers from fragrance table. Assign the function as "fragrance" and do not add a rank
@@ -159,7 +178,7 @@ for i in range(1, len(sections)):
                     report_funcuse.append("fragrance")
                     rank_list.append("")
                     date_list.append(date)
-                    filename_list.append(product.replace(" ","_").strip()+".pdf")
+                    filename_list.append(pdf_file_name)
 
                 #save the sds
                 sds_link=driver.find_element_by_xpath('/html/body/main/div/article/div[2]/div/p[1]/b/span/a').get_attribute("href")
@@ -180,6 +199,7 @@ for i in range(1, len(sections)):
             bad.append(url)
             driver.get(start_url)
             time.sleep(random.randint(min_time,max_time))
+
 
 driver.close()
 
@@ -203,7 +223,7 @@ df["url"]=url_list
 
 df.to_csv("C:\\Users\\lkoval\\Documents\\church&dwight\\church&dwight_ing_disc.csv", index=False)
 
-
+#creates list of urls that couldnt be downloaded or extracted.
 bad_urls=pd.DataFrame()
 bad_urls["url"]=bad
 bad_urls.to_csv("C:\\Users\\lkoval\\Documents\\church&dwight\\church&dwight_bad_urls.csv", index=False)
