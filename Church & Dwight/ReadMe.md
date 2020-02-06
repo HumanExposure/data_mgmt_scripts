@@ -5,5 +5,5 @@ Navigates [Church & Dwight's website](https://churchdwight.com/ingredient-disclo
 
 * Python 3.7.6
 * Selenium 3.141.0
-* ChromeDriver 79.0.3945.36
+* [ChromeDriver](https://chromedriver.chromium.org/) 79.0.3945.36
 * [wkhtmltopdf](https://wkhtmltopdf.org/downloads.html) 0.12.5 for Win64
