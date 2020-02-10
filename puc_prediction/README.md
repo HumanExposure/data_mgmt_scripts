@@ -72,7 +72,7 @@ wget "https://github.com/flairNLP/flair/archive/v"$flair_version".tar.gz"
 
 tar -xvzf "v"$flair_version".tar.gz" "flair-"$flair_version"/requirements.txt" --strip-components=1
 
-while read requirement; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done < requirements.txt > /dev/null 2>&1
+while read requirement || [ -n "$requirement" ]; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done < requirements.txt > /dev/null 2>&1
 
 rm requirements.txt "v"$flair_version".tar.gz"
 
