@@ -76,7 +76,9 @@ while read requirement || [ -n "$requirement" ]; do conda install --yes $require
 
 rm requirements.txt "v"$flair_version".tar.gz"
 
-conda install cython sortedcontainers networkx==2.2  # some more dependencies
+# fix a few things up
+conda install networkx==2.2 filelock  # needs older version
+conda install -c conda-forge transformers # install an older version to get dependencies before replacing with pip version
 
 python -m spacy download en_core_web_sm
 
