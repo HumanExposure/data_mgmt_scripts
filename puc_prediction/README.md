@@ -66,9 +66,21 @@ conda install -c conda-forge spacy spacy-lookups-data
 
 conda install pytorch torchvision cpuonly -c pytorch  # can install the cuda version if you have an nvidia gpu, see https://pytorch.org/get-started/locally/
 
-pip install flair
+flair_version="$(echo "$(curl -sS https://github.com/flairNLP/flair/releases/latest)" | sed -n -E "s@.*https://github.com/flairNLP/flair/releases/tag/v(([0-9]+\.?)+).*@\1@p")"
+
+wget "https://github.com/flairNLP/flair/archive/v"$flair_version".tar.gz"
+
+tar -xvzf "v"$flair_version".tar.gz" "flair-"$flair_version"/requirements.txt" --strip-components=1
+
+while read requirement; do conda install --yes $requirement || conda install -c conda-forge --yes $requirement; done < requirements.txt > /dev/null 2>&1
+
+rm requirements.txt "v"$flair_version".tar.gz"
+
+conda install cython sortedcontainers networkx==2.2  # some more dependencies
 
 python -m spacy download en_core_web_sm
+
+pip install flair
 ```
 
 ### Details
