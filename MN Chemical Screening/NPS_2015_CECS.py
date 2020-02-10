@@ -17,7 +17,7 @@ data=data.drop_duplicates()
 source_sw=data.loc[((pd.isnull(data.site_id)) & (pd.isnull(data.raw_cas)==False)) | (data.site_id.str.contains("^UM883"))]
 source_sw=source_sw[["raw_chem_name","raw_cas"]].drop_duplicates()
 
-#no source surface water at all other sites starting with "UM"
+#non source surface water at all other sites starting with "UM"
 ns_sw=data.loc[((pd.isnull(data.site_id)==False) & (data.site_id.str.contains("^UM883")==False)) | ((pd.isnull(data.site_id)) & (pd.isnull(data.raw_cas)))]
 ns_sw=ns_sw.dropna(subset=["raw_chem_name","raw_cas"], how="all")
 ns_sw.loc[pd.isnull(ns_sw.raw_chem_name),["raw_chem_name"]]="10,11-dihydro-10-hydroxycarbamazepine"
