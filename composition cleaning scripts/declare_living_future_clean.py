@@ -20,5 +20,9 @@ clean_data.upper_wf_analysis=clean_data.upper_wf_analysis.round(10)
 clean_data=clean_data.fillna("")
 clean_data=clean_data.applymap(str)
 clean_data=clean_data[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
+clean_data=clean_data.loc[~(pd.to_numeric(clean_data.central_wf_analysis)==0)]
+clean_data.loc[(clean_data.central_wf_analysis!="") | (pd.to_numeric(clean_data.central_wf_analysis)<=1)]
+clean_data=clean_data.loc[~(pd.to_numeric(clean_data.central_wf_analysis)>1)]
+clean_data=clean_data.loc[~(pd.to_numeric(clean_data.upper_wf_analysis)>1)]
 
 clean_data.to_csv("declare_living_future_cleaned.csv", index=False)
