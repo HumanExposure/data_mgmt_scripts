@@ -16,24 +16,6 @@ a2_tabs=read_pdf("Organics in Source Water USA 2002-2010.pdf", pages="94-105", m
 #create master df for all data starting with first page
 a2=a2_tabs[0].iloc[:,:3].rename(columns={0:"raw_chem_name",1:"raw_cas",2:"detects"})
 
-#list of raw categories
-cats=["disinfection by-products",
-"fumigant-related compounds",
-"fungicides and fungicide degradates",
-"gasoline hydrocarbons, oxygenates, and oxygenate degradates",
-"herbicide and herbicide degradates",
-"insecticide and insecticde degradates",
-"manufacturing additives",
-"organic synthesis compounds",
-"pavement and combustion derived compounds",
-"personal care and domestic use products",
-"plant or animal derived biochemicals",
-"solvents",
-"herbicide and herbicide degradates"]
-
-#cas numbers where raw category switches
-cat_switch=["75-25-2","10061-02-6","107534-96-3","98-06-6","6967-29-9","56070-15-6","115-86-6","75-01-4","85-01-8","119-65-3","75-69-4","156-60-5"]
-
 #clean function to remove non-printable characters
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 
@@ -71,27 +53,15 @@ for j in range(len(a2)):
 
 a2=a2.dropna(subset=["detects"])
 
-#create raw_category column
-a2["raw_category"]=""
-
-#clean chemical names and assign raw category to chemicals
-c=0
-for k in range(len(a2)):
-    rc=cats[c]
-    a2.raw_chem_name.iloc[k]=clean(a2.raw_chem_name.iloc[k])
-    a2.raw_category.iloc[k]=rc
-    if a2.raw_cas.iloc[k] in cat_switch:
-        c+=1
-
-
 #remove all non detected chemicals
 a2=a2.loc[a2.detects!="0"]
-a2=a2[["raw_category","raw_cas","raw_chem_name"]]
+a2=a2[["raw_cas","raw_chem_name"]]
 
 #finish template
-a2["data_document_id"]="1511924"
+a2["data_document_id"]="1511926"
 a2["data_document_filename"]="Organics in Source Water USA 2002-2010_a.pdf"
 a2["doc_date"]="2014"
+a2["raw_category"]=""
 a2["cat_code"]=""
 a2["description_cpcat"]=""
 a2["cpcat_sourcetype"]=""
@@ -113,25 +83,6 @@ a3_tabs=read_pdf("Organics in Source Water USA 2002-2010.pdf", pages="107-118", 
 #create master df for all data starting with first page
 a3=a3_tabs[0].iloc[:,:3].rename(columns={0:"raw_chem_name",1:"raw_cas",2:"detects"})
 a3["detects"]=a3.detects.str.split(expand=True)[2]
-
-#list of raw categories
-cats=["disinfection by-products",
-"fumigant-related compounds",
-"fungicides and fungicide degradates",
-"gasoline hydrocarbons, oxygenates, and oxygenate degradates",
-"herbicide and herbicide degradates",
-"insecticide and insecticde degradates",
-"manufacturing additives",
-"organic synthesis compounds",
-"pavement and combustion derived compounds",
-"personal care and domestic use products",
-"plant or animal derived biochemicals",
-"refrigerants and propellants",
-"solvents",
-"herbicide and herbicide degradates"]
-
-#cas numbers where raw category switches
-cat_switch=["124-48-1","10061-02-6","36734-19-7","108-88-3","1582-09-8","56070-15-6","78-51-3","593-60-2","50-32-8","26027-38-2","83-34-1","76-13-1","67-72-1"]
 
 #clean function to remove non-printable characters
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
@@ -173,30 +124,19 @@ for j in range(len(a3)):
 
 a3=a3.dropna()
 
-#create raw_category column
-a3["raw_category"]=""
-
-#clean chemical names and assign raw category to chemicals
-c=0
-for k in range(len(a3)):
-    rc=cats[c]
-    a3.raw_chem_name.iloc[k]=clean(a3.raw_chem_name.iloc[k])
-    a3.raw_category.iloc[k]=rc
-    if a3.raw_cas.iloc[k] in cat_switch:
-        c+=1
-
 #remove all non detected chemicals
 a3=a3.loc[a3.detects!="0"]
 a3=a3.reset_index()
-a3=a3[["raw_category","raw_cas","raw_chem_name"]]
+a3=a3[["raw_cas","raw_chem_name"]]
 
 #correct chemical name where tabula missed a piece
 a3.raw_chem_name.iloc[151]=a3.raw_chem_name.iloc[151]+" (4-methyl-2-pentanone)"
 
 #finish rest of template
-a3["data_document_id"]="1511925"
+a3["data_document_id"]="1511927"
 a3["data_document_filename"]="Organics in Source Water USA 2002-2010_b.pdf"
 a3["doc_date"]="2014"
+a3["raw_category"]=""
 a3["cat_code"]=""
 a3["description_cpcat"]=""
 a3["cpcat_sourcetype"]=""
