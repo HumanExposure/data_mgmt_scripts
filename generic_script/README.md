@@ -5,7 +5,7 @@ This script was designed to process the Walmart MSDS dataset. Because of the man
 ### How to run
 There are multiple scripts. They should all be in the same folder. The script to run is called `run_extraction.py`.
 
-In the same directory as the scripts, there should be a folder called 'pdfs'. All of the PDFs that will be processed will be in this folder. Similarly, there should be a folder called 'output' will contain all of the outputs. These can be changed in the script.
+In the same directory as the scripts, there should be a folder called `pdf`. All of the PDFs that will be processed will be in this folder. Similarly, there should be a folder called `output` will contain all of the outputs. These can be changed in the script.
 
 The boolean parameter `do_OCR` can be passed when calling `pdf_extract`, and determines if the script should attempt OCR. Additionally, setting 'all_OCR' to True will allow the script to perform OCR on every file, not just the ones with no text. This may be necessary when an MSDS has useful information in both images and text, or when multiple MSDSs are combined and a subset of them are scanned.
 
