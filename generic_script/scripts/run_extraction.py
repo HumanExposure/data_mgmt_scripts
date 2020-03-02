@@ -7,12 +7,15 @@ Created on Fri Oct 18 11:34:22 2019
 """
 
 import os
+import sys
 import pandas as pd
 import logging
 import time
 from sqlalchemy import create_engine
 import json
 import re
+import zipfile
+from tika.tika import killServer
 
 from pdf_import import pdf_sort
 from label_search import fun_label_search
@@ -67,10 +70,12 @@ def read_df():
     return tcomb
 
 
-def pdf_extract(f, folder, tcomb, do_OCR=True, all_OCR=False):
+def pdf_extract(fname, folder, tcomb, do_OCR=True, all_OCR=False,
+                zipFile=None):
     """Take a filename and return chemical info."""
     # read pdf
-    comb = pdf_sort(f, folder, do_OCR, all_OCR)
+    f = fname[0]
+    comb = pdf_sort(fname, folder, do_OCR, all_OCR, zipFile)
 
     # break out output (this info will be used to log)
     # step0_fail = comb[3]
@@ -212,8 +217,8 @@ if __name__ == '__main__':
     # change parameters here
     do_OCR = True
     all_OCR = False
-    folder = os.path.join(os.getcwd(), 'pdf')
     out_folder = os.path.join(os.getcwd(), 'output')
+    folder = os.path.join(os.getcwd(), 'pdf')  # default folder
 
     # start logging
     stime = time.strftime('%Y-%m-%d_%H-%M-%S')
@@ -231,24 +236,64 @@ if __name__ == '__main__':
     else:
         logging.info('OCR is not enabled.')
 
-    logging.info(str(len([i for i in os.listdir(folder) if
-                          os.path.splitext(i)[1] == '.pdf'])) + ' PDFs found.')
+    # parse arguments. arguments override folder
+    zipFile = False
+    if len(sys.argv) == 1:
+        file_iter = os.listdir(folder)
+    elif len(sys.argv) > 2:
+        print('Too many arguments, exiting script')
+        sys.exit()
+    else:
+        arg = sys.argv[1]
+        if os.path.isdir(arg):
+            folder = arg
+            file_iter = os.listdir(folder)
+        elif os.path.isfile(arg):
+            ext = os.path.splitext(arg)[1]
+            folder = None
+            if ext.lower() == '.zip':
+                zipFile = True
+                zf = zipfile.ZipFile(arg)
+                file_iter = zf.infolist()
+            else:
+                file_iter = [arg]
+        else:
+            print('File/folder not found, exiting script')
+            sys.exit()
+
+    num_found = len([i for i in file_iter if os.path.splitext(
+        i.filename if zipFile else i
+        )[1] == '.pdf'])
+    logging.info(str(num_found) + ' PDFs found.')
+
+    if num_found == 0:
+        print('No PDFs found, exiting')
+        sys.exit()
 
     # iterate through files
     tcomb = read_df()
     df_store = []
     info_df = []
-    for f in os.listdir(folder):
+    for f in file_iter:
+        fname = os.path.split(f.filename)[1] if zipFile else f
+        zfile = zf if zipFile else None
+
         try:
-            d1, d2 = pdf_extract(f, folder, tcomb, do_OCR, all_OCR)
+            d1, d2 = pdf_extract([fname, f], folder, tcomb, do_OCR, all_OCR,
+                                 zfile)
         except (KeyboardInterrupt, SystemExit):
-            logging.exception('%s: Run stopped', f)
+            logging.exception('%s: Run stopped', fname)
             raise
         except:
-            logging.exception('%s: Unexpected error, continuing run', f)
+            logging.exception('%s: Unexpected error, continuing run', fname)
         else:
             df_store.append(d1)
             info_df.append(d2)
+
+    if zipFile:
+        zf.close()
+
+    killServer()  # may need to kill manually
 
     if len(df_store) == 0:
         df_store.append(pd.DataFrame())

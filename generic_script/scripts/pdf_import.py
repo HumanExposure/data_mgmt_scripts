@@ -36,7 +36,7 @@ s3_3 = re.compile(r'^[\W]{0,8}(?:sectio|chapte)?[rn]?\W{0,2}[^\d](?:[3]|' +
                   r'(?:components|ingredients))', re.IGNORECASE)
 
 
-def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
+def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
     """Read and organize the PDFs.
 
     This function is very important. It reads each file and decides what to do
@@ -44,7 +44,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
     will search for Section 3 in the MSDS.
 
     Args:
-        filename (str): Filename.
+        filename (list): [filename, file for tika].
         folder (str): Folder name of pdf location.
         do_OCR (bool, optional): Whether to do OCR.
         all_OCR (bool, optional): Whether to do OCR on all files.
@@ -72,13 +72,17 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
     to_old = {}  # text and pdf where the parsing failed
     to_label = {}  # images of labels to parse
 
-    for f in [filename]:
+    for fname in [filename]:
 
         # read and process files
+        f = fname[0]
         data = {}
         print('----- '+f+' -----')
         logging.debug('%s: Beginning extraction.', f)
-        path = os.path.join(folder, f)
+        if folder is None:
+            path = fname[1]
+        else:
+            path = os.path.join(folder, fname[1])
 
         if os.path.splitext(f)[1] != '.pdf':
             print('Not a PDF')
@@ -89,7 +93,9 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
             continue
 
         headers = {'X-Tika-PDFextractInlineImages': 'false', }
-        proc1 = parser.from_file(path, headers=headers)
+        proc1 = parser.from_file(
+            path if zipFile is None else zipFile.open(path),
+            headers=headers)
 
         if proc1['status'] != 200:
             print('Failed to parse')
@@ -116,8 +122,13 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False):
         # perform OCR if necessary
         # hasOCR = False
         if do_OCR and (all_OCR or len(raw1) == 0):
-            headers2 = {'X-Tika-PDFextractInlineImages': 'true', }
-            proc2 = parser.from_file(path, headers=headers2)
+            headers2 = {'X-Tika-PDFextractInlineImages': 'true',
+                        'X-Tika-OCRTimeout': '200'}
+            requestOptions = {'timeout': 200}
+            proc2 = parser.from_file(
+                path if zipFile is None else zipFile.open(path),
+                headers=headers2, requestOptions=requestOptions)
+
             if proc2['content'] is not None:
                 raw2 = [i for i in proc2['content'].splitlines()
                         if len(i.strip()) > 0]
