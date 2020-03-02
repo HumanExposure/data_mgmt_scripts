@@ -5,9 +5,11 @@ This script was designed to process the Walmart MSDS dataset. Because of the man
 ### How to run
 There are multiple scripts. They should all be in the same folder. The script to run is called `run_extraction.py`.
 
-In the same directory as the scripts, there should be a folder called `pdf`. All of the PDFs that will be processed will be in this folder. Similarly, there should be a folder called `output` will contain all of the outputs. These can be changed in the script.
+There are a few ways to run this script. With no arguments, the script looks for a folder called `pdf`. All PDFs in the root directory of this folder will be processed. Also, you a path to a folder as an argument to the script if that is preferred. The last thing that you can pass is the path to a ZIP file that contains PDFs. This option was created as a solution to some PDFs not opening due to PDF security restrictions.
 
-The boolean parameter `do_OCR` can be passed when calling `pdf_extract`, and determines if the script should attempt OCR. Additionally, setting 'all_OCR' to True will allow the script to perform OCR on every file, not just the ones with no text. This may be necessary when an MSDS has useful information in both images and text, or when multiple MSDSs are combined and a subset of them are scanned.
+All output files will be in put in a folder called `output`, which you can create beforehand. This can be changed in the script.
+
+The boolean parameter `do_OCR` can be changed in `run_extraction.py`, and determines if the script should attempt OCR. Additionally, setting `all_OCR` to True will allow the script to perform OCR on every file, not just the ones with no text. This may be necessary when an MSDS has useful information in both images and text, or when multiple MSDSs are combined and a subset of them are scanned.
 
 You should put the edited 'mysql.json' in the folder with the scripts, as well as this file: `ftp://newftp.epa.gov/COMPTOX/Sustainable_Chemistry_Data/Chemistry_Dashboard/2019/April/DSSTox_Identifiers_and_CASRN.xlsx`.
 
