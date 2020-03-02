@@ -1,5 +1,5 @@
 ## Probability
-When setting the correct flag when building the model, probability estimates will become available. The following charts show various pieces of information when test data under a certain probability threshold is removed. All of these charts were generated on the same set of data using the same models (13,973 samples in the test set).
+When setting the correct flag when building the model, probability estimates will become available. The following charts show various pieces of information when test data under a certain probability threshold is removed. All of these charts were generated on the same set of data.
 
 Accuracy, [balanced accuracy](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.balanced_accuracy_score.html), and the number of products removed in each level versus the probability cutoff. 
 ![Accuracy](images/acc_nochem.png) ![Accuracy](images/acc_withchem.png)
@@ -30,9 +30,10 @@ Below is a list of simple accuracies of `gen_cat` for each category. `not_applic
 | sports equiptment | 8/6 | 100% | 83.3% |
 | industrial products | 5/5 | 60.0% | 80.0% |
 
-Accuracy compared to PUC size for different cutoffs (note the x-axis is log). Note: These were made with the old test set
-![prob_puc_size_0.png](images/prob_puc_size_0.png) ![prob_puc_cutoff_0.png](images/prob_puc_cutoff_0.png)
+There is always a possibility there will be a product that is outside the scope of the training set. To test the model's performance in this idea, the following graphs were generated. They represent the number of samples that get removed when the probability cutoff is set at certain values. The training/test sets are different with each plot. It is important to note that the PUC levels are separate (e.g. if a product is removed based on its prod_fam prediction, it will not be counted under gen_cat, and there could still be a prediction for gen_cat).
 
-![prob_puc_size_1.png](images/prob_puc_size_1.png) ![prob_puc_cutoff_1.png](images/prob_puc_cutoff_1.png)
+![Removed 1](images/airgas_train_test_declare.png)
 
-![prob_puc_size_2.png](images/prob_puc_size_2.png) ![prob_puc_cutoff_2.png](images/prob_puc_cutoff_2.png)
+![Removed 3](images/no_chems_test_declare.png)
+
+![Removed 2](images/no_chems_test_airgas.png)
