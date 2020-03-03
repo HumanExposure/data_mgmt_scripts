@@ -183,7 +183,8 @@ def pdf_extract(fname, folder, tcomb, do_OCR=True, all_OCR=False,
     if (chemct1 == 0 and chemct2 != 0) and len(df_comb) == 0:
         logging.warning('%s: Check documents for removed chemicals.', f)
 
-    df_comb.insert(0, 'filename', f.split('.pdf')[0] + '.csv')
+    df_comb.insert(0, 'filename', f)
+    # df_comb.insert(0, 'filename', f.split('.pdf')[0] + '.csv')
     # df_store.append(df_comb)
 
     # create file info for log
