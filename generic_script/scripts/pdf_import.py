@@ -123,7 +123,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
         # hasOCR = False
         if do_OCR and (all_OCR or len(raw1) == 0):
             headers2 = {'X-Tika-PDFextractInlineImages': 'true',
-                        'X-Tika-OCRTimeout': '200'}
+                        'X-Tika-OCRTimeout': '300'}
             requestOptions = {'timeout': 300}
             proc2 = parser.from_file(
                 path if zipFile is None else zipFile.open(path),
