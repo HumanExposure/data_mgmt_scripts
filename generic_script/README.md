@@ -35,7 +35,7 @@ kill -9 $(ps aux | grep java | grep Tika | grep -oP -m1 "^\w{3,10}\s{1,}\K\w{4,5
 * libiconv
 * NLTK
 * python-Levenshtein
-* fuzzywuzzy (conda-forge)
+* fuzzywuzzy (pip)
 * Tika (conda-forge)
 * Tesseract (conda-forge) (if you install this after running Tika, restart Tika)
 
