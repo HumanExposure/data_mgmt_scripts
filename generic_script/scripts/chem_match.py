@@ -81,6 +81,8 @@ terms = ['total', 'natural', 'based', 'extract', 'organic', 'root', 'con',
 colorlist = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple',
              'violet', 'pigment']
 exclude = ['secret', 'proprietary', 'n/a', 'cbi', 'trade', 'not available']
+
+r_tradename = re.compile(r'\b(?:trade)\s*(?:name[s]?)\b', re.I)
 re_cont4 = re.compile(r'\b(?:contain[s]?)\b', re.I)
 
 
@@ -179,10 +181,11 @@ def match2(r, chems, val):
     if ind in val['indCAS']:
         move = True
     else:
+        tname = re.search(r_tradename, rem)
         for e in exclude:
             rem = re.sub(re.compile(r'\b(?:' + re.escape(e) + r')\b',
                                     re.I), '+++', rem)
-        if '+++' in rem:
+        if '+++' in rem and not tname:
             ts = 1
             move = True
 
