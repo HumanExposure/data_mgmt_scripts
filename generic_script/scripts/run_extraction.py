@@ -221,9 +221,18 @@ if __name__ == '__main__':
     out_folder = os.path.join(os.getcwd(), 'output')
     folder = os.path.join(os.getcwd(), 'pdf')  # default folder
 
+    # get label for output files
+    label = ''
+    if len(sys.argv) == 2:
+        label = os.path.split(sys.argv[1])[-1].replace('.', '_') + '_'
+    elif len(sys.argv) > 2:
+        print('Too many arguments, exiting script')
+        sys.exit()
+
     # start logging
     stime = time.strftime('%Y-%m-%d_%H-%M-%S')
-    logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + stime +
+    logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + label
+                                              + stime +
                                               '.log'), filemode='w',
                         format='[%(levelname)s] %(asctime)s: %(message)s',
                         level=logging.INFO)
@@ -241,9 +250,6 @@ if __name__ == '__main__':
     zipFile = False
     if len(sys.argv) == 1:
         file_iter = os.listdir(folder)
-    elif len(sys.argv) > 2:
-        print('Too many arguments, exiting script')
-        sys.exit()
     else:
         arg = sys.argv[1]
         if os.path.isdir(arg):
@@ -302,7 +308,9 @@ if __name__ == '__main__':
     file_prop = pd.DataFrame(info_df)
 
     # write info file
-    df_all.to_csv(os.path.join(out_folder, 'chemical_data_' + stime + '.csv'),
+    df_all.to_csv(os.path.join(out_folder,
+                               'chemical_data_' + label + stime + '.csv'),
                   index_label='row')
-    file_prop.to_csv(os.path.join(out_folder, 'file_info_' + stime + '.csv'),
+    file_prop.to_csv(os.path.join(out_folder,
+                                  'file_info_' + label + stime + '.csv'),
                      index=False)
