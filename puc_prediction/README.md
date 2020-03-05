@@ -44,7 +44,7 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 There are three lists that are returned by the function:
 * A list of predicted PUCs (form depending on `mode` flag)
 * A list of products that were removed during cleaning
-* A list of probabilities (blank if `proba=False`)
+* A list of probabilities (blank no probabilities found)
 * A list of predicted PUC names for each level based on the probability (used for formatting the list of probabilities)
 
 ```python
