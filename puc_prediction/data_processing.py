@@ -77,8 +77,8 @@ def read_df():
           'INNER JOIN (select * from dashboard_puc) as puc ' + \
           'ON product_match.puc_id = puc.id;'
     df = pd.read_sql(sqq, engine)
-    return df.fillna('').apply(lambda x: x.str.strip().str.lower()
-                               if x.dtype == object else x)
+    engine.dispose()
+    return df.fillna('')
 
 
 def read_group(group):
@@ -102,8 +102,32 @@ def read_group(group):
           'AS p4 ON p3.document_id = p4.d_id) as q2 on q1.p2 = ' + \
           'q2.product_id where p2 is null;'
     df = pd.read_sql(escape_string(sqq), engine)
-    return df.fillna('').apply(lambda x: x.str.strip().str.lower()
-                               if x.dtype == object else x)
+    engine.dispose()
+    return df.fillna('')
+
+
+def read_extracted(group):
+    """Read extracted text from a group (for group with no products).
+
+    This is a temporary function and should only be used for testing.
+    """
+    with open('mysql.json', 'r') as f:
+        cfg = json.load(f)['mysql']
+    engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
+                           f'{cfg["password"]}@{cfg["server"]}:' +
+                           f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
+                           convert_unicode=True, echo=False)
+    sql = 'SELECT d_id, prod_name, data_group_id FROM (SELECT ' + \
+          'data_document_id, prod_name FROM dashboard_extractedtext) ' + \
+          'AS p1 INNER JOIN (SELECT id AS d_id, data_group_id FROM ' + \
+          f'dashboard_datadocument WHERE data_group_id = {group}) ' + \
+          'AS p2 ON p1.data_document_id = p2.d_id;'
+    df = pd.read_sql(escape_string(sql), engine)
+    engine.dispose()
+    df = df.rename(columns={'d_id': 'id', 'prod_name': 'title'})
+    df['brand_name'] = ''
+    df = df[['id', 'brand_name', 'title', 'data_group_id']]
+    return df.fillna('')
 
 
 # name processing

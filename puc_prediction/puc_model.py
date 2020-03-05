@@ -75,14 +75,14 @@ def build_model(label='', nrun='0', sample='all', proba=False):
     ydata3 = (data['gen_cat'] + ' ' + data['prod_fam'].fillna('none') + ' ' +
               data['prod_type'].fillna('none')).str.strip().to_list()
 
-    if type(sample) == str:
+    if isinstance(sample, str):
         print('Using all data')
         xdata_s = xdata
         ydata_s1 = ydata1
         ydata_s2 = ydata2
         ydata_s3 = ydata3
     else:
-        if type(sample) == list or type(sample) == np.ndarray:
+        if isinstance(sample, list) or isinstance(sample, np.ndarray):
             print('Using provided index')
             inds = sample
         else:
