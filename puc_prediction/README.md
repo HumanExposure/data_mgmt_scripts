@@ -8,8 +8,8 @@ All of the following methods can be imported from `model_helper.py`. See this fi
 As a perquisite for using this model, a few pieces need to be generated. This takes a while to do, but only needs to be done once as long as the training data doesn't change. If you ever want to refresh the model with new data from factotum, you will need to run this function again. I would also recommend using a computer that has a decent amount of RAM and free storage space (i.e. not your laptop). Many files ending in `.joblib` are saved by running this function; do not delete them.
 
 `model_initialize` is the required function and takes the following inputs:
-* `add_groups`: List of data groups with additional products to add. These products should be ones that have no PUCs and should not have PUCs. The purpose of adding these groups is to train the model on products that shouldn't be assigned PUCs. This argument is optional if you don't want to add any data groups.
-* `label`: A label for the saved data. This label lets you run and save multiple models at the same time. This label should be used for building and running the model, as well.
+* `add_groups`: List of data groups with additional products to add. These products should be ones that have no PUCs and should not have PUCs. The purpose of adding these groups is to train the model on products that shouldn't be assigned PUCs. This argument is optional if you don't want to add any data groups. Defailts to `[]`.
+* `label`: A label for the saved data. This label lets you run and save multiple models at the same time. This label should be used for building and running the model, as well. Defaults to `''`.
 
 ```python
 from model_helper import model_initialize
@@ -21,12 +21,12 @@ model_initialize([47])
 The script `model_helper.py` contains functions to make building a model straightforward. The function you will want to use is called `model_build`. Multiple files are saved after running this method; these are the actual trained models. After training these models once, they do not need to be trained again.
 
 `model_build` takes the following as inputs:
-* `df_train`: A subset of the dataset that is used for training the models. Should be a DataFrame, can also be a string to use the whole training set.
-* `num_runs`: Number of times to fit the model before aggregating it.
-* `bootstrap`: Whether to sample `df_train` with replacement or not (recommended to be set to `True` if `num_runs` is more than 1).
-* `sample_size`: Size of the training set for each run (sampled from the training set). If there are multiple runs, each sample from the training set will be this large. Can be a number, or `all`. Since SVMs can be slow with many samples, this parameter is designed to allow for fitting subets of the data in different runs to speed up computation time.
-* `label`: A label for the saved models. This label is used for running model predictions, as well. Any models with the same label will be overwritten.
-* `probab`: Whether to calculate probabilities for the classes. Enabling this will increase computation time.
+* `df_train`: A subset of the dataset that is used for training the models. Should be a DataFrame, can also be a string to use the whole training set. Defaults to `'all'`.
+* `bootstrap`: Whether to sample `df_train` with replacement or not (recommended to be set to `True` if `num_runs` is more than 1). Defailts to `False`.
+* `num_runs`: Number of times to fit the model before aggregating it. Defaults to `1`.
+* `sample_size`: Size of the training set for each run (sampled from the training set). If there are multiple runs, each sample from the training set will be this large. Can be a number, or `all`. Since SVMs can be slow with many samples, this parameter is designed to allow for fitting subets of the data in different runs to speed up computation time. Defaults to `'all'`.
+* `label`: A label for the saved models. This label is used for running model predictions, as well. Any models with the same label will be overwritten. Defaults to `''`.
+* `probab`: Whether to calculate probabilities for the classes. Enabling this will increase computation time. Defaults to `False`.
 
 ```python
 from model_helper import model_build
@@ -37,10 +37,10 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 `model_helper.py` also contains a function to help with predictions, `model_run`. It takes a list of product names as the input. The list should be in the form `[['brand1', 'title1'], ['brand2', 'title2']]`, but can also just be a list of names. This script will clean and vectorize the product names before using the model to make a prediction. There is also a label field; this field needs to be the same as when training the model. The output will be an array of PUCs in the form `[['gen_cat', 'prod_fam', 'prod_type'], ...]`.
 
 `model_run` takes the following as inputs:
-* `sen_itr`: List of product names in the form `['brand', 'title']`
-* `label`: Model label, should match the label used when building the model
-* `mode`: Whether to take the mode of the different runs or just output the results of all runs
-* `proba`: Whether to output probabilities (need to enable the flag when building the model, as well)
+* `sen_itr`: List of product names in the form `['brand', 'title']`. Required.
+* `label`: Model label, should match the label used when building the model. Defaults to `''`.
+* `mode`: Whether to take the mode of the different runs or just output the results of all runs. If you set to `False`, you will need to aggregate the runs yourself. Defaults to `True`.
+* `proba`: Whether to output probabilities (need to enable the flag when building the model, as well, or this will cause an error). 
 
 There are three lists that are returned by the function:
 * A list of predicted PUCs (form depending on `mode` flag)
