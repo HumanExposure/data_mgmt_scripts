@@ -15,7 +15,7 @@ As a perquisite for using this model, a few pieces need to be generated. This ta
 from model_helper import model_initialize
 model_initialize([47])
 ```
-**Important:** If you run this again after building a model, that model will no longer work because the file containing the word embedding information will overwritten. 
+**Important:** If you run this again wwith the same label after building a model, that model will no longer work because the file containing the word embedding information will overwritten. 
 
 ### Building a model
 The script `model_helper.py` contains functions to make building a model straightforward. The function you will want to use is called `model_build`. Multiple files are saved after running this method; these are the actual trained models. After training these models once, they do not need to be trained again.
