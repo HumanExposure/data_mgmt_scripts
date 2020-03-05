@@ -34,7 +34,7 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 ```
 
 ### Making predictions
-`model_helper.py` also contains a function to help with predictions, `model_run`. It takes a list of product names as the input. The list should be in the form `[['brand1', 'title1'], ['brand2', 'title2']]`, but can also just be a list of names. This script will clean and vectorize the product names before using the model to make a prediction. There is also a label field; this field needs to be the same as when training the model. The output will be an array of PUCs in the form `[['gen_cat', 'prod_fam', 'prod_type'], ...]`.
+`model_helper.py` also contains a function to help with predictions, `model_run`. It takes a list of product names as the input. The list should be in the form `[['brand1', 'title1'], ['brand2', 'title2']]`, but can also just be a list of names. This script will clean and vectorize the product names before using the model to make a prediction. There is also a label field; this field needs to be the same as when training the model. The output will be an array of PUCs in the form `[['gen_cat', 'prod_fam', 'prod_type'], ...]`. I recommend you put all the products you need to predict in the same list, as calling the function multiple times is slow because it has to load the models each time.
 
 `model_run` takes the following as inputs:
 * `sen_itr`: List of product names in the form `['brand', 'title']`. Required.
