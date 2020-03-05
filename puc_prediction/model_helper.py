@@ -35,7 +35,7 @@ def mode_fun(x):
     return pd.Series([['']*3])
 
 
-def model_predict(sen_vec, pkey, label='', proba=False):
+def model_predict(sen_vec, pkey, label=''):
     """Load model and predict PUCS.
 
     This is not meant to be called outside of 'model_run'.
@@ -61,28 +61,30 @@ def model_predict(sen_vec, pkey, label='', proba=False):
     # use model
     print('Gathering pedictions')
     pred1 = clf.predict(sen_vec)
-    pred2 = [clf_d2[pred1[n]] if type(clf_d2[pred1[n]]) == str else
+    pred2 = [clf_d2[pred1[n]] if isinstance(clf_d2[pred1[n]], str) else
              clf_d2[pred1[n]].predict([i])[0] for n, i in enumerate(sen_vec)]
 
-    pred3 = [clf_d3[pred2[n]] if type(clf_d3[pred2[n]]) == str else
+    pred3 = [clf_d3[pred2[n]] if isinstance(clf_d3[pred2[n]], str) else
              clf_d3[pred2[n]].predict([i])[0] for n, i in enumerate(sen_vec)]
 
     puclist = [pkey.loc[i].to_list() for i in pred3]
 
     proba_out = []
     pucs_all = []
-    if proba:
+    if clf.probability:
         print('Predicting probabilities')
         proba1 = [{i: p[n] for n, i in enumerate(clf.classes_)}
                   for p in clf.predict_proba(sen_vec)]
 
-        proba2 = [{clf_d2[pred1[n]]: 1} if type(clf_d2[pred1[n]]) == str else
+        proba2 = [{clf_d2[pred1[n]]: 1} if isinstance(clf_d2[pred1[n]], str)
+                  else
                   [{ii: p[nn] for nn, ii in enumerate(
                       clf_d2[pred1[n]].classes_)} for p in
                       clf_d2[pred1[n]].predict_proba([i])][0]
                   for n, i in enumerate(sen_vec)]
 
-        proba3 = [{clf_d3[pred2[n]]: 1} if type(clf_d3[pred2[n]]) == str else
+        proba3 = [{clf_d3[pred2[n]]: 1} if isinstance(clf_d3[pred2[n]], str)
+                  else
                   [{ii: p[nn] for nn, ii in enumerate(
                       clf_d3[pred2[n]].classes_)} for p in
                       clf_d3[pred2[n]].predict_proba([i])][0]
@@ -103,7 +105,8 @@ def model_run(sen_itr, label='', mode=True, proba=False):
         proba (bool, optional): Whether to predict probabilities.
 
     Returns:
-        all_list (list): List of product pucs
+        all_list (list): List of product pucs.
+        removed (list): List of indices with names that were removed.
         proba_pred (list): List of probabilites.
         puc_list (list): List of predicted PUC for each level.
 
@@ -114,11 +117,18 @@ def model_run(sen_itr, label='', mode=True, proba=False):
 
     # clean input
     print('Cleaning input')
-    if type(sen_itr) == str:
+    if isinstance(sen_itr, str):
         sen_itr = [[sen_itr]]
-    sen_itr = [[i] if type(i) == str else i for i in sen_itr]
+    sen_itr = [[i] if isinstance(i, str) else i for i in sen_itr]
     sen_itr = [['', i[0]] if len(i) == 1 else i for i in sen_itr]
     sen_clean = [clean_str(i[0], i[1]) for i in sen_itr]
+    removed = [n for n, i in enumerate(sen_clean) if len(i) < 1]
+    sen_clean = [i for n, i in enumerate(sen_clean) if n not in removed]
+    for i in removed:
+        print(f'Invalid name in position {str(i)}, removing from list')
+    if len(sen_clean) < 1:
+        print('Error: No valid samples found')
+        return [], [], [], []
 
     # checks for number of model run
     num_runs = 0
@@ -132,7 +142,7 @@ def model_run(sen_itr, label='', mode=True, proba=False):
             break
     if num_runs == 0:
         print('Please build the model or change the label parameter')
-        return []
+        return [], [], [], []
 
     # convert to document embedding
     print('Converting text')
@@ -147,14 +157,14 @@ def model_run(sen_itr, label='', mode=True, proba=False):
     for n in range(num_runs):
         lab = label + '_' + str(n)
         print('----- Predicting ' + lab + ' -----')
-        puclist, problist, pucs_all = model_predict(sen_vec, pkey, lab, proba)
+        puclist, problist, pucs_all = model_predict(sen_vec, pkey, lab)
         puc_pred.append(puclist)
         proba_pred.append(problist)
         puc_list.append(pucs_all)
     all_list = pd.DataFrame(puc_pred).apply(mode_fun).values[0] if mode else \
         pd.DataFrame(puc_pred)
 
-    return all_list, proba_pred, puc_list
+    return all_list, removed, proba_pred, puc_list
 
 
 def model_build(df_train='all', bootstrap=False, num_runs=1,
@@ -177,8 +187,8 @@ def model_build(df_train='all', bootstrap=False, num_runs=1,
         probab (bool, optional): Whether to calculate class probability.
 
     """
-    df = load_df() if type(df_train) == str else df_train
-    sz = len(df) if type(sample_size) == str else sample_size
+    df = load_df() if isinstance(df_train, str) else df_train
+    sz = len(df) if isinstance(sample_size, str) else sample_size
 
     for n in range(num_runs):
         print('----- Training ' + label + '_' + str(n) + ' -----')
@@ -203,11 +213,19 @@ def model_initialize(add_groups=[], label=''):
     print('----- Initializing model -----')
     label = '' if len(label) == 0 else '_' + label.strip('_')
 
-    if type(add_groups) is int:
+    if isinstance(add_groups, int):
         add_groups = [add_groups]
 
     print('Pulling products')
     df = read_df()
+
+    def standardize(x):
+        try:
+            return x.str.strip().str.lower()
+        except AttributeError:
+            return x
+
+    df = df.apply(standardize)
     name = df[['brand_name', 'title']].apply(lambda x: clean_str(
         x['brand_name'], x['title']), axis=1)
     name.name = 'name'
@@ -221,6 +239,7 @@ def model_initialize(add_groups=[], label=''):
         chem_df = read_group(i)
         if len(chem_df) > 0:
             print(f'Adding group {i}')
+            chem_df = chem_df.apply(standardize)
             chem_df['name'] = chem_df.apply(lambda x: clean_str(
                 x['brand_name'], x['title']), axis=1)
             chem_df['gen_cat'] = 'not_applicable'
@@ -233,7 +252,8 @@ def model_initialize(add_groups=[], label=''):
             print(f'Group {i} not found')
 
     df_comb = pd.concat([comb] + df_add) \
-        .replace('', np.nan).sample(frac=1)  # .drop_duplicates()
+        .replace('', np.nan).sample(frac=1).dropna(subset=['name']) \
+        .reset_index(drop=True)
     joblib.dump(df_comb, 'training_data' + label + '.joblib')
 
     pkey = pd.concat([df_comb[['gen_cat', 'prod_fam', 'prod_type']],
