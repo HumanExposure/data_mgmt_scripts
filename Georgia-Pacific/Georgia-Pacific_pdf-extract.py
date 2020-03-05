@@ -260,8 +260,13 @@ for i in amount:
         minimum = float(i.split('-')[0])
         maximum = float(i.split('<')[1])
         central = ''
+    if 'ph' in i:
+        minimum = ''
+        maximum = ''
+        central = ''
     else:
         pass
+        
     centrals.append(central)
     minimums.append(minimum)
     maximums.append(maximum)
