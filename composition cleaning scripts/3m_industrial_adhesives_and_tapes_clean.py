@@ -44,4 +44,6 @@ split_data.central_wf_analysis=pd.to_numeric(split_data.central_wf_analysis.asty
 split_data.central_wf_analysis=split_data.central_wf_analysis.round(10)
 clean_data=split_data.fillna("")
 
+clean_data=clean_data.loc[clean_data.central_wf_analysis!=0]
+
 clean_data.to_csv("3m_industrial_adhesives_and_tapes_cleaned.csv", index=False)
