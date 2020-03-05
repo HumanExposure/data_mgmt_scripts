@@ -40,18 +40,17 @@ model_build(df_train='all', bootstrap=True, num_runs=5, label='boot')
 * `sen_itr`: List of product names in the form `['brand', 'title']`. Required.
 * `label`: Model label, should match the label used when building the model. Defaults to `''`.
 * `mode`: Whether to take the mode of the different runs or just output the results of all runs. If you set to `False`, you will need to aggregate the runs yourself. Defaults to `True`.
-* `proba`: Whether to output probabilities (need to enable the flag when building the model, as well, or this will cause an error). 
 
 There are three lists that are returned by the function:
 * A list of predicted PUCs (form depending on `mode` flag)
 * A list of probabilities (blank if `proba=False`)
-* A list of predicted PUC names for each level based on the probability (used for formatting the list of probabilities, blank if `proba=False`)
+* A list of predicted PUC names for each level based on the probability (used for formatting the list of probabilities, no probabilities found)
 
 ```python
 from model_helper import model_run
 
 prod_names = [['clorox', 'extra fancy bleach'], ['crayola', 'purple crayons']]
-puclist, problist, probnames = model_run(prod_names, 'boot')
+puclist, problist, probnames = model_run(prod_names, label='boot')
 ```
 
 ## Requirements
