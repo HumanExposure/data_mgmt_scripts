@@ -221,6 +221,20 @@ if __name__ == '__main__':
     out_folder = os.path.join(os.getcwd(), 'output')
     folder = os.path.join(os.getcwd(), 'pdf')  # default folder
 
+    # check folders
+    if not os.path.isdir(out_folder):
+        print('Output folder not found, creating folder...')
+        if os.path.exists(out_folder):
+            print('Output folder name conflict, please change name')
+            sys.exit()
+        else:
+            try:
+                os.mkdir(out_folder)
+            except OSError:
+                print('Could not automatically create directory, exiting')
+            else:
+                print('Successfully created directory')
+
     # get label for output files
     label = ''
     if len(sys.argv) == 2:
@@ -229,26 +243,12 @@ if __name__ == '__main__':
         print('Too many arguments, exiting script')
         sys.exit()
 
-    # start logging
-    stime = time.strftime('%Y-%m-%d_%H-%M-%S')
-    logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + label
-                                              + stime +
-                                              '.log'), filemode='w',
-                        format='[%(levelname)s] %(asctime)s: %(message)s',
-                        level=logging.INFO)
-
-    if do_OCR and not all_OCR:
-        logging.info('OCR is enabled for files with no text.')
-    elif do_OCR and all_OCR:
-        logging.info('OCR is enabled for all files.')
-    elif not do_OCR and all_OCR:
-        logging.warning('OCR is not enabled.')
-    else:
-        logging.info('OCR is not enabled.')
-
     # parse arguments. arguments override folder
     zipFile = False
     if len(sys.argv) == 1:
+        if not os.path.isdir(folder):
+            print('PDF folder not found: ' + str(folder))
+            sys.exit()
         file_iter = os.listdir(folder)
     else:
         arg = sys.argv[1]
@@ -268,13 +268,31 @@ if __name__ == '__main__':
             print('File/folder not found, exiting script')
             sys.exit()
 
+    # start logging
+    stime = time.strftime('%Y-%m-%d_%H-%M-%S')
+    logging.basicConfig(filename=os.path.join(out_folder, 'extract_' + label
+                                              + stime +
+                                              '.log'), filemode='w',
+                        format='[%(levelname)s] %(asctime)s: %(message)s',
+                        level=logging.INFO)
+
+    if do_OCR and not all_OCR:
+        logging.info('OCR is enabled for files with no text.')
+    elif do_OCR and all_OCR:
+        logging.info('OCR is enabled for all files.')
+    elif not do_OCR and all_OCR:
+        logging.warning('OCR is not enabled.')
+    else:
+        logging.info('OCR is not enabled.')
+
     num_found = len([i for i in file_iter if os.path.splitext(
         i.filename if zipFile else i
         )[1] == '.pdf'])
-    logging.info(str(num_found) + ' PDFs found.')
+    logging.info('%s PDFs found.', str(num_found))
 
     if num_found == 0:
         print('No PDFs found, exiting')
+        logging.error('No PDFs found, exiting')
         sys.exit()
 
     # iterate through files
