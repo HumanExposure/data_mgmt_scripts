@@ -90,9 +90,9 @@ def chem_format(val):
     # loop through list items, call earlier functions and change dict format
     val_new = []
     for i in val:
-        if type(i) == str:
+        if isinstance(i, str):
             val_new.append(str_format(i))
-        elif type(i) == dict:
+        elif isinstance(i, dict):
             key = list(i.keys())[0]  # should only be one key
             tval = i[key]
             dnew = {**{'name': str_format(key), 'cas': tval['cas']},
