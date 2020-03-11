@@ -24,6 +24,7 @@ OR
 ```bash
 kill -9 $(ps aux | grep java | grep Tika | grep -oP -m1 "^\w{3,10}\s{1,}\K\w{4,5}")
 ```
+After running the extraction script, download the extraction template from Factotum and put it in the output folder. Edit lines 280-283 of `transfer.py` to sprcify the filenames, then run the script. This cleans the text a little bit and transforms it for upload into Factotum.
 
 ### Packages
 * Python (tested on 3.7, I know you need at least 3.5)
@@ -35,6 +36,7 @@ kill -9 $(ps aux | grep java | grep Tika | grep -oP -m1 "^\w{3,10}\s{1,}\K\w{4,5
 * libiconv
 * NLTK
 * python-Levenshtein
+* beautifulsoup4
 * fuzzywuzzy (pip)
 * Tika (conda-forge)
 * Tesseract (conda-forge) (if you install this after running Tika, restart Tika)
