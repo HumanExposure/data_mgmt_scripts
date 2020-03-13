@@ -11,7 +11,7 @@ clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #cle
 
 flavis=pd.read_excel("flavis.xlsx", usecols=["Flavis name","CAS No"], dtype=str)
 flavis=flavis.rename(columns={"Flavis name":"raw_chem_name","CAS No":"raw_cas"})
-flavis=flavis.dropna(how="all").drop_duplicates(subset=["raw_chem_name"]).fillna("")
+flavis=flavis.dropna(how="all").drop_duplicates().fillna("")
 
 #some cas reading as dates with time stamp. Remove the time stamp
 flavis.loc[flavis.raw_cas.str.contains("\d+-\d{2}-\d{1}"), ["raw_cas"]]=flavis.raw_cas.str.extract(r'(\d+-\d{2}-\d{1})', expand=False)
