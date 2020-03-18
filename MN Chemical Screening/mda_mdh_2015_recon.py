@@ -7,6 +7,7 @@ import os
 
 os.chdir("C://Users//lkoval//OneDrive - Environmental Protection Agency (EPA)//Profile//Documents//MN//MDA-MDH 2015 Recon Study Community Public Water Supply Wells")
 
+#read in table 2
 tab_2=read_pdf("MDA-MDH 2015 Recon Study Community Public Water Supply Wells_a.pdf", pages="22", dtype=str, pandas_options={"usecols":[0,1,2]})
 tab_2=tab_2.rename(columns={"Unnamed: 0":"raw_chem_name", "2010":"detfre10","2015":"detfre15"})
 tab_2=tab_2.dropna()
@@ -14,10 +15,12 @@ tab_2=tab_2.loc[tab_2.detfre10!="Frequency"]
 tab_2.detfre10=tab_2.detfre10.str.strip("%")
 tab_2.detfre15=tab_2.detfre15.str.strip("%")
 
+#isolate chems and 2010 detects, keep only chems that were detected
 ten=tab_2[["raw_chem_name","detfre10"]]
 ten=ten.loc[(ten.detfre10!="na")]
 ten=ten.loc[pd.to_numeric(ten.detfre10)>0]
 
+#fill in rest of template
 ten["ten_document_id"]="1512357"
 ten["ten_document_filename"]="MDA-MDH 2015 Recon Study Community Public Water Supply Wells_a.pdf"
 ten["doc_date"]="October 2016"
@@ -33,11 +36,12 @@ ten=ten[["ten_document_id","ten_document_filename","doc_date","raw_category","ra
 
 ten.to_csv("MDA_MDH_2015_recon_table2_2010.csv", index=False)
 
-
+#isolate chems and 2015 detects, keep only chems that were detected
 fif=tab_2[["raw_chem_name","detfre15"]]
 fif=fif.loc[(fif.detfre15!="na")]
 fif=fif.loc[pd.to_numeric(fif.detfre15)>0]
 
+#fill in rest of template
 fif["fif_document_id"]="1512358"
 fif["fif_document_filename"]="MDA-MDH 2015 Recon Study Community Public Water Supply Wells_b.pdf"
 fif["doc_date"]="October 2016"
