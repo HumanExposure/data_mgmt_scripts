@@ -26,8 +26,8 @@ early=early.loc[(early.detects.str.contains("[0-9]")) & (pd.to_numeric(early.det
 early=early[["raw_chem_name"]]
 
 #fill in rest of template
-early["early_document_id"]="1512363"
-early["early_document_filename"]="WQ Asmt Aquifers Northern Midwest_a.pdf"
+early["data_document_id"]="1512363"
+early["data_document_filename"]="WQ Asmt Aquifers Northern Midwest_a.pdf"
 early["doc_date"]="2011"
 early["raw_category"]=""
 early["raw_cas"]=""
@@ -37,7 +37,7 @@ early["cpcat_code"]=""
 early["cpcat_sourcetype"]=""
 early["report_funcuse"]=""
 
-early=early[["early_document_id","early_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"]]
+early=early[["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"]]
 
 early.to_csv("USGS_SIR2011_5229_tables_12_15_20.csv", index=False)
 
@@ -74,8 +74,8 @@ later=later.loc[pd.to_numeric(later.detects)>0]
 later=later[["raw_chem_name", "report_funcuse"]]
 
 #fill in rest of template
-later["later_document_id"]="1512364"
-later["later_document_filename"]="WQ Asmt Aquifers Northern Midwest_b.pdf"
+later["data_document_id"]="1512364"
+later["data_document_filename"]="WQ Asmt Aquifers Northern Midwest_b.pdf"
 later["doc_date"]="2011"
 later["raw_category"]=""
 later["raw_cas"]=""
@@ -84,6 +84,6 @@ later["description_cpcat"]=""
 later["cpcat_code"]=""
 later["cpcat_sourcetype"]=""
 
-later=later[["later_document_id","later_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"]]
+later=later[["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"]]
 
 later.to_csv("USGS_SIR2011_5229_tables_22_25.csv", index=False)
