@@ -15,7 +15,7 @@ from glob import glob
 from time import strftime, localtime
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #Removes non-ASCII characters
-path = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Scraping/Functional Use' #Folder doc is in
+path = r'L:\Lab\HEM\ALarger\Skin Deep\Functional Use' #Folder doc is in
 os.chdir(path)
 minTime = 5 #minimum wait time in between clicks
 maxTime = 10 #maximum wait time in between clicks
