@@ -453,7 +453,7 @@ for row in data:
     try:
         name = row.split('/')[-1]
         if name in finished:
-#             print(name, 'is already downloaded.')
+            print(name, 'is already downloaded.')
             continue      
         site = row
         hdr = {'User-Agent': 'Mozilla/5.0'}
