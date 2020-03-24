@@ -15,7 +15,7 @@ gw_plants=["5","12","24"]
 #indicators that a chemical was detected according to "abbreviations" sheet in excel file being read in
 detect_keys=["^<LCMRL","^<RL", "^> 150% recovery","^[0-9]"]
 
-#renaming and selecting data labeled as "Source" from Surface Water DWTPs from Phase 1. Doesn't consider LFMs or Field Blanks.
+#renaming and selecting data labeled as "Source" from Groundwater DWTPs from Phase 1. Doesn't consider LFMs or Field Blanks.
 p1_cols_sgw=[col.replace("\n"," ") for col in phase1.columns]
 new_col_names=dict(zip(phase1.columns,p1_cols_sgw))
 p1=phase1.rename(columns=new_col_names)
@@ -24,7 +24,7 @@ p1=p1[p1_cols_sgw]
 p1_cols_sgw=[col for col in p1.columns if (((len(col.split(" "))>1) and (col.split(" ")[1] in gw_plants)) or ("Analyte" in col))]
 p1=p1[p1_cols_sgw]
 
-#renaming and selecting data labeled as "Source" from Surface Water DWTPs from Phase 2. Doesn't consider LFMs or Field Blanks.
+#renaming and selecting data labeled as "Source" from Groundwater DWTPs from Phase 2. Doesn't consider LFMs or Field Blanks.
 p2_cols_sgw=[col.replace("\n"," ") for col in phase2.columns]
 new_col_names=dict(zip(phase2.columns,p2_cols_sgw))
 p2=phase2.rename(columns=new_col_names)
