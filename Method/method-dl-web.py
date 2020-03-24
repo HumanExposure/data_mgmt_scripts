@@ -428,56 +428,6 @@ f = open("method-info.pkl","wb")
 pickle.dump(info,f)
 f.close()
 
-# %% Download PDFs from site
-
-pdfs = info['pdf_filename'].tolist()
-pdfs = list(dict.fromkeys(pdfs))
-pdfs.remove('none')
-
-pdfurls = []
-
-for pdf in pdfs:
-    pdfurls.append('https://methodhome.com/wp-content/uploads/' + pdf)
-
-minTime = 4 #minimum wait time in between clicks
-maxTime = 8 #maximum wait time in between clicks
-
-finished = []
-
-directory = r'pdfs/'
-
-for file in os.listdir(directory):
-    if os.path.isfile(os.path.join(directory, file)):
-        finished.append(file)
-
-data = pdfurls
-
-path = directory #Folder the PDFs should go to 
-os.chdir(path)
-
-for row in data:
-    try:
-        name = row.split('/')[-1]
-#         print(name)
-        if name in finished:
-#             print(name, 'is already downloaded.')
-            continue
-        print(row)
-        site = row
-        hdr = {'User-Agent': 'Mozilla/5.0'}
-        req = Request(site,headers=hdr)
-        page = urlopen(req)
-        time.sleep(random.randint(minTime,maxTime))
-        output = open(name,'wb')
-        output.write(page.read())
-        output.close()
-        finished.append(name)
-        print(name, 'downloaded')
-    except:
-        print('problem with:',name,row)
-
-os.chdir(originalpath)
-
 # %% Download pictures from site
 
 minTime = 4 #minimum wait time in between clicks
@@ -561,40 +511,3 @@ f.close()
 #        time.sleep(random.randint(minTime,maxTime))
 #    except: 
 #        print(p)
-
-# %%
-os.chdir(r'pdfs')
-pdfs = glob('*.pdf')
-os.chdir(originalpath)
-
-# %% Separate the PDF extractions from the webscrape-only extractions
-pdfinfo = info[info.pdf_filename.isin(pdfs)].reset_index(drop=True)
-webinfo = info[~info.pdf_filename.isin(pdfs)].reset_index(drop=True)
-
-f = open("method-webinfo.pkl","wb")
-pickle.dump(webinfo,f)
-f.close()
-
-f = open("method-pdfinfo.pkl","wb")
-pickle.dump(pdfinfo,f)
-f.close()
-
-# %% Registered Record CSV
-
-filenames = []
-titles = []
-urls = []
-
-for index, row in webinfo.iterrows():
-    filenames.append(row[0].replace('.txt','.pdf'))
-    if row[1].split('| method')[0].replace('|', '-').strip() == 'method':
-        titles.append(row[0].split('.')[0])
-    else:
-        titles.append(row[1].split('| method')[0].replace('|', '-'))
-    urls.append(row[8])
-
-rrWebDF = pd.DataFrame({'filename':filenames, 'title':titles, 'document_type':'ID', 'url':urls, 'organization':'method products, pbc.'})
-
-rrWebDF = rrWebDF.drop_duplicates().reset_index(drop=True)
-
-rrWebDF.to_csv("method-web-registered-records.csv",index=False, header=True)
