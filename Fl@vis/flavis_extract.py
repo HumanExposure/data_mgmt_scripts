@@ -17,7 +17,7 @@ flavis=flavis.dropna(how="all").fillna("")
 flavis.loc[flavis.raw_cas.str.contains("\d+-\d{2}-\d{1}"), ["raw_cas"]]=flavis.raw_cas.str.extract(r'(\d+-\d{2}-\d{1})', expand=False)
 flavis.raw_chem_name=flavis.raw_chem_name.apply(clean)
 
-flavis["data_document_id"]=""
+flavis["data_document_id"]="1513117"
 flavis["data_document_filename"]="flavis.pdf"
 flavis["doc_date"]="2020"
 flavis["raw_category"]=""
