@@ -156,6 +156,11 @@ def clean_row(x):
             xnew['cent_wt'] = xnew['min_wt']
             xnew['max_wt'] = ''
             xnew['min_wt'] = ''
+
+    # add unit type
+    if x['min_wt'] != '' or (x['cent_wt'] != '' or x['max_wt'] != ''):
+        xnew['unit_type'] = 2
+
     return xnew
 
 
@@ -283,15 +288,15 @@ def combine_names(df, tcomb):
 
 if __name__ == '__main__':
     # file locations
-    # folder = r'output/dg18'
-    # chem_file = r'chemical_data_dg18_zip_2020-03-04_14-31-52.csv'
-    # info_file = r'file_info_dg18_zip_2020-03-04_14-31-52.csv'
-    # template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
+    folder = r'output/dg18'
+    chem_file = r'chemical_data_dg18_zip_2020-03-04_14-31-52.csv'
+    info_file = r'file_info_dg18_zip_2020-03-04_14-31-52.csv'
+    template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
 
-    folder = r'output/dg17'
-    chem_file = r'chemical_data_dg17_zip_2020-03-05_09-40-48.csv'
-    info_file = r'file_info_dg17_zip_2020-03-05_09-40-48.csv'
-    template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
+    # folder = r'output/dg17'
+    # chem_file = r'chemical_data_dg17_zip_2020-03-05_09-40-48.csv'
+    # info_file = r'file_info_dg17_zip_2020-03-05_09-40-48.csv'
+    # template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
 
     # read files
     chem_path = os.path.join(folder, chem_file)
@@ -317,6 +322,7 @@ if __name__ == '__main__':
     # run functions
     df_clean = df_clean.apply(fix_range, axis=1)
     df_clean = df_clean.apply(check_line, axis=1)
+    df_clean['unit_type'] = ''
     df_clean = df_clean.apply(clean_row, axis=1)
     df_clean = combine_names(df_clean, tcomb)  # could add multiprocessing
 
@@ -340,9 +346,6 @@ if __name__ == '__main__':
         .merge(right=df_clean, how='inner', on='data_document_id',
                validate='1:m', sort=True)
     df_all = df_all[cols]
-
-    # set all units to unknown
-    df_all['unit_type'] = 'unknown'
 
     # output other info table
     df_info_new = df_info.copy().rename(columns={'split': 'multiple_files',
@@ -391,6 +394,6 @@ if __name__ == '__main__':
         df_split = pd.concat(i)
         store += len(df_split)
         df_split.to_csv(os.path.join(
-            split_path, 'split' + str(n) + '_' + chem_file))
+            split_path, 'split' + str(n) + '_' + chem_file), index=False)
 
     print('Done!')
