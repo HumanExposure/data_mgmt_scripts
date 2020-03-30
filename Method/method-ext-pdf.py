@@ -18,8 +18,6 @@ from tabula import read_pdf
 
 originalpath = os.getcwd()
 
-info = pickle.load(open( "method-info.pkl","rb" ) )
-
 # %%
 def cleanLine(line):
     """
@@ -106,7 +104,10 @@ for key in dfkeys:
         if 'Product Name' in row[0]:
             prods[key] = row[1]
         if 'UPC' in row[0] and 'allergen' not in row[0]:
-            upcs[key] = row[1]
+            upc = cleanLine(row[1])
+            if ('\r') in row[1]:
+                upc = ', '.join(upc.splitlines())
+            upcs[key] = upc
         if 'Name of Company' in row[0] and type(row[1]) == str:
             names[key] = cleanLine(row[1])
         if 'Link to Safety Data Sheet' in row[0] and type(row[1]) == str:
@@ -135,6 +136,7 @@ for key in dfkeys:
             chem = cleanLine(row[0])
             chems.append(chem)
             func = cleanLine(row[1])
+            func = func.replace(';', ',')
             funcs.append(func)
             cas = cleanLine(row[2])
             cass.append(cas)
@@ -154,7 +156,7 @@ for file in pdfextract['file']:
 # %% Registered Record CSV
 
 rrdf = pd.DataFrame({'filename':files, 'title':files, 'document_type':'ID', 'url':files, 'organization':'method products, pbc.'})
-rrdf['titles'] = rrdf.title.replace(names)
+rrdf['title'] = rrdf.title.replace(prods)
 rrdf['url'] = rrdf.url.replace(pdfurls)
 
 rrdf = rrdf.drop_duplicates().reset_index(drop=True)
@@ -163,9 +165,9 @@ rrdf.to_csv("method-pdf-registered-records.csv",index=False, header=True)
 
 # %% Make product data CSV
 
-proddatadf = pd.read_csv('product_template.csv')
+proddatadf = pd.read_csv('method_pdf_registered_documents.csv')
 
-#file2id = dict(zip(proddatadf['data_document_filename'], proddatadf['data_document_id']))
+file2id = dict(zip(proddatadf['filename'], proddatadf['DataDocument_id']))
 
 data_document_filename = pdfextract['file'].tolist()
 
@@ -175,7 +177,7 @@ proddatadf = pd.DataFrame({'data_document_id':data_document_filename, 'data_docu
                            'short_description':'', 'long_description':'', 'thumb_image':'', 'medium_image':'',
                            'large_image':'', 'model_number':'', 'manufacturer':data_document_filename })
 
-#proddatadf['data_document_id'] = proddatadf.data_document_filename.replace(file2id) #get doc IDs from template dictionary
+proddatadf['data_document_id'] = proddatadf.data_document_filename.replace(file2id) #get doc IDs from template dictionary
 proddatadf['title'] = proddatadf.data_document_filename.replace(prods)
 proddatadf['upc'] = proddatadf.data_document_filename.replace(upcs)
 proddatadf['url'] = proddatadf.data_document_filename.replace(pdfurls)
@@ -187,14 +189,12 @@ proddatadf.to_csv('method-pdf_product-data.csv',index=False, header=True)
 
 # %% Extracted text CSV
 
-extdf = pd.read_csv('extracted_text_template.csv')
-
 extdf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 'prod_name':data_document_filename,
                    'doc_date':data_document_filename, 'rev_num':'', 'raw_category':'', 'raw_cas':pdfextract['cas'].tolist(),
                    'raw_chem_name':pdfextract['chem'].tolist(), 'report_funcuse':pdfextract['func'].tolist(), 'raw_min_comp':'', 'raw_max_comp':'',
-                   'unit_type':int(3), 'ingredient_rank':pdfextract['rank'].tolist(), 'raw_central_comp':'', 'component':''})
-    
-#extdf['data_document_id'] = extdf.data_document_filename.replace(file2id)
+                   'unit_type':'', 'ingredient_rank':pdfextract['rank'].tolist(), 'raw_central_comp':'', 'component':''})
+
+extdf['data_document_id'] = extdf.data_document_filename.replace(file2id)
 extdf['prod_name'] = extdf.data_document_filename.replace(prods)
 extdf['doc_date'] = extdf.data_document_filename.replace(dates)
 
