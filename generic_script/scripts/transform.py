@@ -145,6 +145,14 @@ def clean_row(x):
 
             xnew['name'] = r
 
+    # make sure max_wt and min_wt are filled out
+    if x['cent_wt'] == '':
+        if x['max_wt'] != '' and x['min_wt'] == '':
+            xnew['min_wt'] = 0
+        elif x['max_wt'] == '' and x['min_wt'] != '':
+            print('completing max_wt, min_wt is ' + str(x['min_wt']))
+            xnew['max_wt'] = 100
+
     return xnew
 
 
@@ -304,7 +312,7 @@ if __name__ == '__main__':
     df_clean = df.fillna('').loc[~df['filename'].isin(to_remove)]
 
     # run functions
-    cf_clean = df_clean.apply(fix_range, axis=1)
+    df_clean = df_clean.apply(fix_range, axis=1)
     df_clean = df_clean.apply(check_line, axis=1)
     df_clean = df_clean.apply(clean_row, axis=1)
     df_clean = combine_names(df_clean, tcomb)  # could add multiprocessing
@@ -329,6 +337,9 @@ if __name__ == '__main__':
         .merge(right=df_clean, how='inner', on='data_document_id',
                validate='1:m', sort=True)
     df_all = df_all[cols]
+
+    # set all units to unknown
+    df_all['unit_type'] = 'unknown'
 
     # output other info table
     df_info_new = df_info.copy().rename(columns={'split': 'multiple_files',
