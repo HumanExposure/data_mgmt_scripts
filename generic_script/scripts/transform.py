@@ -145,14 +145,17 @@ def clean_row(x):
 
             xnew['name'] = r
 
-    # make sure max_wt and min_wt are filled out
+    # make sure max_wt and min_wt are filled out correctly
     if x['cent_wt'] == '':
         if x['max_wt'] != '' and x['min_wt'] == '':
             xnew['min_wt'] = 0
         elif x['max_wt'] == '' and x['min_wt'] != '':
             print('completing max_wt, min_wt is ' + str(x['min_wt']))
             xnew['max_wt'] = 100
-
+        if xnew['max_wt'] != '' and xnew['max_wt'] == xnew['min_wt']:
+            xnew['cent_wt'] = xnew['min_wt']
+            xnew['max_wt'] = ''
+            xnew['min_wt'] = ''
     return xnew
 
 
