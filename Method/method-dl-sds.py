@@ -18,8 +18,6 @@ from tabula import read_pdf
 
 originalpath = os.getcwd()
 
-info = pickle.load(open( "method-info.pkl","rb" ) )
-
 # %%
 def cleanLine(line):
     """
