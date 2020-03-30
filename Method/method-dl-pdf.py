@@ -13,7 +13,6 @@ from urllib.request import Request, urlopen
 import pandas as pd
 import requests
 import pickle
-from glob import glob
 from tabula import read_pdf
 
 originalpath = os.getcwd()
@@ -477,48 +476,6 @@ for row in data:
     except:
         print('problem with:',name,row)
 
-os.chdir(originalpath)
-
-# %% Download pictures from site
-
-minTime = 4 #minimum wait time in between clicks
-maxTime = 8 #maximum wait time in between clicks
-
-finished = []
-
-directory = r'pics/'
-
-for file in os.listdir(directory):
-    if os.path.isfile(os.path.join(directory, file)):
-        finished.append(file)
-
-pics = info['pic']
-pics = list(dict.fromkeys(pics))
-
-data = pics
-
-path = directory #Folder the pictures should go to 
-os.chdir(path)
-
-for row in data:
-    try:
-        name = row.split('/')[-1]
-        if name in finished:
-            print(name, 'is already downloaded.')
-            continue      
-        site = row
-        hdr = {'User-Agent': 'Mozilla/5.0'}
-        req = Request(site,headers=hdr)
-        page = urlopen(req)
-        time.sleep(random.randint(minTime,maxTime))
-        output = open(name,'wb')
-        output.write(page.read())
-        output.close()
-        finished.append(name)
-        print(name, 'downloaded')
-    except:
-        print('problem with:',name,row)
-        
 os.chdir(originalpath)
 
 # %% Create a list of URLs without PDFs that will need to be printed
