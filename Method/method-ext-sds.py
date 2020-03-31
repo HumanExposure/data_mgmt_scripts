@@ -8,8 +8,6 @@ import pickle
 #originalpath = r'L:\\Lab\\HEM\\hortonm\\Georgia Pacific\\'
 originalpath = os.getcwd()
 
-os.chdir(originalpath)
-
 # %%
 def pdfToText(files):
     """
@@ -161,17 +159,23 @@ dfdict = dict(zip(dfs['data_document_filename'], dfs['chems']))
 info = pd.DataFrame(columns = ['file', 'rank', 'chem', 'cas', 'amount'])
 
 for k, v in dfdict.items():
-    for i in v:
-        rank = v.index(i) + 1
-        if len(i) == 3:
-            chem = i[0]
-            cas = i[1].split('no.) ')[1].strip(' ')
-            amt = i[2]
-            data = {'file':k, 'rank':rank, 'chem':chem, 'cas':cas, 'amount':amt}
-            info = info.append(data, ignore_index = True)
-        if len(i) == 1:
-            info['chem'][len(info)-1] += ' ' + i[0]
-            continue
+    if len(v) == 0:
+        data = {'file':k, 'rank':1, 'chem':'', 'cas':'', 'amount':''}
+        info = info.append(data, ignore_index = True)
+#        print(data)
+        continue
+    else:
+        for i in v:
+            rank = v.index(i) + 1
+            if len(i) == 3:
+                chem = i[0]
+                cas = i[1].split('no.) ')[1].strip(' ')
+                amt = i[2]
+                data = {'file':k, 'rank':rank, 'chem':chem, 'cas':cas, 'amount':amt}
+                info = info.append(data, ignore_index = True)
+            if len(i) == 1:
+                info['chem'][len(info)-1] += ' ' + i[0]
+                continue
 
 # %% Fix ingredient ranking for multiline chemicals
 lastrank = 1
@@ -186,14 +190,13 @@ for index, row in info.iterrows():
     lastrank = row['rank']
 
 # %%
-amount = info['amount'].tolist()
 
 centrals = []
 minimums = []
 maximums = []
 
-for i in amount:
-    if '-' not in i and '<' not in i:
+for i in info['amount']:
+    if '-' not in i and '<' not in i and i != '':
         central = float(i)
         minimum = ''
         maximum = ''
@@ -215,10 +218,10 @@ for i in amount:
         minimum = float(i.split('-')[0])
         maximum = float(i.split('<')[1])
         central = ''
-#    if 'ph' in i:
-#        minimum = ''
-#        maximum = ''
-#        central = ''
+    if i == '':
+        minimum = ''
+        maximum = ''
+        central = ''
     else:
         pass
         
@@ -246,3 +249,62 @@ rrdf['organization'] = 'method products, pbc'
 rrdf = rrdf.drop_duplicates().reset_index(drop=True)
 
 rrdf.to_csv("method-sds-registered-records.csv",index=False, header=True)
+
+# %% Make product data CSV
+
+proddatadf = pd.read_csv('method_sds_documents_20200330.csv')
+files2id = dict(zip(proddatadf['file name'], proddatadf['ID']))
+
+docs = []
+titles = []
+
+for index, row in dfs.iterrows():
+    if len(row['products_list']) == 0:
+        docs.append(row['data_document_filename'])
+        titles.append(row['title'])
+    if len(row['products_list']) != 0:
+        for x in row['products_list']:
+            docs.append(row['data_document_filename'])
+            titles.append(x)
+
+data_document_filename = [x.split('.')[0] + '.pdf' for x in docs]
+
+proddatadf = pd.DataFrame({'data_document_id':data_document_filename, })
+
+proddatadf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 
+                           'title':titles, 'upc':'', 'url':urls, 'brand_name':'', 'size':'',
+                           'color':'', 'item_id':'', 'parent_item_id':'', 'short_description':'', 'long_description':'',
+                           'thumb_image':'', 'medium_image':'', 'large_image':'', 'model_number':'',
+                           'manufacturer': 'method products, pbc' })
+
+proddatadf['data_document_id'] = proddatadf.data_document_filename.replace(files2id) #get doc IDs from template dictionary
+
+proddatadf.to_csv('method-sds-product-data.csv',index=False, header=True)
+
+# %% Extracted text CSV
+
+file2prod = dict(zip(rrdf['filename'], rrdf['title']))
+file2date = dict(zip(dfs['data_document_filename'], dfs['doc_date']))
+file2rev = dict(zip(dfs['data_document_filename'], dfs['rev_num']))
+file2cat = dict(zip(dfs['data_document_filename'], dfs['raw_category']))
+
+data_document_filename = info['file'].tolist()
+chemicals = info['chem'].tolist()
+cas = info['cas'].tolist()
+
+prod_name = dfs['title']
+cas = [x.rstrip('*') for x in cas]
+chemicals = [x.rstrip('*') for x in chemicals]
+
+extdf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 'prod_name':data_document_filename,
+                   'doc_date':data_document_filename, 'rev_num':data_document_filename, 'raw_category':data_document_filename, 'raw_cas':cas,
+                   'raw_chem_name':chemicals, 'report_funcuse':'', 'raw_min_comp':minimums, 'raw_max_comp':maximums, 'unit_type':int(3),
+                   'ingredient_rank':info['rank'], 'raw_central_comp':centrals, 'component':''})
+    
+extdf['data_document_id'] = extdf.data_document_filename.replace(files2id)
+extdf['prod_name'] = extdf.data_document_filename.replace(file2prod)
+extdf['doc_date'] = extdf.data_document_filename.replace(file2date)
+extdf['rev_num'] = extdf.data_document_filename.replace(file2rev)
+extdf['raw_category'] = extdf.data_document_filename.replace(file2cat)
+
+extdf.to_csv('method-sds-extracted-text.csv',index=False, header=True)
