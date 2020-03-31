@@ -68,11 +68,13 @@ def extractData(fileList):
     chemList = [] #list of chemical names
     useList = [] #list of functional uses of each chemical
     rankList = [] #list of ingredient ranks
+    brandList = [] #list of product brands
     
     for file in fileList:
         ifile = open(file, encoding = 'utf8')
         prodname = ''
         formula = ''
+        brand = []
         chem = []
         cas = []
         use = []
@@ -106,6 +108,22 @@ def extractData(fileList):
             if 'ingredients' in cline and 'cas' in cline:
                 inChem = True
             
+        #get brand(s)
+        if 'glade' in prodname: brand.append('glade')
+        if 'scrubbing bubbles' in prodname: brand.append('scrubbing bubbles')
+        if 'windex' in prodname: brand.append('windex')
+        if 'favor' in prodname: brand.append('favor')
+        if 'off!' in prodname: brand.append('off!')
+        if 'pledge' in prodname: brand.append('pledge')
+        if 'raid' in prodname: brand.append('raid')
+        if 'shout' in prodname: brand.append('shout')
+        if 'ziploc' in prodname: brand.append('ziploc')
+        if 'drano' in prodname: brand.append('drano')
+        if 'kiwi' in prodname: brand.append('kiwi')
+        if 'fantastik' in prodname: brand.append('fantastik')
+        if 'saran' in prodname: brand.append('saran')
+        brand = ', '.join(brand)
+         
         if len(chem) == 0:
             chem = ['']
             cas = ['']
@@ -115,6 +133,7 @@ def extractData(fileList):
         filenameList.extend([file.replace('.txt','.pdf')]*n)
         prodnameList.extend([prodname]*n)
         formulaList.extend([formula]*n)
+        brandList.extend([brand]*n)
         casList.extend(cas)
         chemList.extend(chem)
         useList.extend(use)
@@ -124,7 +143,7 @@ def extractData(fileList):
         else:
             rankList.extend(list(range(1,n+1)))
    
-    df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodnameList, 'Formula number':formulaList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'ingredient_rank':rankList})
+    df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodnameList, 'Formula number':formulaList, 'brand':brandList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'ingredient_rank':rankList})
     df.to_csv('scj ingredient disclosure extracted text.csv',index=False, header=True)
     
     
