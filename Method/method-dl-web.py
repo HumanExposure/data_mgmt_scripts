@@ -470,17 +470,9 @@ for row in data:
         
 os.chdir(originalpath)
 
-# %% Create a list of URLs without PDFs that will need to be printed
-pdfDict = pd.Series(info.pdf_filename.values,index=info.url).to_dict()
-
-noPdf = []
-
-for url, pdf in pdfDict.items():
-    if pdf == 'none':
-        noPdf.append(url)
-
+# %% Create a list of URLs to be printed
 f = open("method-noPdfs.pkl","wb")
-pickle.dump(noPdf,f)
+pickle.dump(produrl,f)
 f.close()
 
 ## %% Script Allison used to print URLs to PDFs
