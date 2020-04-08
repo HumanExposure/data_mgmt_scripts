@@ -21,7 +21,7 @@ for row in template:
     if row[7] == 'percent' and all(n in '1234567890.' for n in row[5]): 
         idList.append(row[1])
         lowerList.append('')
-        centList.append(pd.to_numeric(row[5])/100)
+        centList.append((pd.to_numeric(row[5])/100).round(10))
         upperList.append('')
         if any(pd.to_numeric(n) > 1 or pd.to_numeric(n) < 0 for n in [lowerList[-1],centList[-1],upperList[-1]]): #Check if wf makes sense
             print('concentration out of range:',row) 
