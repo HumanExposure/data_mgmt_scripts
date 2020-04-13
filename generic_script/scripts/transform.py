@@ -78,8 +78,8 @@ def check_line(x):
             new_name = r.replace(full_match, ' ')
             new_name = re.sub(r'\s+', ' ', new_name).strip()
 
-            # print('---- ' + str(x.name) + ' ----')
-            # print(r + ' ---> ' + new_name)
+            print('---- ' + str(x.name) + ' ----')
+            print(r + ' ---> ' + new_name)
 
             dtemp = {'cas': x['cas'], 'wt': wt}
             if not (pd.isna(x['ci_color']) or x['ci_color'] == ''):
