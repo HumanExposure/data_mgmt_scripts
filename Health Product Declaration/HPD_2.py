@@ -238,7 +238,7 @@ for file in filelist:
     #add factotum fields    
     df["rev_num"]=""
     df["raw_category"]=""
-    df["unit_type"]=""
+    df["unit_type"]="3"
     df["ingredient_rank"]=""
 
 
