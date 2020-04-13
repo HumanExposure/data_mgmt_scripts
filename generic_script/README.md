@@ -5,7 +5,7 @@ This script was designed to process the Walmart MSDS dataset. Because of the man
 ### How to run
 There are multiple scripts. They should all be in the same folder. The script to run is called `run_extraction.py`.
 
-There are a few ways to run this script. With no arguments, the script looks for a folder called `pdf`. All PDFs in the root directory of this folder will be processed. Also, you a path to a folder as an argument to the script if that is preferred. The last thing that you can pass is the path to a ZIP file that contains PDFs. This option was created as a solution to some PDFs not opening due to PDF security restrictions.
+There are a few ways to run this script. With no arguments, the script looks for a folder called `pdf`. All PDFs in the root directory of this folder will be processed. Also, you can use a path to a folder as an argument to the script if that is preferred. The last thing that you can pass is the path to a ZIP file that contains PDFs. This option was created as a solution to some PDFs not opening due to PDF security restrictions.
 
 All output files will be in put in a folder called `output`, which you can create beforehand. This can be changed in the script.
 
