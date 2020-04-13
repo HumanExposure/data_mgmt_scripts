@@ -188,10 +188,12 @@ def fun_label_search(key, val, tcomb):
     t34 = t33.split('question', 1)[0].strip().replace(' & ', ' and ')
     t344 = re.sub(r'\b(?:contact|distributed)\b.*$', '', t34).strip()
     t345 = re.sub(r'[\*][\s\w]+$', '', t344)
+
+    # fix parentheses and brackets
     t35 = ''
-    # fix parentheses
     if t345.count('(') == t345.count(')'):
         pct = 0
+        pbk = 0
         for n, c in enumerate(t345):
             tchar = c
             if c == '(':
@@ -200,6 +202,15 @@ def fun_label_search(key, val, tcomb):
                 pct -= 1
             if c == ',' and pct > 0:
                 tchar = ';'
+
+            if t345.count('[') == t345.count(']'):
+                if c == '[':
+                    pbk += 1
+                if c == ']':
+                    pbk -= 1
+                if c == ',' and pbk > 0:
+                    tchar = ';'
+
             t35 += tchar
     t36 = t35.strip(',.').replace('  ', ' ').split(', ')
     t3 = [i for i in t36 if not re.match(re_cont4, i)]
@@ -239,7 +250,7 @@ def fun_label_search(key, val, tcomb):
             ing_list[-1] = ing_list[-1].strip().split('and ', 1)[1].strip()
 
         if '. ' in ing_list[-1]:
-            ing_list[-1] = ing_list[-1].split('.  ')[0].strip()
+            ing_list[-1] = ing_list[-1].split('. ')[0].strip()
         ing_list = [i.split('   ')[0].strip() for i in ing_list]
     ing_list = [i.strip('.,') for i in list(pd.unique(ing_list)) if len(i) > 2]
     ing_list = token_thing(ing_list, 5, True)

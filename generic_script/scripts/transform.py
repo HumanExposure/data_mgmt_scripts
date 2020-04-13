@@ -29,6 +29,12 @@ r_num = re.compile(r'\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}\s{0,2}|\b)' +
                    r'[\-]{1,3}\s{0,4}((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
                    r'\d{1,3}(?:[\,\.]\d{1,6})?)\b)?[\%\*]{0,2}(?![^\s])\s*?',
                    re.I)
+r_num2 = re.compile(r'\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}\s{0,2}|\b)' +
+                    r'\d{1,3}(?:[\.\,]\d{1,6})?)[\s\%\*]{0,2}(?:\s{0,4}' +
+                    r'[\-]{1,3}\s{0,4}((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
+                    r'\d{1,3}(?:[\,\.]\d{1,6})?)\b)?[\%\*]{0,2}' +
+                    r'(?![^\s\-\<\=])\s*?',
+                    re.I)
 
 
 def check_line(x):
@@ -36,11 +42,19 @@ def check_line(x):
 
     Input is a row from a dataframe (series). Return edited series.
     """
-    r = x['name']
+    r = ' ' + x['name'] + ' '
     xnew = x.copy()
 
-    if (re.search(r_sym, r) or '%' in r) and (x['cent_wt'] != '' and
-                                              int(x['cent_wt']) == 100):
+    # if (re.search(r_sym, r) or '%' in r) and (x['cent_wt'] != '' and
+    #                                           int(x['cent_wt']) == 100):
+    r_search = re.search(r_sym, r)
+    if (r_search or '%' in r) and \
+            (x['cent_wt'] != '' and (
+                int(x['cent_wt']) == 100 or
+                ((r_search and
+                  re.search(r_search.group(0) + r'[\s\d]*[\%]', r)) and
+                 (x['cent_wt'] > 50 and '.' not in str(x['cent_wt']))
+                 ))):
         d = {}
         new_name = r
         for gwt in re.finditer(r_num, r):
@@ -62,10 +76,10 @@ def check_line(x):
             wt = wt.replace(' ', '') + unit
 
             new_name = r.replace(full_match, ' ')
-            new_name = re.sub(r'\s+', ' ', new_name)
+            new_name = re.sub(r'\s+', ' ', new_name).strip()
 
-            print('---- ' + str(x.name) + ' ----')
-            print(r + ' ---> ' + new_name)
+            # print('---- ' + str(x.name) + ' ----')
+            # print(r + ' ---> ' + new_name)
 
             dtemp = {'cas': x['cas'], 'wt': wt}
             if not (pd.isna(x['ci_color']) or x['ci_color'] == ''):
@@ -87,23 +101,32 @@ def fix_range(x):
     # 11963, 11962, 55824
     if x['cent_wt'] == '':
         return x
-    r = x['name']
+    r = ' ' + x['name'] + ' '
     cwt = x['cent_wt']
+
+    # handle secret at end
+    secret = False
+    if len(r) > 0:
+        if re.search(r'\s*(?:- secret)\s?$', r):
+            r = re.sub(r'\s*(?:- secret)\s?$', '', r).strip()
+            secret = True
 
     d = {}
     xnew = x.copy()
-    gwt = re.search(r_num, r)
+    gwt = re.search(r_num2, r)
     if (re.search(r_sym, r) or '%' in r) and (gwt and gwt.group(2) is None):
         # make sure full match is at the end, ends with - or to or something
         full_match = gwt.group(0)
-        r_end = re.compile(full_match + r'\s*(?:to|[\-])\s*$')
+        r_end = re.compile(full_match + r'\s*(?:to|[\-\<\=]{1,2})\s*$')
         match_end = re.search(r_end, r)
         if match_end:
             unit = ''
-            wt = str(gwt.group(1)) + '-' + str(cwt)
+            wt = str(gwt.group(1)).strip(' <>=') + '-' + str(cwt)
             wt = wt.replace(' ', '') + unit
 
             new_name = r.replace(match_end.group(0), '').strip()
+            if secret:
+                new_name = new_name + ' - secret'
 
             dtemp = {'cas': x['cas'], 'wt': wt}
             if not (pd.isna(x['ci_color']) or x['ci_color'] == ''):
@@ -132,18 +155,42 @@ def clean_row(x):
     r = x['name']
     if len(r) > 0:
 
+        sec = False
+        if re.search(r'\s*(?:- secret)$', r):
+            sec = True
         r = re.sub(r'\s*(?:- secret)$', '', r).strip('*').strip()
-        if r == 'supplier' or len(r) == 0:
+        s_list = ['proprietary', 'supplier', 'secret']
+        if (r in s_list) or len(r) == 0:
             r = 'trade secret / proprietary / other'
 
         if re.search(r'^[\W\d\s]+$', r):
             r = ''
+
+        rem_end = ['|', '_', '&', '*']
+        for s in rem_end:
+            r = r.rstrip(s).strip()
+
+        r = re.sub(r'\s*(?:\d{1,2}[\.]\d{1,}\s?[\%]\s*){2,}\s*',
+                   ' ', r).strip()
+
+        rem_seq = ['n/a']
+        for s in rem_seq:
+            r = r.replace(s, '').strip()
+        r = re.sub(r'[\(]\s*[\)]', '', r).strip()
+        r = re.sub(r'[\[]\s*[\]]', '', r).strip()
+
+        if sec and len(r) == 0:
+            r = 'trade secret / proprietary / other'
 
         if r != x['name']:
             print('---- ' + str(x.name) + ' ----')
             print(x['name'] + ' ---> ' + r)
 
             xnew['name'] = r
+
+    # add ci color to name
+    if x['ci_color'] != '':
+        xnew['name'] = x['name'] + ' (CI ' + x['ci_color'] + ')'
 
     # make sure max_wt and min_wt are filled out correctly
     if x['cent_wt'] == '':
@@ -274,29 +321,86 @@ def match_cas(df, tcomb):
     return new_df
 
 
+def has_dups(x):
+    """Check if a df has duplicate chemicals."""
+    # remove secret things
+    x = x.loc[x['name'] != 'trade secret / proprietary / other']
+    x = x.loc[x['name'].apply(
+        lambda x: False if 'third party formulation' in x else True)]
+
+    # if nothing is duplicated, return true
+    if x.loc[x['name'] != '', 'name'].duplicated().sum() == 0 and \
+            x.loc[x['cas'] != '', 'cas'].duplicated().sum() == 0:
+        return False
+
+    to_remove = []
+    gg = x.loc[x['name'] != ''].groupby('name')
+    for n, g in gg:
+        if len(g) < 2:
+            continue
+        break
+        # same name, same cas; drop
+        if g['cas'].duplicated().sum() > 0:
+            return True
+        # same name, no cas; drop
+        if g['cas'].sum().strip() == '':
+            return True
+        # same name, one cas; ***
+        if '' in g['cas'].tolist():
+            to_remove += list(g.loc[g['cas'] == ''].index)
+        # same name, diff cas; keep
+
+    gg = x.loc[x['cas'] != ''].groupby('cas')
+    for n, g in gg:
+        if len(g) < 2:
+            continue
+        # break
+        # same cas, no name; drop
+        if g['name'].sum().strip() == '':
+            return True
+        # same cas, one name; ***
+        if '' in g['name'].tolist():
+            # could keep, but this could be caused by many things
+            return True
+        # same cas, diff name; keep
+
+    # if has same cas and diff name, keep
+    if len(to_remove) > 0:
+        return to_remove
+    else:
+        return False
+
+
 def combine_names(df, tcomb):
     """Iterate through files."""
     gp = df.groupby('filename')
     keep = []
     for name, group in gp:
-        print(name)
+        # print(name)
         new_group = match_cas(group, tcomb)
-        keep.append(new_group)
+        dup_check = has_dups(new_group)
+        if isinstance(dup_check, list):
+            new_group = new_group.loc[~new_group.index.isin(dup_check)]
+            keep.append(new_group)
+        elif not dup_check:
+            keep.append(new_group)
+        else:
+            print('Removed for duplicates: ' + name)
     dfnew = pd.concat(keep)
     return dfnew
 
 
 if __name__ == '__main__':
     # file locations
-    folder = r'output/dg18'
-    chem_file = r'chemical_data_dg18_zip_2020-03-04_14-31-52.csv'
-    info_file = r'file_info_dg18_zip_2020-03-04_14-31-52.csv'
-    template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
+    # folder = r'output/dg18'
+    # chem_file = r'chemical_data_dg18_zip_2020-03-04_14-31-52.csv'
+    # info_file = r'file_info_dg18_zip_2020-03-04_14-31-52.csv'
+    # template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
 
-    # folder = r'output/dg17'
-    # chem_file = r'chemical_data_dg17_zip_2020-03-05_09-40-48.csv'
-    # info_file = r'file_info_dg17_zip_2020-03-05_09-40-48.csv'
-    # template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
+    folder = r'output/dg17'
+    chem_file = r'chemical_data_dg17_zip_2020-03-05_09-40-48.csv'
+    info_file = r'file_info_dg17_zip_2020-03-05_09-40-48.csv'
+    template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
 
     # read files
     chem_path = os.path.join(folder, chem_file)

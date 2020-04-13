@@ -41,7 +41,8 @@ r_wt = re.compile(r'(?:(?<=\+\+\+)\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}\s{0,2}
 
 r_wt_pig = re.compile(r'(?:(?<=\+\+\+)\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}' +
                       r'\s{0,2}|\b)\d{1,3}(?:[\.\,]\d{1,6}))[\s\%\*]{0,2}' +
-                      r'(?:\s{0,4}[\-]{1,3}\s{0,4}((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
+                      r'(?:\s{0,4}[\-]{1,3}\s{0,4}' +
+                      r'((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
                       r'\d{1,3}(?:[\,\.]\d{1,6}))\b)?[\%\*]{0,2}(?![^\s])' +
                       r'\s*?|\s+?(?<![^\s])((?:[\<\>\=\≥\≤' +
                       r']{1,2}\s?|\b)\d{1,3}(?:[\.\,]\d{1,6}))[\s' +
@@ -52,11 +53,14 @@ r_wt_pig = re.compile(r'(?:(?<=\+\+\+)\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}' +
 
 r_wt_pig2 = re.compile(r'(?:(?<=\+\+\+)\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}\s' +
                        r'{0,2}|\b)\d{1,3}(?:[\.\,]\d{1,6})?)[\s\%\*]{0,2}(?:' +
-                       r'\s{0,4}[\-]{1,3}\s{0,4}((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
-                       r'\d{1,3}(?:[\,\.]\d{1,6})?)\b)[\%\*]{0,2}(?![^\s])\s' +
+                       r'\s{0,4}[\-]{1,3}\s{0,4}' +
+                       r'((?:[\<\>\=\≥\≤]{1,2}\s{0,2})?' +
+                       r'\d{1,3}(?:[\,\.]\d{1,6})?)\b)' +
+                       r'[\%\*]{0,2}(?![^\s])\s' +
                        r'*?|\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}' +
                        r'\s?|\b)\d{1,3}(?:[\.\,]\d{1,6})?)[\s\%\*]{0,2}' +
-                       r'(?:\s{0,4}[\-]{1,3}\s{0,4}((?:[\<\>\=\≥\≤]{1,2}\s{0,2})' +
+                       r'(?:\s{0,4}[\-]{1,3}\s{0,4}' +
+                       r'((?:[\<\>\=\≥\≤]{1,2}\s{0,2})' +
                        r'?\d{1,3}(?:[\,\.]' +
                        r'\d{1,6})?)\b)[\%\*]{0,2}(?![^\s])\s+?(?=\+\+\+))',
                        re.IGNORECASE)
@@ -204,6 +208,57 @@ def match2(r, chems, val):
         rem2 = re.sub(r_ci, ' ', rem2)
         rem2 = ' ' + symbol_cleanup(rem2) + ' '
         gwt = re.search(r_wt, rem2)
+
+        # check for multiple matches
+        if gwt:
+            gwt_all = re.findall(r_wt, rem2)
+            if len(gwt_all) > 1:
+                change_num = True
+                ind = []
+                for q in gwt_all:
+                    qq = [n for n, i in enumerate(q) if len(i) > 0]
+                    if len(qq) != 1:
+                        change_num = False
+                        break
+                    else:
+                        ind.append(qq[0])
+                ind = pd.unique(ind)
+                if len(ind) != 1:
+                    change_num = False
+            else:
+                change_num = False
+            if change_num:
+                ind = ind[0]
+                choices = [i[ind] for i in gwt_all]
+                # look for decimal, look for symbols
+                search = [['<', '>'], ['.'], ['%'], ['=']]
+                old_remaining = choices
+                for sym in search:
+                    remaining = []
+                    for i in choices:
+                        for s in sym:
+                            if s in i:
+                                remaining.append(i)
+                                break
+                    remaining = list(pd.unique(remaining))
+                    if len(remaining) == 0:
+                        remaining = old_remaining
+                        break
+                    elif len(remaining) == 1:
+                        break
+                    elif len(remaining) > 1:
+                        old_remaining = remaining
+                # choose remainder
+                if len(remaining) == 1:
+                    remtemp = 'testchem +++ ' + remaining[0].strip()
+                    gwt_temp = re.search(r_wt, remtemp)
+                    if gwt_temp.group(0) in rem2:
+                        print('CHANGE GWT: ' + rem2)
+                        print(gwt.group(0) + ' ---> ' + gwt_temp.group(0))
+                        gwt = gwt_temp
+                else:
+                    # keep original one
+                    pass
 
         # check if there's a color/pigment, and correct if there is
         colorct = False

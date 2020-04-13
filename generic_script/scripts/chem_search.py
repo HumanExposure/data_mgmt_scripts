@@ -107,7 +107,7 @@ def fun_chemicals_old(key, val):  # to_old
     if len(thisCAS) > 0:
         indlist = val['ind3']+val['ind4']
         if len(indlist) > 0:
-            cnames = [c  # df.loc[c] if c in df.index else cas_to_name(c)
+            cnames = [n  # df.loc[c] if c in df.index else cas_to_name(c)
                       for n, c in enumerate(val['secCAS'])
                       if len([i for i in indlist
                               if (i-thisCAS[n]) > -25 and
@@ -115,13 +115,14 @@ def fun_chemicals_old(key, val):  # to_old
         arr = np.array([i for i, r in enumerate(val['raw'])
                         if re.search(fa, r)])
         if len(arr) > 0:
-            cnames2 = [c  # df.loc[c] if c in df.index else cas_to_name(c)
+            cnames2 = [n  # df.loc[c] if c in df.index else cas_to_name(c)
                        for n, c in enumerate(val['secCAS'])
                        if (((arr-thisCAS[n]) > -25) &
                            ((arr-thisCAS[n]) < 60)).sum() > 0]
 
     # (((arr-thisCAS[n])>-20)&((arr-thisCAS[n])<30))
-    chems_out = list(pd.unique(cnames+cnames2))
+    # chems_out = list(pd.unique(cnames+cnames2))
+    chems_out = [val['secCAS'][n] for n in sorted(pd.unique(cnames+cnames2))]
 
     return chems_out
 
@@ -182,14 +183,14 @@ def fun_wide_search(key, val, tcomb):  # used in old_serch and sec_search_wide
     cnames = []
     cnames2 = []
     if len(indlist) > 0:
-        cnames = [c for n, c in enumerate(raw)
+        cnames = [n for n, c in enumerate(raw)
                   if len([i for i in indlist if (i-n) > -25 and
                           (i-n) < 50]) > 0]
     arr = np.array([i for i, r in enumerate(raw) if re.search(fa, r)])
     if len(arr) > 0:
-        cnames2 = [c for n, c in enumerate(raw)
+        cnames2 = [n for n, c in enumerate(raw)
                    if (((arr-n) > -10) & ((arr-n) < 40)).sum() > 0]
-    filt = list(pd.unique(cnames+cnames2))
+    filt = [raw[n] for n in sorted(pd.unique(cnames+cnames2))]
 
     # call functions
     keep = []
