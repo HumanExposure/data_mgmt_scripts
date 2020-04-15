@@ -83,7 +83,7 @@ terms = ['total', 'natural', 'based', 'extract', 'organic', 'root', 'con',
          'vinyl', 'tox', 'alpha', 'solvent', 'scent', 'dust', 'all natural',
          'electrolyte', 'certified organic', 'light']
 colorlist = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple',
-             'violet', 'pigment']
+             'violet', 'pigment', 'black', 'white', 'cyan', 'magenta']
 exclude = ['secret', 'proprietary', 'n/a', 'cbi', 'trade', 'not available']
 
 r_tradename = re.compile(r'\b(?:trade)\s*(?:name[s]?)\b', re.I)

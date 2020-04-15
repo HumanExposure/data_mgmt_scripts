@@ -51,10 +51,13 @@ minerals = ['iron', 'calcium', 'phosphorus', 'magnesium', 'water', 'glass',
             'iodine', 'gluten', 'chromium', 'selenium', 'chocolate',
             'chemical', 'soy', 'platinum', 'resin', 'alcohol', 'minerals',
             'serotonin', 'juice', 'concentrate', 'acid', 'acids',
-            'fatty acids', 'accelerator']  # filters exact match
+            'fatty acids', 'accelerator', 'use', 'formula', 'usa',
+            'enzyme']  # filters exact match
 minerals2 = ['vitamin', 'ingredient', 'carbohydrate', 'sugar',
              'preservative', 'contain', 'other', 'facts', 'flavor',
-             'powder', 'made']  # anything containing one of these removed
+             'powder', 'made', 'calorie', 'diet', 'about', 'prevent',
+             'disease', 'angeles', 'shake', 'u.s.a', 'mon.', 'ink',
+             'cmyk', 'beauty']  # anything containing one of these removed
 drug_no = ['vehicle']
 amino = ['amino acid', 'alanine', 'arginine', 'asparagine', 'aspartic acid',
          'cysteine', 'glutamine', 'glutamic acid', 'glycine', 'histidine',
@@ -310,13 +313,14 @@ def fun_label_search(key, val, tcomb):
     found = [i for i in found if
              (('no '+i not in filt) and ('not '+i not in filt))
              and ('non-'+i not in filt)]
-    if '_OCR' in key:
-        found = [i for i in found if len(i) > 4]
-    else:
-        found = [i for i in found if len(i) > 2]
+
+    lenbound = 4 if '_OCR' in key else 2
+    found = [i for i in found if len(i) > lenbound]
     found = [i for i in found if i not in exclude]
     found = [i for i in found if i not in amino_all]
     found = [i for i in found if i not in colorlist]
+    found = [i for i in found if
+             len(re.sub(r'[^a-zA-Z]', '', i).replace(' ', '')) > lenbound]
 
     label1 = [re.sub(r'\s?\d[\,\.]?\d{0,3}\s{0,3}(?:m[ce]?g|g)\s?',
                      ' ', i) for i in ing_list]
