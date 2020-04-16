@@ -4,3 +4,5 @@ Navigates to the [SC Johnson SDS download page](https://www.scjohnson.com/Our%20
 ### scjExtractSDS.py
 Uses [Xpdf](https://www.xpdfreader.com/download.html) to convert the pdfs downloaded in scjDownloadSDS.py to text, extracts product and ingredient data, and generates a csv containing the extracted data. (Python 3.7) 
 
+### scjUploadSDS.py
+Reads the csv generated from scjExtractSDS.py and the "Document records" csv downloaded from the SC Johnson SDS group in Factotum and creates a csv to upload the data to Factotum. (Python 3.7)
