@@ -17,7 +17,7 @@ from urllib.request import urlopen
 
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #Removes non-ASCII characters
-path = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Scraping/scj pages' 
+path = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Scraping/scj pages new' 
 os.chdir(path)   
 minTime = 5 #minimum wait time in between clicks
 maxTime = 10 #maximum wait time in between clicks
@@ -34,7 +34,7 @@ urlList = [] #Product page url
 picList = [] #Product picture src
 
 chrome_options= Options()
-# chrome_options.add_argument("--headless") 
+chrome_options.add_argument("--headless") 
 driver = webdriver.Chrome(r"C:\Users\alarger\Documents\chromedriver.exe", options=chrome_options)
 driver.implicitly_wait(5)
 driver.maximize_window()
@@ -52,7 +52,7 @@ for row in urls:
     if i%100 == 0: print(i)
     if str(i) in oldIDs: continue #Skip product pages that are already extracted
     if fails > 10 and len(idList) > 0: break #If the script fails on 10 products in a row: break
-    if int(strftime('%H',localtime())) == 6: break #Stop running at 6am
+    if int(strftime('%H',localtime())) == 8: break #Stop running at 8am
     url = row[0]   
     try:
         driver.get(url)
@@ -126,15 +126,16 @@ for row in urls:
             #Save ingredient disclosure
             try:
                 doc = driver.find_element_by_xpath('//*[@id="main-content"]/div/div[1]/div[2]/div/div[1]/ul/li[1]/a')
-                docLink = doc.get_attribute('href')
-                filename = (ID+'_id.pdf')
-                res = requests.get(docLink)
-                res.raise_for_status()
-                playFile = open(filename,'wb')
-                for chunk in res.iter_content(100000):
-                    playFile.write(chunk)
-                playFile.close()
-                time.sleep(random.randint(minTime,maxTime))
+                if doc.is_displayed():
+                    docLink = doc.get_attribute('href')
+                    filename = (ID+'_id.pdf')
+                    res = requests.get(docLink)
+                    res.raise_for_status()
+                    playFile = open(filename,'wb')
+                    for chunk in res.iter_content(100000):
+                        playFile.write(chunk)
+                    playFile.close()
+                    time.sleep(random.randint(minTime,maxTime))
             except: pass
         
             #Save product page
@@ -178,5 +179,4 @@ df = pd.DataFrame({'id':idList, 'sku':skuList, 'brand':brandList, 'name':nameLis
 k=0
 while os.path.exists('scj product page data '+str(k)+'.csv'):
     k+=1
-df.to_csv('scj product page data '+str(k)+'.csv',index=False, header=True)    
-    
+df.to_csv('scj product page data '+str(k)+'.csv',index=False, header=True)  
