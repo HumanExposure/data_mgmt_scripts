@@ -60,7 +60,7 @@ def extractData(fileList):
     """
     Extracts data from txt files into a pandas dataframe, 
     then generates a csv to upload into factotum
-    file_list: a list of the txt file names in the data group
+    fileList: a list of the txt file names in the data group
     """
     filenameList = [] #list of file names matching those in the extacted text template
     prodnameList = [] #list of product names
@@ -72,7 +72,8 @@ def extractData(fileList):
     useList = [] #list of functional uses of each chemical
     concList = [] #list of ingredient concentrations
     rankList = [] #list of ingredient ranks
-    formulaList = []
+    formulaList = [] #list of formula numbers
+    brandList = [] #list of brands
     
     for file in fileList:
         ifile = open(file, encoding = 'utf8')
@@ -158,6 +159,23 @@ def extractData(fileList):
             if 'chemical name' in cline and 'cas-no' in cline:
                 inIngredients = True
                 
+        #get brand(s)
+        brand = []
+        if 'glade' in prodname: brand.append('glade')
+        if 'scrubbing bubbles' in prodname: brand.append('scrubbing bubbles')
+        if 'windex' in prodname: brand.append('windex')
+        if 'favor' in prodname: brand.append('favor')
+        if 'off!' in prodname: brand.append('off!')
+        if 'pledge' in prodname: brand.append('pledge')
+        if 'raid' in prodname: brand.append('raid')
+        if 'shout' in prodname: brand.append('shout')
+        if 'ziploc' in prodname: brand.append('ziploc')
+        if 'drano' in prodname: brand.append('drano')
+        if 'kiwi' in prodname: brand.append('kiwi')
+        if 'fantastik' in prodname: brand.append('fantastik')
+        if 'saran' in prodname: brand.append('saran')
+        brand = ', '.join(brand)
+        
         if chem == []:
             chem = ['']
             cas = ['']
@@ -174,6 +192,7 @@ def extractData(fileList):
         useList.extend(['']*n)
         concList.extend(conc)
         formulaList.extend([formula]*n)
+        brandList.extend([brand]*n)
         
         if chem == ['']:
             rankList.extend([''])
@@ -181,7 +200,7 @@ def extractData(fileList):
             rankList.extend(list(range(1,n+1)))
 
     #Make csv   
-    df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'concentration':concList, 'formula number':formulaList})
+    df = pd.DataFrame({'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'concentration':concList, 'rank':rankList, 'formula number':formulaList, 'brand':brandList})
     df.to_csv('scj sds extracted text.csv',index=False, header=True)
     
     
