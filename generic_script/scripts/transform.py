@@ -220,11 +220,12 @@ def clean_row(x):
     return xnew
 
 
-def read_chems():
+def read_chems(chems_folder):
     """Read list of comptox chemicals."""
     cas2 = re.compile(r'^(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}' +
                       r'([\d])$', re.IGNORECASE)
-    df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
+    df_names = pd.read_excel(os.path.join(chems_folder,
+                                          'DSSTox_Identifiers_and_CASRN.xlsx'))
     ct_chems = df_names[['casrn', 'preferred_name']].copy().drop_duplicates()
 
     def is_cas(x):
@@ -501,7 +502,7 @@ if __name__ == '__main__':
     df_docs = pd.read_csv(docfile_path)
 
     print('Reading chemical list...')
-    tcomb = read_chems()
+    tcomb = read_chems('chems_data')
 
     # start operations
     df = df_chems.copy()
