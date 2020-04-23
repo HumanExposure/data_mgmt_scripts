@@ -242,9 +242,9 @@ if __name__ == '__main__':
                     print('File ' + i + 'does not exist in ' + folder)
             if bad:
                 print('Make sure all files exist. Exiting.')
+                sys.exit()
             else:
                 print('All files found.')
-                sys.exit()
         else:
             print('First argument must be a csv of files names, exiting')
             sys.exit()

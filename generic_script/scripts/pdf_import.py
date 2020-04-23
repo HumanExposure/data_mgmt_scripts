@@ -76,6 +76,9 @@ def get_url(fname, fname_list):
     if r.status_code == 200:
         return r
 
+    if fname_list is None:
+        return None
+
     rdoc = re.search(r'^(?:document_)(\d{4,})[\.](?:pdf)',
                      fname, flags=re.I)
     if rdoc:
