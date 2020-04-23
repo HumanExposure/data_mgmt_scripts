@@ -1,11 +1,11 @@
 #lkoval
-#3-13-20
+#4-23-20
 
 import pandas as pd
 import os
 import string
 
-os.chdir("//home//lkoval//FUse")
+os.chdir("C://Users//lkoval//OneDrive - Environmental Protection Agency (EPA)//Profile//Documents//FUse")
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #clean function to remove non-printable characters
 
@@ -24,7 +24,7 @@ flavis["raw_category"]=""
 flavis["cat_code"]=""
 flavis["description_cpcat"]=""
 flavis["cpcat_sourcetype"]=""
-flavis["report_funcuse"]=""
+flavis["report_funcuse"]="flavouring"
 flavis["component"]=""
 
 flavis=flavis[["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_sourcetype","report_funcuse","component"]]
