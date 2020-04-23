@@ -11,71 +11,26 @@ import sys
 import pandas as pd
 import logging
 import time
-from sqlalchemy import create_engine
-import json
-import re
+# from sqlalchemy import create_engine
+# import json
+# import re
 import zipfile
 from tika.tika import killServer
 
-from pdf_import import pdf_sort
+from pdf_import import pdf_sort, read_fname_df
 from label_search import fun_label_search
 from chem_search import (fun_chemicals, fun_chemicals_add, fun_chemicals_old,
                          fun_sec_search, fun_wide_search)
 from formatting import chem_format, fix_dict
-
-
-def read_df():
-    """Produce a list of chemical names.
-
-    This function pulls data from factotum and from an Excel file to create a
-    list of unique chemical names.
-
-    Returns:
-        tcomb (list): A list containing uique chemical names.
-
-    """
-    print('Getting chem list...')
-    cas2 = re.compile(r'^(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}' +
-                      r'([\d])$', re.IGNORECASE)
-    logging.debug('Getting chem list...')
-    # search list from comptox
-    df_names = pd.read_excel('DSSTox_Identifiers_and_CASRN.xlsx')
-    df = df_names[['casrn', 'preferred_name']].copy()
-    # df['casrn'].nunique() == len(df)
-    df = df.set_index('casrn').dropna().copy()
-    df['sort'] = df['preferred_name'].apply(len)
-    df1 = df.sort_values(by='sort')[['preferred_name']].copy()
-
-    # get chemicals from factotum
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
-    conn = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
-                         f'{cfg["password"]}@{cfg["server"]}:' +
-                         f'{cfg["port"]}/{cfg["database"]}?charset=utf8',
-                         convert_unicode=True, echo=False).connect()
-    sql = 'SELECT DISTINCT raw_chem_name from dashboard_rawchem;'
-    df = pd.read_sql(sql, conn)
-    df = df.rename(columns={'raw_chem_name': 'preferred_name'}).dropna()
-    conn.close()
-
-    cq = pd.concat([df1, df]).apply(lambda x: x.str.lower().str.strip())
-    cc = cq['preferred_name'].drop_duplicates()
-
-    # format and compile the list of chemicals
-    df = cc
-    df_u = pd.unique(df.str.strip().str.lower())
-    tcomb = [i for i in df_u if not re.search(cas2, i)]
-    logging.debug('Done.')
-    print('Done')
-    return tcomb
+from read_chemicals import read_chemicals
 
 
 def pdf_extract(fname, folder, tcomb, do_OCR=True, all_OCR=False,
-                zipFile=None):
+                zipFile=None, fname_list=None):
     """Take a filename and return chemical info."""
     # read pdf
     f = fname[0]
-    comb = pdf_sort(fname, folder, do_OCR, all_OCR, zipFile)
+    comb = pdf_sort(fname, folder, do_OCR, all_OCR, zipFile, fname_list)
 
     # break out output (this info will be used to log)
     # step0_fail = comb[3]
@@ -237,9 +192,9 @@ if __name__ == '__main__':
 
     # get label for output files
     label = ''
-    if len(sys.argv) == 2:
+    if len(sys.argv) > 1:
         label = os.path.split(sys.argv[1])[-1].replace('.', '_') + '_'
-    elif len(sys.argv) > 2:
+    elif len(sys.argv) > 3:
         print('Too many arguments, exiting script')
         sys.exit()
 
@@ -250,7 +205,7 @@ if __name__ == '__main__':
             print('PDF folder not found: ' + str(folder))
             sys.exit()
         file_iter = os.listdir(folder)
-    else:
+    elif len(sys.argv) == 2:
         arg = sys.argv[1]
         if os.path.isdir(arg):
             folder = arg
@@ -266,6 +221,32 @@ if __name__ == '__main__':
                 file_iter = [arg]
         else:
             print('File/folder not found, exiting script')
+            sys.exit()
+    elif len(sys.argv) == 3:
+        arg1 = sys.argv[1]  # path to list
+        arg2 = sys.argv[2]  # folder
+        if os.path.isdir(arg2):
+            folder = arg2
+        else:
+            print('Second argument must be a folder, exiting script')
+            sys.exit()
+        if os.path.isfile(arg1) and os.path.splitext(arg1)[-1] == '.csv':
+            fname_df = pd.read_csv(arg1).drop_duplicates()
+            file_iter = fname_df[fname_df.columns[0]]
+            # check files
+            bad = False
+            for i in file_iter:
+                tpath = os.path.join(folder, i)
+                if not os.path.isfile(tpath):
+                    bad = True
+                    print('File ' + i + 'does not exist in ' + folder)
+            if bad:
+                print('Make sure all files exist. Exiting.')
+            else:
+                print('All files found.')
+                sys.exit()
+        else:
+            print('First argument must be a csv of files names, exiting')
             sys.exit()
 
     # start logging
@@ -295,17 +276,33 @@ if __name__ == '__main__':
         logging.error('No PDFs found, exiting')
         sys.exit()
 
+    # get chemical list
+    logging.debug('Getting chem list...')
+    tcomb = read_chemicals(raw_chems=False,
+                           true_chemname=True,
+                           comptox_list=True,
+                           synonyms=True, fix_syn=True,
+                           reset=False,
+                           save=True,
+                           save_folder='chems_list',
+                           data_folder='chems_data')
+    logging.debug('Done. %s chemicals found.', str(len(tcomb)))
+    logging.debug('Getting filename list...')
+    fname_list = read_fname_df()
+    logging.debug('Done')
+
     # iterate through files
-    tcomb = read_df()
+    # tcomb = read_df()
     df_store = []
     info_df = []
     for f in file_iter:
-        fname = os.path.split(f.filename)[1] if zipFile else f
+        fname = os.path.split(f.filename)[1] if zipFile else \
+            os.path.basename(f)
         zfile = zf if zipFile else None
 
         try:
             d1, d2 = pdf_extract([fname, f], folder, tcomb, do_OCR, all_OCR,
-                                 zfile)
+                                 zfile, fname_list)
         except (KeyboardInterrupt, SystemExit):
             logging.exception('%s: Run stopped', fname)
             raise

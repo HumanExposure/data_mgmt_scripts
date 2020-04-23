@@ -35,6 +35,15 @@ r_num2 = re.compile(r'\s+?(?<![^\s])((?:[\<\>\=\≥\≤]{1,2}\s{0,2}|\b)' +
                     r'\d{1,3}(?:[\,\.]\d{1,6})?)\b)?[\%\*]{0,2}' +
                     r'(?![^\s\-\<\=])\s*?',
                     re.I)
+r_docid = re.compile(r'(?:document_)(\d{6})(?:\.pdf)')
+pmap = {0: [0],
+        1: [1],
+        2: [2],
+        3: [1, 2],
+        4: [4],
+        5: [1, 4],
+        6: [2, 4],
+        7: [1, 2, 4]}
 
 
 def check_line(x):
@@ -390,6 +399,82 @@ def combine_names(df, tcomb):
     return dfnew
 
 
+def which_naming(x, docs):
+    """Return naming method."""
+    method = 0
+    val = ['-1'] * 3
+
+    # data_document_id
+    idtest = re.search(r_docid, x)
+    if idtest:
+        method += 1
+        val[0] = idtest.group(1)
+
+    # actual fname
+    act = docs.loc[docs['file'] == x, 'ID']
+    if len(act) > 0:
+        method += 2
+        val[1] = act.values[0]
+        if len(act) > 1:
+            print('more than one filename found (act): ' + x)
+
+    # original fname
+    orig = docs.loc[docs['file name'] == x, 'ID']
+    if len(orig) > 0:
+        method += 4
+        val[2] = orig.values[0]
+        if len(orig) > 1:
+            print('more than one filename found (orig): ' + x)
+
+    # check val
+    if len(pd.unique([i for i in val if i != '-1'])) > 1:
+        print('Multiple unique vals for ' + x)
+
+    return method, val
+
+
+def get_name_type(fname_list, df_docs):
+    """Get name type to match with extracted template.
+
+    Returns doc_id list. All files must be consistently named.
+    """
+    flist = pd.unique(fname_list)
+    docs = df_docs[['ID', 'file', 'file name']]
+    vals = {}
+    check = []
+
+    for i in flist:
+        m = which_naming(i, docs)
+        check.append(m[0])
+        vals[i] = m[1]
+
+    # checking
+    counts = pd.Series(check).value_counts()
+    real_counts = [sum([counts.loc[j] for j in counts.index
+                        if i in pmap[j]]) for i in [0, 1, 2, 4]]
+    ind = np.argmax(real_counts)
+    if ind == 0:
+        print('No matching filenames found.')
+        return None
+    ind = ind - 1
+    # if counts.iloc[0]/4 > counts.iloc[1:].sum():
+    #     ind = counts.index[0]
+    # else:
+    #     print('error determining filename type')
+    #     return None
+
+    # get actual val
+    val_clean = {key: int(arr[ind].strip()) if arr[ind] != '-1'
+                 else np.nan for key, arr in vals.items()}
+    if len(pd.unique(list(val_clean.values()))) != len(val_clean):
+        print('Duplicate ids, found')
+        return None
+
+    id_list = fname_list.apply(val_clean.__getitem__)
+
+    return id_list
+
+
 if __name__ == '__main__':
     # file locations
     # folder = r'output/dg18'
@@ -398,19 +483,22 @@ if __name__ == '__main__':
     # template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
 
     folder = r'output/dg17'
-    chem_file = r'chemical_data_dg17_zip_2020-03-05_09-40-48.csv'
-    info_file = r'file_info_dg17_zip_2020-03-05_09-40-48.csv'
+    chem_file = r'chemical_data_dg17_zip_2020-04-13_17-40-06.csv'
+    info_file = r'file_info_dg17_zip_2020-04-13_17-40-06.csv'
     template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
+    documents_file = r'walmart_msds_1_documents_20200423.csv'
 
     # read files
     chem_path = os.path.join(folder, chem_file)
     info_path = os.path.join(folder, info_file)
     template_path = os.path.join(folder, template_file)
+    docfile_path = os.path.join(folder, documents_file)
 
     print('Reading files...')
     df_chems = pd.read_csv(chem_path)
     df_info = pd.read_csv(info_path)
     df_template = pd.read_csv(template_path)
+    df_docs = pd.read_csv(docfile_path)
 
     print('Reading chemical list...')
     tcomb = read_chems()
@@ -433,9 +521,13 @@ if __name__ == '__main__':
     # join to table
     print('Creating outputs...')
     df_clean = df_clean.fillna('')
-    df_clean['data_document_id'] = df_clean['filename'] \
-        .apply(lambda x:
-               int(re.sub(r'(?:document_)(\d{6})(?:\.pdf)', r'\g<1>', x)))
+    # df_clean['data_document_id'] = df_clean['filename'] \
+    #     .apply(lambda x:
+    #            int(re.sub(r_docid, r'\g<1>', x)))
+    id_col = get_name_type(df_clean['filename'], df_docs)
+    if id_col is None:
+        raise Exception('Error when getting filenames')
+    df_clean['data_document_id'] = id_col
     df_clean = df_clean.rename(columns={'cas': 'raw_cas',
                                         'name': 'raw_chem_name',
                                         'min_wt': 'raw_min_comp',

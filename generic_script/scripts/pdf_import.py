@@ -11,6 +11,13 @@ import numpy as np
 import pandas as pd
 from tika import parser
 import logging
+import requests
+import socket
+import json
+from sqlalchemy import create_engine
+from io import BytesIO
+import unicodedata
+
 
 sds = re.compile(r'(?:s\s?d\s?s|d\s?a\s?t\s?a\s{0,3}s\s?h\s?e\s?e\s?t)',
                  re.IGNORECASE)
@@ -36,7 +43,72 @@ s3_3 = re.compile(r'^[\W]{0,8}(?:sectio|chapte)?[rn]?\W{0,2}[^\d](?:[3]|' +
                   r'(?:components|ingredients))', re.IGNORECASE)
 
 
-def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
+def read_fname_df():
+    """Read df of brand name and puc from factotum."""
+    with open('mysql.json', 'r') as f:
+        cfg = json.load(f)['mysql']
+
+    # check if db is up (https://stackoverflow.com/questions/17434079)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(5)
+    try:
+        s.connect((cfg['server'], int(cfg['port'])))
+    except socket.gaierror:
+        logging.warning('Database connection failed')
+        df = pd.DataFrame()
+    else:
+        conn = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
+                             f'{cfg["password"]}@{cfg["server"]}:' +
+                             f'{cfg["port"]}/{cfg["database"]}?charset=utf8',
+                             convert_unicode=True, echo=False).connect()
+        sql = 'select id, file, filename from dashboard_datadocument;'
+        df = pd.read_sql(sql, conn)
+        conn.close()
+    finally:
+        s.close()
+    return df
+
+
+def get_url(fname, fname_list):
+    """Get the factotum URL from the filename."""
+    url = 'http://factotum.epa.gov/media/' + fname
+    r = requests.get(url)
+    if r.status_code == 200:
+        return r
+
+    rdoc = re.search(r'^(?:document_)(\d{4,})[\.](?:pdf)',
+                     fname, flags=re.I)
+    if rdoc:
+        file = fname_list.loc[fname_list['id'] == int(rdoc.group(1)),
+                              'file']
+        if len(file) == 1:
+            url = 'http://factotum.epa.gov/media/' + file.values[0]
+            r = requests.get(url)
+            if r.status_code == 200:
+                return r
+    file = fname_list.loc[fname_list['filename'] == fname, 'file']
+    if len(file) == 1:
+        url = 'http://factotum.epa.gov/media/' + file.values[0]
+        r = requests.get(url)
+        if r.status_code == 200:
+            return r
+    return None
+
+
+def get_content(r, headers, requestOptions=None):
+    """Format downloaded pdf content."""
+    f = BytesIO(r.content)
+    if requestOptions is None:
+        raw = parser.from_buffer(f, headers=headers)
+    else:
+        raw = parser.from_buffer(f, headers=headers,
+                                 requestOptions=requestOptions)
+    f.close()
+    return raw
+
+
+def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None,
+             fname_list=None):
     """Read and organize the PDFs.
 
     This function is very important. It reads each file and decides what to do
@@ -93,9 +165,22 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
             continue
 
         headers = {'X-Tika-PDFextractInlineImages': 'false', }
-        proc1 = parser.from_file(
-            path if zipFile is None else zipFile.open(path),
-            headers=headers)
+        downloaded = False
+        try:
+            proc1 = parser.from_file(
+                path if zipFile is None else zipFile.open(path),
+                headers=headers)
+        except PermissionError:
+            downloaded = True
+            logging.warning('%s: PermissionError, downloading file.', f)
+            url = get_url(f, fname_list)  # its actually a response object
+            if url is not None:
+                proc1 = get_content(url, headers)
+            else:
+                failed_files.append(f)
+                step0_fail += 1
+                logging.error('%s: Could not download, skipping file.', f)
+                continue
 
         if proc1['status'] != 200:
             print('Failed to parse')
@@ -107,6 +192,7 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
         if proc1['content'] is None:
             needs_ocr.append(f)
             raw1 = []
+            content1 = ''
             if not do_OCR:
                 print(f+' needs OCR')
                 failed_files.append(f)
@@ -114,10 +200,15 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
                 logging.warning('%s: Needs OCR but OCR is not enabled.', f)
                 continue
         else:
-            raw1 = [i for i in proc1['content'].splitlines() if
+            content1 = proc1['content']
+            if downloaded:
+                content1 = unicodedata.normalize('NFKD', content1)
+                content1 = content1.replace(u'\xad', '-')
+            raw1 = [i for i in content1.splitlines() if
                     len(i.strip()) > 0]
-        proc = proc1
+        # proc = proc1
         raw = raw1
+        content = content1
 
         # perform OCR if necessary
         # hasOCR = False
@@ -125,12 +216,19 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
             headers2 = {'X-Tika-PDFextractInlineImages': 'true',
                         'X-Tika-OCRTimeout': '300'}
             requestOptions = {'timeout': 300}
-            proc2 = parser.from_file(
-                path if zipFile is None else zipFile.open(path),
-                headers=headers2, requestOptions=requestOptions)
+            if not downloaded:
+                proc2 = parser.from_file(
+                    path if zipFile is None else zipFile.open(path),
+                    headers=headers2, requestOptions=requestOptions)
+            else:
+                proc2 = get_content(url, headers2, requestOptions)
 
             if proc2['content'] is not None:
-                raw2 = [i for i in proc2['content'].splitlines()
+                content2 = proc2['content']
+                if downloaded:
+                    content2 = unicodedata.normalize('NFKD', content2)
+                    content2 = content2.replace(u'\xad', '-')
+                raw2 = [i for i in content2.splitlines()
                         if len(i.strip()) > 0]
                 if len([1 for i in raw2 if i in raw1]) == len(raw2):
                     pass
@@ -139,8 +237,9 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
                     f = f+'_OCR'
                     print('Uses OCR: '+f)
                     logging.debug('%s: Uses OCR.', f)
-                    proc = proc2
+                    # proc = proc2
                     raw = raw2
+                    content = content2
             else:
                 print('OCR Failed: '+f)
                 print('Make sure tesseract is installed and restart tika')
@@ -150,13 +249,13 @@ def pdf_sort(filename, folder, do_OCR=True, all_OCR=False, zipFile=None):
                 continue
 
         # determine if MSDS
-        if not re.search(sds, proc['content']) or \
-                not re.search(sds2, proc['content']):
+        if not re.search(sds, content) or \
+                not re.search(sds2, content):
             # print('Not an SDS: '+f)
             not_sds.append(f)
             step1_success += 1
             logging.debug('%s: Not an MSDS.', f)
-            data['raw'] = proc['content']
+            data['raw'] = content
             to_label[f] = data
             continue
 
