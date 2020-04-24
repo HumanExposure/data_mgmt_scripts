@@ -291,80 +291,77 @@ for i in amount:
     minimums.append(minimum)
     maximums.append(maximum)
 
+sdss = pickle.load(open( "stepan-sdsurls.pkl","rb" ) )
+
 # %% Make Registered Records CSV
 
-#url = 'https://www.stepan.com/Products/Product-Finder.aspx'
-#os.chdir(r'sds') #Folder pdfs are in
-#pdfs = glob('*.pdf')
-#os.chdir(originalpath)
-#
-#os.chdir(r'csv')
-#rrdf = pd.read_csv('registered_documents.csv')
-#
-#rrdf['filename'] = pdfs
-#rrdf['title'] = dfs['title']
-#rrdf['document_type'] = 'SD'
-#rrdf['url'] = yrl
-#rrdf['organization'] = 'Stepan'
-#
-#rrdf.to_csv('stepan_registered-records.csv',index=False, header=True)
+url = 'https://www.stepan.com/Products/Product-Finder.aspx'
+
+os.chdir(r'csv')
+rrdf = pd.read_csv('registered_documents.csv')
+
+rrdf['filename'] = dfs['data_document_filename']
+rrdf['title'] = dfs['title']
+rrdf['document_type'] = 'SD'
+rrdf['url'] = url
+rrdf['organization'] = 'Stepan'
+
+rrdf.to_csv('stepan_registered-records.csv',index=False, header=True)
+
 
 # %% Make product data CSV
 
-#proddatadf = pd.read_csv('product_csv_template_691.csv')
-#id2files = dict(zip(proddatadf['data_document_filename'], proddatadf['data_document_id']))
-#
-#docs = []
-#titles = []
-#
-#for index, row in dfs.iterrows():
-#    if len(row['products_list']) == 0:
-#        docs.append(row['data_document_filename'])
-#        titles.append(row['title'])
-#    if len(row['products_list']) != 0:
-#        for x in row['products_list']:
-#            docs.append(row['data_document_filename'])
-#            titles.append(x)
-#
-#data_document_filename = [x.split('.')[0] + '.pdf' for x in docs]
-#
-#proddatadf = pd.DataFrame({'data_document_id':data_document_filename, })
-#
-#proddatadf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 
-#                           'title':titles, 'upc':'', 'url':url, 'brand_name':'', 'size':'',
-#                           'color':'', 'item_id':'', 'parent_item_id':'', 'short_description':'', 'long_description':'',
-#                           'thumb_image':'', 'medium_image':'', 'large_image':'', 'model_number':'',
-#                           'manufacturer':'Stepan' })
-#
-#proddatadf['data_document_id'] = proddatadf.data_document_filename.replace(id2files) #get doc IDs from template dictionary
-#
-#proddatadf.to_csv('stepan_product-data.csv',index=False, header=True)
-        
+proddatadf = pd.read_csv('product_csv_template_776.csv')
+
+produrls = []
+sdsfiles = []
+
+for k, v in sdss.items():
+    produrls.append(k)
+    sdsfiles.append(v.split('/')[-1])
+
+files2urls = dict(zip(sdsfiles, produrls))
+files2titles = dict(zip(dfs['data_document_filename'], dfs['title']))
+
+data_document_id = proddatadf['data_document_id'].to_list()
+data_document_filename = proddatadf['data_document_filename'].to_list()
+files2ids = dict(zip(data_document_filename, data_document_id))
+
+proddatadf = pd.DataFrame({'data_document_id':data_document_id, 'data_document_filename':data_document_filename, 
+                           'title':data_document_filename, 'upc':'', 'url':data_document_filename,
+                           'brand_name': '', 'size':'', 'color':'', 'item_id':'', 'parent_item_id':'',
+                           'short_description':'', 'long_description':'', 'thumb_image':'', 'medium_image':'',
+                           'large_image':'', 'model_number':'', 'manufacturer':'Stepan', 'image_name':''})
+
+proddatadf['title'] = proddatadf.data_document_filename.replace(files2titles)
+proddatadf['url'] = proddatadf.data_document_filename.replace(files2urls)
+
+proddatadf.to_csv('stepan_product-data.csv',index=False, header=True)
+
 # %% Extracted text CSV
 
-#extdf = pd.read_csv('stepan_unextracted_documents.csv')
-#file2prod = dict(zip(rrdf['filename'], rrdf['title']))
-#file2date = dict(zip(dfs['data_document_filename'], dfs['doc_date']))
-#file2rev = dict(zip(dfs['data_document_filename'], dfs['rev_num']))
-#file2cat = dict(zip(dfs['data_document_filename'], dfs['raw_category']))
-#
-#data_document_filename = info['file'].tolist()
-#chemicals = info['chem'].tolist()
-#cas = info['cas'].tolist()
-#
-#prod_name = dfs['title']
-#cas = [x.rstrip('*') for x in cas]
-#chemicals = [x.rstrip('*') for x in chemicals]
-#
-#extdf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 'prod_name':data_document_filename,
-#                   'doc_date':data_document_filename, 'rev_num':data_document_filename, 'raw_category':data_document_filename, 'raw_cas':cas,
-#                   'raw_chem_name':chemicals, 'report_funcuse':'', 'raw_min_comp':minimums, 'raw_max_comp':maximums, 'unit_type':int(3),
-#                   'ingredient_rank':info['rank'], 'raw_central_comp':centrals, 'component':''})
-#    
-#extdf['data_document_id'] = extdf.data_document_filename.replace(id2files)
-#extdf['prod_name'] = extdf.data_document_filename.replace(file2prod)
-#extdf['doc_date'] = extdf.data_document_filename.replace(file2date)
-#extdf['rev_num'] = extdf.data_document_filename.replace(file2rev)
-#extdf['raw_category'] = extdf.data_document_filename.replace(file2cat)
-#
-#extdf.to_csv('stepan_extracted-text.csv',index=False, header=True)
+extdf = pd.read_csv('Stepan_SDS_unextracted_documents.csv')
+file2date = dict(zip(dfs['data_document_filename'], dfs['doc_date']))
+file2rev = dict(zip(dfs['data_document_filename'], dfs['rev_num']))
+file2cat = dict(zip(dfs['data_document_filename'], dfs['raw_category']))
+
+data_document_filename = info['file'].tolist()
+chemicals = info['chem'].tolist()
+cas = info['cas'].tolist()
+
+prod_name = dfs['title']
+
+extdf = pd.DataFrame({'data_document_id':data_document_filename, 'data_document_filename':data_document_filename, 'prod_name':data_document_filename,
+                   'doc_date':data_document_filename, 'rev_num':data_document_filename, 'raw_category':data_document_filename, 'raw_cas':cas,
+                   'raw_chem_name':chemicals, 'report_funcuse':'', 'raw_min_comp':minimums, 'raw_max_comp':maximums, 'unit_type':int(3),
+                   'ingredient_rank':info['rank'], 'raw_central_comp':centrals, 'component':''})
+    
+extdf['data_document_id'] = extdf.data_document_filename.replace(files2ids)
+extdf['prod_name'] = extdf.data_document_filename.replace(files2titles)
+extdf['doc_date'] = extdf.data_document_filename.replace(file2date)
+extdf['rev_num'] = extdf.data_document_filename.replace(file2rev)
+extdf['raw_category'] = extdf.data_document_filename.replace(file2cat)
+
+extdf.to_csv('stepan_extracted-text.csv',index=False, header=True)
+
+os.chdir(originalpath)
