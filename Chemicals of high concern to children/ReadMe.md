@@ -1,1 +1,1 @@
-
+Uses selenium to extract a list of chemicals and CAS numbers from the State of Washington Department of Ecology's [Chemicals of high concern to children reporting list](https://ecology.wa.gov/Regulations-Permits/Reporting-requirements/Reporting-for-Childrens-Safe-Products-Act/Chemicals-of-high-concern-to-children), then generates a csv to upload the data to Factotum
