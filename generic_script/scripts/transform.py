@@ -220,8 +220,12 @@ def clean_row(x):
     return xnew
 
 
-def read_chems(chems_folder):
+def read_chems(chems_folder, reset=False):
     """Read list of comptox chemicals."""
+    fpath = os.path.join(chems_folder, 'transform_chemical_list_save.csv')
+    if os.path.isfile(fpath) and not reset:
+        ct_chems = pd.read_csv(fpath, index_col='casrn')
+        return ct_chems
     cas2 = re.compile(r'^(\d{2,7})[\—\–\-\° ]{1,3}(\d{2})[\—\–\-\° ]{1,3}' +
                       r'([\d])$', re.IGNORECASE)
     df_names = pd.read_excel(os.path.join(chems_folder,
@@ -239,6 +243,7 @@ def read_chems(chems_folder):
     ct_chems = ct_chems.apply(is_cas, axis=1)
     ct_chems = ct_chems.dropna()
     ct_chems = ct_chems.set_index('casrn')
+    ct_chems.to_csv(fpath, index_label='casrn')
     return ct_chems
 
 
@@ -338,7 +343,7 @@ def has_dups(x):
     x = x.loc[x['name'].apply(
         lambda x: False if 'third party formulation' in x else True)]
 
-    # if nothing is duplicated, return true
+    # if nothing is duplicated, return false
     if x.loc[x['name'] != '', 'name'].duplicated().sum() == 0 and \
             x.loc[x['cas'] != '', 'cas'].duplicated().sum() == 0:
         return False
@@ -409,13 +414,13 @@ def which_naming(x, docs):
     idtest = re.search(r_docid, x)
     if idtest:
         method += 1
-        val[0] = idtest.group(1)
+        val[0] = int(idtest.group(1).strip())
 
     # actual fname
     act = docs.loc[docs['file'] == x, 'ID']
     if len(act) > 0:
         method += 2
-        val[1] = act.values[0]
+        val[1] = int(act.values[0])
         if len(act) > 1:
             print('more than one filename found (act): ' + x)
 
@@ -423,7 +428,7 @@ def which_naming(x, docs):
     orig = docs.loc[docs['file name'] == x, 'ID']
     if len(orig) > 0:
         method += 4
-        val[2] = orig.values[0]
+        val[2] = int(orig.values[0])
         if len(orig) > 1:
             print('more than one filename found (orig): ' + x)
 
@@ -465,7 +470,7 @@ def get_name_type(fname_list, df_docs):
     #     return None
 
     # get actual val
-    val_clean = {key: int(arr[ind].strip()) if arr[ind] != '-1'
+    val_clean = {key: arr[ind] if arr[ind] != '-1'
                  else np.nan for key, arr in vals.items()}
     if len(pd.unique(list(val_clean.values()))) != len(val_clean):
         print('Duplicate ids, found')
@@ -478,16 +483,17 @@ def get_name_type(fname_list, df_docs):
 
 if __name__ == '__main__':
     # file locations
-    # folder = r'output/dg18'
-    # chem_file = r'chemical_data_dg18_zip_2020-03-04_14-31-52.csv'
-    # info_file = r'file_info_dg18_zip_2020-03-04_14-31-52.csv'
-    # template_file = r'Walmart_MSDS_2_unextracted_documents.csv'
+    folder = r'output/dg26'
+    chem_file = r'chemical_data_file_list_group_26_csv_2020-04-23_17-40-36.csv'
+    info_file = r'file_info_file_list_group_26_csv_2020-04-23_17-40-36.csv'
+    template_file = r'Walmart_MSDS_6_unextracted_documents.csv'
+    documents_file = r'walmart_msds_6_documents_20200424.csv'
 
-    folder = r'output/dg17'
-    chem_file = r'chemical_data_dg17_zip_2020-04-13_17-40-06.csv'
-    info_file = r'file_info_dg17_zip_2020-04-13_17-40-06.csv'
-    template_file = r'Walmart_MSDS_1_unextracted_documents.csv'
-    documents_file = r'walmart_msds_1_documents_20200423.csv'
+    # folder = r'output/dg18'
+    # chem_file = r'chemical_data_file_list_group_24_csv_2020-04-23_17-40-07.csv'
+    # info_file = r'file_info_file_list_group_24_csv_2020-04-23_17-40-07.csv'
+    # template_file = r'Walmart_MSDS_5_unextracted_documents.csv'
+    # documents_file = r'walmart_msds_5_documents_20200424.csv'
 
     # read files
     chem_path = os.path.join(folder, chem_file)
@@ -551,9 +557,8 @@ if __name__ == '__main__':
                                                      'data_document_id',
                                                  'num_found': 'chems_found',
                                                  })
-    df_info_new['data_document_id'] = df_info_new['data_document_id'] \
-        .apply(lambda x:
-               int(re.sub(r'(?:document_)(\d{4,})(?:\.pdf)', r'\g<1>', x)))
+    df_info_new['data_document_id'] = get_name_type(
+        df_info_new['data_document_id'], df_docs)
     df_info_new['msds'] = df_info_new['msds'].apply(lambda x:
                                                     True if x != 'label'
                                                     else False)
