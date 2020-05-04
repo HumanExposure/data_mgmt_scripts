@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr  29 13:08:51 2020
+Created on Thu Apr  9 13:08:51 2020
 
 @author: MHORTON
 """
@@ -79,6 +79,7 @@ minTime = 4 #minimum wait time in between clicks
 maxTime = 8 #maximum wait time in between clicks
 
 finished = []
+problems = []
 
 directory = r'pdf/'
 
@@ -111,5 +112,25 @@ for row in data:
         print(name, 'downloaded')
     except:
         print('problem with:',name,row)
+        problems.append(row)
 
 os.chdir(originalpath)
+
+# %% "manually" check to make sure the problem pdfs don't exist
+driver=webdriver.Chrome(executable_path=r"C:\Users\mhorton\chromedriver.exe", options=chromeOptions, 
+                        desired_capabilities=chromeOptions.to_capabilities()) #Path to Chrome Driver
+errors = []
+for problem in problems:
+    print(problem)
+    driver.get(problem)
+    time.sleep(random.randint(minTime,maxTime))
+    for x in driver.find_elements_by_xpath("//fieldset/h2"):
+        x = x.text
+        if '404' in x:
+            print('404 error for', problem)
+            errors.append(problem)
+        else:
+            print('Other error at', problem)
+
+for error in errors:
+    problems.remove(error)
