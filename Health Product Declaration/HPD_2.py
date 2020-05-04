@@ -1,11 +1,9 @@
-#lkoval
-#updated 4/13/2020
-
 import os
 import string
 import csv
 import glob
 import pandas as pd
+import math
 
 os.chdir("L://Lab//HEM//Health Product Declaration//Lauren2")
 
@@ -235,7 +233,7 @@ for file in filelist:
     df["nano"]=nano_list
     df["func_use"]=func_use_list
 
-    #add factotum fields    
+    #add factotum fields
     df["rev_num"]=""
     df["raw_category"]=""
     df["unit_type"]="3"
@@ -256,7 +254,8 @@ for i in range(len(df)):
 
 #make df of only the fields factotum accepts
 df=df[["filename","prod_name","date","rev_num","raw_category","cas","chem_name","func_use","raw_min_comp","raw_max_comp","unit_type","ingredient_rank","raw_central_comp","component"]]
-df.rename(columns={"filename":"data_document_filename","date":"doc_date","cas":"raw_cas","chem_name":"raw_chem_name","func_use":"reported_funcuse"}, inplace=True)
+df.rename(columns={"filename":"data_document_filename","date":"doc_date","cas":"raw_cas","chem_name":"raw_chem_name","func_use":"report_funcuse"}, inplace=True)
+df.report_funcuse=df.report_funcuse.str.replace(":","").str.replace("/","; ").str.strip()
 
 #read in template to get document ids
 os.chdir("C://Users//lkoval//OneDrive - Environmental Protection Agency (EPA)//Profile//Documents")
@@ -268,4 +267,14 @@ cols=df.columns[:-1]
 cols=cols.insert(0,df.columns[-1])
 df=df[cols]
 
-df.to_csv("hpd2_lk.csv", index=False)
+#breaks df into 20 files to upload due to df size
+docs=df.data_document_id.unique()
+ids_per_file=math.ceil(len(docs)/20)
+
+start=0
+for i in range(1,21):
+    stop=i*ids_per_file
+    f=docs[start:stop]
+    temp=df.loc[df.data_document_id.isin(f)]
+    start=stop
+    temp.to_csv("hpd2_lk_%d.csv"%i, index=False)
