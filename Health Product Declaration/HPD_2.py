@@ -267,7 +267,12 @@ cols=df.columns[:-1]
 cols=cols.insert(0,df.columns[-1])
 df=df[cols]
 
-#breaks df into 20 files to upload due to df size
+
+df.loc[df.component.str.contains("page"), ["component"]]=df.component.str.split("health", expand=True)[0]
+df.loc[df.report_funcuse.str.len()>255, ["report_funcuse"]]=df.report_funcuse.str.split(" ", expand=True)[0]
+df.loc[df.report_funcuse=="alumina", ["report_funcuse"]]="alumina trihydrate"
+df.loc[(df.raw_min_comp!="") & (df.raw_max_comp==""), ["raw_max_comp"]]=df.raw_min_comp
+
 docs=df.data_document_id.unique()
 ids_per_file=math.ceil(len(docs)/20)
 
