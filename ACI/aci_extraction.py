@@ -1,5 +1,5 @@
 #lkoval
-#1-6-2020
+#5-4-2020
 
 import pandas as pd
 import os
@@ -244,17 +244,28 @@ for i in range(len(letter_range)): #sets loop to read the file once for each let
 df=pd.DataFrame()
 df["raw_chem_name"]=raw_chem_name
 df["raw_cas"]=raw_cas
-df["reported_funcuse"]=reported_funcuse
+df["report_funcuse"]=reported_funcuse
 
 #make minor one-off corrections that would have required annpying additional logic
 df.loc[df.raw_cas=="223749-79-9",["raw_chem_name"]]=df.raw_chem_name+" "+"japonica flower extract"
 df.loc[df.raw_cas=="68990-67-0",["raw_chem_name"]]=df.raw_chem_name+" "+"wood extract"
 df.loc[df.raw_cas=="37251-67-5",["raw_chem_name"]]=df.raw_chem_name+" "+"monodecyl ether"
-df.loc[df.raw_cas=="822-12-8",["reported_funcuse"]]="surfactant"
-df.loc[df.raw_cas=="7631-99-4",["reported_funcuse"]]="preservative, bleaching- "+df.reported_funcuse
+df.loc[df.raw_cas=="822-12-8",["report_funcuse"]]="surfactant"
+df.loc[df.raw_cas=="7631-99-4",["report_funcuse"]]="preservative, bleaching- "+df.report_funcuse
 df.loc[df.raw_cas=="68555-36-2",["raw_chem_name"]]=df.raw_chem_name+" "+"with 1,1'-oxybis[2-chloroethane]"
 
 #replace commas w/ semicolon so we can upload multiple funcuses for each chemical to factotum
-df.reported_funcuse=df.reported_funcuse.str.replace(",",";")
+df.report_funcuse=df.report_funcuse.str.replace(",",";")
+
+df["data_document_id"]="1512907"
+df["data_document_filename"]="IngredientSearch_ACI.pdf"
+df["doc_date"]="2020"
+df["raw_category"]=""
+df["cat_code"]=""
+df["description_cpcat"]=""
+df["cpcat_sourcetype"]=""
+df["component"]=""
+
+df=df[["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","cat_code","description_cpcat","cpcat_sourcetype","report_funcuse","component"]]
 
 df.to_csv("aci_ingredient_inventory.csv", index=False)
