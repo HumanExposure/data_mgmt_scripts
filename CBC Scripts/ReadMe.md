@@ -1,2 +1,3 @@
 #lkoval
-#4-29-2020
+
+When updated, download [CBC Novel Coronavirus (COVID-19) Fighting Products list](https://www.americanchemistry.com/Novel-Coronavirus-Fighting-Products-List.pdf?mod=article_inline). The pdf is then converted to a text file using the [XpdfReader application](https://www.xpdfreader.com/download.html).  The products and EPA Reg. Nos. are extracted. All new products are isolated and matched to the batch product upload template for existing list N groups that already have products from previous versions of the CBC list. New list N groups that don't have any products are assigned all matching products from the current CBC list.
