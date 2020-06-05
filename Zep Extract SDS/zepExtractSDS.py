@@ -13,6 +13,7 @@ from glob import glob
 def pdfToText(files):
     """
     Converts pdf files into text files
+    download xpdf here: https://www.xpdfreader.com/download.html
     files: list of filenames
     """
     execfile = "pdftotext.exe"
