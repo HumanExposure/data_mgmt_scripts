@@ -12,8 +12,8 @@ import re
 
 
 label = 'list_n'
-template_file = 'epa_list_n_-_may_22_2020_documents_20200522.csv'
-date = '2020-05-22'
+template_file = 'epa_list_n_-_june_5_2020_documents_20200605.csv'
+date = '2020-06-05'
 
 df = pd.read_csv(label + '_extracted_info_' + date + '.csv')
 df = df.dropna()
