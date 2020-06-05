@@ -1,1 +1,1 @@
-
+**zepExtractSDS.py**: Uses Xpdf to convert a folder of Zep SDS pdfs into text files, then extracts data from the text files and generates a csv with the data to upload to Factotum. Download Xpdf here: https://www.xpdfreader.com/download.html
