@@ -1,4 +1,4 @@
-#6-3-2020
+#6-8-2020
 
 import pandas as pd
 import os
@@ -11,7 +11,7 @@ os.chdir("C://Users//lkoval//OneDrive - Environmental Protection Agency (EPA)//P
 
 df=pd.read_excel("EAFUS.xlsx", usecols=[0,1,3], skiprows=[0,1,2,3])
 df.rename(columns={df.columns[0]:"cas", df.columns[1]:"chem", df.columns[2]:"use"}, inplace=True)
-df.use=df.use.str.replace("<br />", "").str.replace(",",";").str.replace(" OR",";")
+df.use=df.use.str.replace("<br />", "").str.replace(",",";")
 
 df["data_document_id"]="1556901"
 df["data_document_filename"]="EAFUS.xlsx"
