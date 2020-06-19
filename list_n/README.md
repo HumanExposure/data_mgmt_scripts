@@ -16,6 +16,6 @@ The only non-base imports are pandas and beautifulsoup4. You might need lxml too
 6. Upload the documents to the newly created data group in Factotum.
 7. Download the document records file (should be names something like `epa_list_n_-_june_19_2020_documents_20200619.csv`).
 8. Change the date at the top of `make_extracted_text.py`, and change `template_file` to the recently downloaded document records file. Run the script.
-9. Register the script.
+9. Put the script on GitHub and ask someone to register it.
 10. Upload the extracted text (`list_n_extracted_text_formatted_DATE.csv`) to Factotum.
 11. QA each entry.
