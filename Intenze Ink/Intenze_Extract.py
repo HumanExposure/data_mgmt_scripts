@@ -139,17 +139,25 @@ def extractData(fileList):
                 if 'hazardous components' in cline: #look for keyword after table
                     inIngredients = False #out of ingredients section
                     
-                elif len(sline) == 3: #if the line has three elements, they are ingredient name, cas number, EC number
-                    chem.append(sline[0])
-                    cas.append(sline[1])
+                elif len(sline) == 3: #if the line has 3 elements, extract elements
+                    chem.append(sline[0]) #ingredient name
+                    cas.append(sline[1]) #cas number
                     minC.append('')
                     maxC.append('')
                     centC.append('')
                     unit.append('')
- 
-                   
-                else:
-                    print(len(sline),sline, file)
+                    
+                else: 
+                    chem.append(sline[0]) #ingredient name
+                    cas.append('') #no cas number
+                    minC.append('')
+                    maxC.append('')
+                    centC.append('')
+                    unit.append('')
+                    
+                    #print(chem)
+                # else:
+                #     print(len(sline),sline, file)
                     
             if 'name' in cline and 'c.a.s.' in cline: #or it could be cas
                 inIngredients = True
