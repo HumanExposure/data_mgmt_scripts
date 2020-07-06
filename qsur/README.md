@@ -1,1 +1,1 @@
-These scripts are temporary, do not work, and will change.
+WIP, documentation will be added soon
