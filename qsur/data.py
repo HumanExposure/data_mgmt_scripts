@@ -93,6 +93,8 @@ def check_funcuse(x):
     sen = spacy_nlp(x)
     if len([1 for token in sen if token.is_stop]) > 4:
         return np.nan
+    if len([1 for token in sen]) > 10:
+        return np.nan
     # if len([i for i in x.split() if i in stop_words]) > 4:
     #     return np.nan
     x = re.sub(r'[\(].*[\)]', ' ', x).strip()

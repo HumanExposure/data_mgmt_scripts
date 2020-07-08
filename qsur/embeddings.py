@@ -8,7 +8,9 @@ Created on Mon Feb 10 14:45:26 2020
 
 from data import clean_text
 from flair.data import Sentence
-from flair.embeddings import (BertEmbeddings, FlairEmbeddings,
+from flair.embeddings import (TransformerWordEmbeddings,
+                              TransformerDocumentEmbeddings,
+                              FlairEmbeddings,
                               DocumentPoolEmbeddings,
                               StackedEmbeddings)
 import torch
@@ -19,37 +21,44 @@ import numpy as np
 import joblib
 
 
-def load_model(bert=None, document=False):
+def load_model(bert=None, document=False, flair=False):
     """Load word embeddings model."""
     if bert == 'bio':
         # https://github.com/flairNLP/flair/issues/1085
         # also see readme for instructions
-        bertpath = 'bert/bert-base-biobert-cased'
+        bertpath = './bert/bert-base-biobert-cased'
     elif bert == 'sci':
         # https://github.com/flairNLP/flair/issues/744
         # https://github.com/flairNLP/flair/issues/1239
-        bertpath = 'bert/scibert_scivocab_uncased'
+        bertpath = './bert/scibert_scivocab_uncased'
     else:
         bertpath = 'bert-base-uncased'
 
-    bert_embedding = BertEmbeddings(
-        bert_model_or_path=bertpath,
-        pooling_operation='mean')
-    flair_embedding_forward = FlairEmbeddings('en-forward')
-    flair_embedding_backward = FlairEmbeddings('en-backward')
+    if document and not flair:
+        bert_embedding = TransformerDocumentEmbeddings(model=bertpath,
+                                                       batch_size=4)
+        return bert_embedding
+
+    bert_embedding = TransformerWordEmbeddings(model=bertpath,
+                                               pooling_operation='first',
+                                               batch_size=4)
+
+    if flair:
+        flair_embedding_forward = FlairEmbeddings('en-forward')
+        flair_embedding_backward = FlairEmbeddings('en-backward')
+        embed_arr = [bert_embedding,
+                     flair_embedding_backward,
+                     flair_embedding_forward,
+                     ]
+    else:
+        embed_arr = [bert_embedding]
 
     if document:
-        document_embeddings = DocumentPoolEmbeddings([bert_embedding,
-                                                      # flair_embedding_backward,
-                                                      # flair_embedding_forward,
-                                                      ],
+        document_embeddings = DocumentPoolEmbeddings(embed_arr,
                                                      fine_tune_mode='nonlinear'
                                                      )
     else:
-        document_embeddings = StackedEmbeddings([bert_embedding,
-                                                 # flair_embedding_backward,
-                                                 # flair_embedding_forward
-                                                 ])
+        document_embeddings = StackedEmbeddings(embed_arr)
 
     return document_embeddings
 
@@ -85,13 +94,25 @@ def get_vector(sentence, document_embeddings, raw=False):
 # label = 'testing'
 
 
-def make_list(oecd_dict, other_use, ref='key', bert='bio', document=False,
-              reset=False, label='', raw_embeddings=False):
+def make_list(oecd_dict, other_use, opts, **kwargs):
     """Make a list of all functional uses in model.
 
     Other_use should be a dataframe of uses from factotum that you want to
     match to the OECD list.
     """
+    # set options
+    ref = opts['ref'] if 'ref' not in kwargs else kwargs['ref']
+    bert = opts['bert'] if 'bert' not in kwargs else kwargs['bert']
+    document = opts['document'] \
+        if 'document' not in kwargs else kwargs['document']
+    flair = opts['flair'] if 'flair' not in kwargs else kwargs['flair']
+    reset = opts['reset'] if 'reset' not in kwargs else kwargs['reset']
+    label = opts['label'] if 'label' not in kwargs else kwargs['label']
+    raw_embeddings = opts['cosine'] if 'cosine' not in kwargs \
+        else kwargs['cosine']
+    if 'raw_embeddings' in kwargs:
+        raw_embeddings = kwargs['raw_embeddings']
+
     def oecd_choose(title, text, ref):
         if ref == 'key':
             value = clean_text(title.lower().strip(), ensure_word=True)
@@ -106,11 +127,13 @@ def make_list(oecd_dict, other_use, ref='key', bert='bio', document=False,
     print('Loading model data...')
     # read stored embeddings
     doc_path = 'store/document_embeddings_' + bert + \
-        str('_document' if document else '') + '.pt'
+        str('_document' if document else '') + \
+        str('_flair' if flair else '') + '.pt'
     embed_path = 'store/stored_embeddings_' + bert + \
-        str('_document' if document else '') + ('_' + label).rstrip('_') \
+        str('_document' if document else '') + \
+        str('_flair' if flair else '') + ('_' + label).rstrip('_') \
         + str('_raw' if raw_embeddings else '') + '.pt'
-    document_embeddings = load_model(bert=bert, document=document)
+    document_embeddings = load_model(bert=bert, document=document, flair=flair)
     if (os.path.exists(doc_path) and not reset):
         document_embeddings.load_state_dict(torch.load(doc_path))
         document_embeddings.eval()
@@ -221,10 +244,11 @@ def cosine_function(df, original_dict, embed_dict, label, reset=False):
     store_name = os.path.join('store', f'cosine_sim_data{label}.joblib')
     if os.path.exists(store_name) and not reset:
         store_data = joblib.load(store_name)
-    hashlist = df['clean_funcuse_hash'] \
-        .apply(lambda x: x if isinstance(x, str)
-               else (x[0] if len(x) == 1 else np.nan)) \
-        .dropna().drop_duplicates()
+    hashlist_s = df['clean_funcuse_hash'] \
+        .apply(lambda x: [x] if isinstance(x, str) else x).dropna()
+    hashlist = list(pd.unique([j for i in hashlist_s for j in i
+                               if len(j) > 0 and isinstance(j, str)]))
+
     for val in hashlist:
         if val not in store_data.keys():
             new_arr = change_to_cosine_distance(val, sorted_keys, embed_dict)
@@ -232,7 +256,8 @@ def cosine_function(df, original_dict, embed_dict, label, reset=False):
     joblib.dump(store_data, store_name)
 
     # actually assign names
-    return_val = [store_data[val] if isinstance(val, str) else
-                  store_data[val[0]] for val in df['clean_funcuse_hash']]
+    return_val = [[store_data[val]] if isinstance(val, str)
+                  else [store_data[i] for i in val]
+                  for val in df['clean_funcuse_hash']]
 
     return return_val

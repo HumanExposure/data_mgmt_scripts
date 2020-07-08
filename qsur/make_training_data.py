@@ -85,7 +85,7 @@ def clean_training_data(opts):
     df_default = get_default_set()
     df_training = get_training_set()
     df = pd.concat([df_default, df_training]).reset_index(drop=True)
-    df['report_funcuse'] = df['report_funcuse']
+    # df['report_funcuse'] = df['report_funcuse']
     print('Done')
 
     # clean data
@@ -102,8 +102,8 @@ def clean_training_data(opts):
     print('Done')
 
     # un-split the functional uses
-    df_class['clean_funcuse'] = df_class['clean_funcuse'] \
-        .apply(lambda x: [' '.join(x)])
+    # df_class['clean_funcuse'] = df_class['clean_funcuse'] \
+    #     .apply(lambda x: [' '.join(x)])
 
     # mix up data
     df_class = df_class.sample(frac=1).reset_index(drop=True)
@@ -111,10 +111,7 @@ def clean_training_data(opts):
     # make embeddings
     original_dict, original_dict_key, text_dict, embed_dict, \
         sen_dict, use_list = \
-        make_list(oecd_def, df_class['clean_funcuse'], ref=opts['ref'],
-                  bert=opts['bert'], document=opts['document'],
-                  reset=opts['reset'], label=opts['label'],
-                  raw_embeddings=opts['raw_embeddings'])
+        make_list(oecd_def, df_class['clean_funcuse'], opts)
 
     reverse_text = {val: key for key, val in text_dict.items()}
     if len(reverse_text) != len(text_dict):
@@ -124,10 +121,14 @@ def clean_training_data(opts):
         lambda x: [reverse_text[i] for i in x if i in reverse_text])
 
     # turn columns from lists to strings
+    # df_class['clean_funcuse'] = df_class['clean_funcuse'] \
+    #     .apply(lambda x: x[0] if len(x) == 1 else np.nan)
+    # df_class['clean_funcuse_hash'] = df_class['clean_funcuse_hash'] \
+    #     .apply(lambda x: x[0] if len(x) == 1 else np.nan)
     df_class['clean_funcuse'] = df_class['clean_funcuse'] \
-        .apply(lambda x: x[0] if len(x) == 1 else np.nan)
+        .apply(lambda x: ';;-;'.join(x))
     df_class['clean_funcuse_hash'] = df_class['clean_funcuse_hash'] \
-        .apply(lambda x: x[0] if len(x) == 1 else np.nan)
+        .apply(lambda x: ';;-;'.join(x))
 
     return df_class, [original_dict, original_dict_key, text_dict,
                       embed_dict, sen_dict, use_list]
@@ -153,16 +154,13 @@ def clean_testing_data(test_list, opts):
     print('Done')
 
     # un-split the functional uses
-    df_class['clean_funcuse'] = df_class['clean_funcuse'] \
-        .apply(lambda x: [' '.join(x)])
+    # df_class['clean_funcuse'] = df_class['clean_funcuse'] \
+    #     .apply(lambda x: [' '.join(x)])
 
     # make embeddings
     original_dict_s, original_dict_key_s, text_dict_s, embed_dict_s, \
         sen_dict_s, use_list_s = \
-        make_list(oecd_def, df_class['clean_funcuse'], ref=opts['ref'],
-                  bert=opts['bert'], document=opts['document'],
-                  reset=False, label=opts['label'],
-                  raw_embeddings=opts['raw_embeddings'])
+        make_list(oecd_def, df_class['clean_funcuse'], opts, reset=False)
 
     reverse_text = {val: key for key, val in text_dict_s.items()}
     if len(reverse_text) != len(text_dict_s):
@@ -172,10 +170,10 @@ def clean_testing_data(test_list, opts):
         lambda x: [reverse_text[i] for i in x if i in reverse_text])
 
     # turn columns from lists to strings
-    df_class['clean_funcuse'] = df_class['clean_funcuse'] \
-        .apply(lambda x: x[0] if len(x) == 1 else np.nan)
-    df_class['clean_funcuse_hash'] = df_class['clean_funcuse_hash'] \
-        .apply(lambda x: x[0] if len(x) == 1 else np.nan)
+    # df_class['clean_funcuse'] = df_class['clean_funcuse'] \
+    #     .apply(lambda x: x[0] if len(x) == 1 else np.nan)
+    # df_class['clean_funcuse_hash'] = df_class['clean_funcuse_hash'] \
+    #     .apply(lambda x: x[0] if len(x) == 1 else np.nan)
 
     return df_class, [original_dict_s, original_dict_key_s, text_dict_s,
                       embed_dict_s, sen_dict_s, use_list_s]
@@ -188,9 +186,9 @@ def load_training_data(opts, reset=False):
     def string_to_list(df):
         """Turn string columns into lists."""
         df['clean_funcuse'] = df['clean_funcuse'] \
-            .apply(lambda x: [x] if not pd.isna(x) else np.nan)
+            .apply(lambda x: x.split(';;-;') if not pd.isna(x) else np.nan)
         df['clean_funcuse_hash'] = df['clean_funcuse_hash'] \
-            .apply(lambda x: [x] if not pd.isna(x) else np.nan)
+            .apply(lambda x: x.split(';;-;') if not pd.isna(x) else np.nan)
         return df
 
     if os.path.isfile(fname) and not reset:
@@ -199,10 +197,7 @@ def load_training_data(opts, reset=False):
         df_train = string_to_list(df_train)
         original_dict, original_dict_key, text_dict, embed_dict, \
             sen_dict, use_list = \
-            make_list(oecd_def, df_train['clean_funcuse'], ref=opts['ref'],
-                      bert=opts['bert'], document=opts['document'],
-                      reset=opts['reset'], label=opts['label'],
-                      raw_embeddings=opts['raw_embeddings'])
+            make_list(oecd_def, df_train['clean_funcuse'], opts)
         data = [original_dict, original_dict_key, text_dict,
                 embed_dict, sen_dict, use_list]
     else:
