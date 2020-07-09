@@ -25,7 +25,7 @@ def model_opts(**kwargs):
             'reset': False,  # resets the embeddings
             'label': '',  # label for model files
             'cosine': False,  # use cosine similarity for model
-            'cval': 10  # C param for SVM
+            'cval': 1  # C param for SVM
             }
     for key, value in kwargs.items():
         opts[key] = value
@@ -133,7 +133,7 @@ def model_predict(sen_vec, label=''):
     return pred1, proba_out
 
 
-def model_run(sen_itr, opts, mode=True, proba=False):
+def model_run(sen_itr, opts, raw_chems=None, mode=True, proba=False):
     """Clean the new data and run the model.
 
     Args:
@@ -156,7 +156,10 @@ def model_run(sen_itr, opts, mode=True, proba=False):
     print('Cleaning input')
     if isinstance(sen_itr, str):
         sen_itr = [sen_itr]
-    sen_clean, data_s = clean_testing_data(sen_itr, opts)
+    if raw_chems is not None and len(raw_chems) != len(sen_itr):
+        print('Raw chems list must be same length as sen_itr')
+        raw_chems = None
+    sen_clean, data_s = clean_testing_data(sen_itr, opts, raw_chems)
     original_dict_s = data_s[0]
     embed_dict_s = data_s[3]
 
@@ -375,7 +378,8 @@ def similarity_columns(df, data, opts):
     return fuzz_col, cosine_col
 
 
-def predict_values(sen_itr, opts, proba_limit=False, calc_similarity=False):
+def predict_values(sen_itr, opts, raw_chems=None,
+                   proba_limit=False, calc_similarity=False):
     """Wraper for other functions in this file."""
     sep = ' / '
     if isinstance(proba_limit, bool):
@@ -386,7 +390,8 @@ def predict_values(sen_itr, opts, proba_limit=False, calc_similarity=False):
         limit = proba_limit
 
     all_list, fu_pred, proba_pred, sen_clean, ind_map, data_s = \
-        model_run(sen_itr, opts, mode=True, proba=proba)
+        model_run(sen_itr, opts, raw_chems=raw_chems,
+                  mode=True, proba=proba)
 
     if proba:
         prob_choice, prob_val = format_probs(

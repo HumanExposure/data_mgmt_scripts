@@ -13,7 +13,7 @@ from sklearn import preprocessing
 from embeddings import cosine_function
 
 
-def build_model(data, embed_dict, cval=10, label='',
+def build_model(data, embed_dict, cval=1, label='',
                 nrun='0', sample='all', proba=False, cosine=False,
                 original_dict=None):
     """Build models.

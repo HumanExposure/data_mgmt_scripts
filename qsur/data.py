@@ -118,7 +118,7 @@ def split_funcuse(x):
     if pd.isna(x):
         return np.nan
     y = [x]
-    syms = [', ', '/ ', '; ']
+    syms = [', ', '/ ', '; ', '|']
 
     for s in syms:
         y = [j.strip() for i in y for j in i.split(s)]

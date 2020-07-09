@@ -441,3 +441,6 @@ maps = {
         'emulsion stabilizer'],
     'article':[
         'substrate','cloth','scrub pad']}
+
+manual_fix = {'thickener': 'Viscosity modifier',
+              'viscosity controlling agent': 'Viscosity modifier'}
