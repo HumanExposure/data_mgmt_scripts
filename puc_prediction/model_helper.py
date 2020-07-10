@@ -6,11 +6,93 @@
 
 from data_processing import clean, read_df, read_group
 from puc_model import get_vector, build_model, load_model
-from sklearn import preprocessing
+# from sklearn import preprocessing
 import joblib
 import pandas as pd
 import numpy as np
 import os
+import re
+import torch
+
+
+def format_probs(chem_puclist, chem_problist, chem_pucs_all,
+                 limit=0, label=''):
+    """Format probability columns."""
+    if len(chem_problist) == 0 or len(chem_problist[0]) == 0:
+        return [], []
+
+    # checks for number of model run
+    num_runs = 0
+    for i in range(len(os.listdir())):
+        lab = label + '_' + str(i)
+        lab = '' if len(lab) == 0 else '_' + lab.strip('_')
+        fname = 'PUC_model1' + lab + '.joblib'
+        if os.path.exists(fname):
+            num_runs += 1
+        else:
+            print(str(num_runs) + ' runs detected')
+            break
+    if num_runs == 0:
+        print('Please build the model or change the label parameter')
+        return [], []
+
+    comb = []
+    rem = [[], [], []]
+    for level in range(3):
+        all_df = pd.DataFrame(0, index=range(len(chem_puclist)),
+                              columns=range(num_runs))
+        all_pick = pd.DataFrame('', index=range(len(chem_puclist)),
+                                columns=range(num_runs))
+        for run in range(num_runs):
+            make_prob = chem_problist[run][level]
+            prob_choice = chem_pucs_all[run][level]
+            top_per = [make_prob[i][prob_choice[i]] for i in
+                       range(len(make_prob))]
+            all_df[run] = top_per
+            all_pick[run] = prob_choice
+
+        newpuc = []
+        newprobs = []
+        rem_store = []
+        for name, row in all_df.iterrows():
+            over_lim = row.loc[row >= limit]
+            over_names = all_pick.loc[name, over_lim.index]
+
+            if (level > 0 and name in [j for i in rem[:level] for j in i]):
+                newpuc.append('removed')
+                newprobs.append('')
+            else:
+                if (len(over_lim) > num_runs/2 and
+                        over_names.value_counts(normalize=True).max() > 0.5):
+
+                    modeval = over_names.mode().values[0]
+                    avg_prob = over_lim.loc[over_names == modeval].mean()
+
+                    if avg_prob > limit:
+                        newpuc.append(modeval)
+                        newprobs.append(avg_prob)
+                    else:
+                        newpuc.append('removed')
+                        newprobs.append('')
+                else:
+                    newpuc.append('removed')
+                    newprobs.append('')
+                    rem_store.append(name)
+        rem[level] = rem_store
+        comb.append(newpuc)
+
+    combt = np.array(comb).T
+    comb2 = []
+    for r in combt:
+        ap = [''] * 3
+        ap[0] = r[0].replace('none', '').strip()
+        ap[2] = re.sub(f'^{r[1]}\\s*', '', r[2]).replace('none', '').strip()
+        ap[1] = re.sub(f'^{r[0]}\\s*', '', r[1]).replace('none', '').strip()
+        comb2.append(ap)
+
+    comb3 = [[j if j != 'removed' else '' for j in i] for i in comb2]
+
+    return comb3, newprobs
 
 
 def clean_str(brand, title):
@@ -54,6 +136,10 @@ def model_predict(sen_vec, pkey, label=''):
     # load models
     print('Loading model data')
     label = '' if len(label) == 0 else '_' + label.strip('_')
+
+    minmax = joblib.load('scale' + label + '.joblib')
+    sen_vec = minmax.transform(sen_vec)
+
     clf = joblib.load('PUC_model1' + label + '.joblib')
     clf_d2 = joblib.load('PUC_model2_dict' + label + '.joblib')
     clf_d3 = joblib.load('PUC_model3_dict' + label + '.joblib')
@@ -112,7 +198,14 @@ def model_run(sen_itr, label='', mode=True, proba=False):
 
     """
     label = '' if len(label) == 0 else '_' + label.strip('_')
-    doc_embeddings = joblib.load('PUC_doc_embedding' + label + '.joblib')
+
+    # load embeddings
+    # doc_embeddings = joblib.load('PUC_doc_embedding' + label + '.joblib')
+    doc_embeddings = load_model()
+    doc_embeddings.load_state_dict(
+        torch.load('PUC_doc_embedding' + label + '.pt'))
+    doc_embeddings.eval()
+
     pkey = joblib.load('PUC_key' + label + '.joblib')
 
     # clean input
@@ -147,9 +240,6 @@ def model_run(sen_itr, label='', mode=True, proba=False):
     # convert to document embedding
     print('Converting text')
     sen_vec = [get_vector(i, doc_embeddings) for i in sen_clean]
-
-    minmax = joblib.load('scale' + label + '.joblib')
-    sen_vec = minmax.transform(sen_vec)
 
     puc_pred = []
     proba_pred = []
@@ -265,21 +355,76 @@ def model_initialize(add_groups=[], label=''):
     joblib.dump(pkey, 'PUC_key' + label + '.joblib')
 
     doc_embeddings = load_model()
-    joblib.dump(doc_embeddings, 'PUC_doc_embedding' + label + '.joblib')
+    # joblib.dump(doc_embeddings, 'PUC_doc_embedding' + label + '.joblib')
+    torch.save(doc_embeddings.state_dict(),
+               'PUC_doc_embedding' + label + '.pt')
 
     print('Making xdata')
     data = df_comb[['name', 'gen_cat', 'prod_fam', 'prod_type']].copy()
     xdata = data['name'].apply(get_vector, args=(doc_embeddings,
                                                  )).to_list()
-    joblib.dump(xdata, 'xdata_orig' + label + '.joblib')
-
-    min_max_scaler = preprocessing.MinMaxScaler()
-    xdata = min_max_scaler.fit_transform(xdata)
     joblib.dump(xdata, 'xdata' + label + '.joblib')
-    joblib.dump(min_max_scaler, 'scale' + label + '.joblib')
+
+    # moved to model
+    # min_max_scaler = preprocessing.MinMaxScaler()
+    # xdata = min_max_scaler.fit_transform(xdata)
+    # joblib.dump(xdata, 'xdata' + label + '.joblib')
+    # joblib.dump(min_max_scaler, 'scale' + label + '.joblib')
 
 
 def load_df(label=''):
     """Load the training data."""
     label = '' if len(label) == 0 else '_' + label.strip('_')
     return joblib.load('training_data' + label + '.joblib')
+
+
+def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
+    """Format results into a dataframe."""
+    limit = 0
+
+    if isinstance(sen_itr, str):
+        sen_itr = [[sen_itr]]
+    sen_itr = [[i] if isinstance(i, str) else i for i in sen_itr]
+    sen_itr = [['', i[0]] if len(i) == 1 else i for i in sen_itr]
+
+    prob_pucs, probs = format_probs(all_list, proba_pred, puc_list,
+                                    limit=limit, label=label)
+
+    # add back removed rows
+    all_list_fixed = []
+    prob_pucs_fixed = []
+    probs_fixed = []
+    all_ct = 0
+    for n, i in enumerate(sen_itr):
+        if n in removed:
+            all_list_fixed.append(['', '', ''])
+            prob_pucs_fixed.append(['', '', ''])
+            probs_fixed.append('')
+        else:
+            all_list_fixed.append(all_list[all_ct])
+            prob_pucs_fixed.append(prob_pucs[all_ct])
+            probs_fixed.append(probs[all_ct])
+            all_ct += 1
+    if all_ct != len(all_list):
+        print('Error fixing removed')
+        return None
+
+    df_sen = pd.DataFrame.from_records(
+        sen_itr, columns=['brand', 'title'])
+    df_results = pd.DataFrame.from_records(
+        all_list_fixed, columns=['gen_cat', 'prod_fam', 'prod_type'])
+
+    df_probs = pd.DataFrame.from_records(
+        prob_pucs_fixed,
+        columns=['prob_gen_cat', 'prob_prod_fam', 'prob_prod_type'])
+    df_probs['avg_prob'] = [str(i) for i in probs_fixed]
+
+    to_comb = [df_sen, df_results]
+    if len(df_probs) > 0:
+        to_comb.append(df_probs)
+
+    df_comb = pd.concat(to_comb, axis=1)
+
+    df_comb.to_csv('results_' + label + '.csv', index=False)
+
+    return df_comb

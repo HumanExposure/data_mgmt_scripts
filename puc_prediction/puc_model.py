@@ -7,12 +7,14 @@
 # https://github.com/zalandoresearch/flair/blob/master/resources/docs/
 
 import pandas as pd
+from flair.data import Sentence
 from flair.embeddings import (WordEmbeddings, FlairEmbeddings,
-                              DocumentPoolEmbeddings, Sentence,
+                              DocumentPoolEmbeddings,
                               BytePairEmbeddings)
 from sklearn import svm
 import joblib
 import numpy as np
+from sklearn import preprocessing
 
 
 def load_model():
@@ -25,7 +27,8 @@ def load_model():
     document_embeddings = DocumentPoolEmbeddings([fasttext_embedding,
                                                   byte_embedding,
                                                   flair_embedding_backward,
-                                                  flair_embedding_forward],
+                                                  flair_embedding_forward,
+                                                  ],
                                                  fine_tune_mode='nonlinear')
     return document_embeddings
 
@@ -93,6 +96,10 @@ def build_model(label='', nrun='0', sample='all', proba=False):
         ydata_s1 = [ydata1[i] for i in inds]
         ydata_s2 = [ydata2[i] for i in inds]
         ydata_s3 = [ydata3[i] for i in inds]
+
+    min_max_scaler = preprocessing.MinMaxScaler()
+    xdata_s = min_max_scaler.fit_transform(xdata_s)
+    joblib.dump(min_max_scaler, 'scale' + lab + '.joblib')
 
     # c parameter values
     cval1 = 500
