@@ -34,7 +34,12 @@ def get_default_set():
 
 
 def match_oecd_syn(oecd_syn_dict, oecd_clean):
-    """Match training func uses to OECD."""
+    """Match training data to harmonized functional use.
+
+    Matches harmonized functional uses in a traning set to ones used for
+    training. This is useful since different training sets have some
+    variations in capitolization/cleaning.
+    """
     temp_list = []
     if isinstance(oecd_syn_dict, dict):
         to_iter = oecd_syn_dict.items()
@@ -80,6 +85,26 @@ def match_oecd_syn(oecd_syn_dict, oecd_clean):
     return df_comb_temp.drop_duplicates() if isdict else df_comb_temp
 
 
+def format_training_set(df1):
+    """Format training set."""
+    # in this dataset, there are sometimes multiple assigned harmonized uses
+    # this splits them up
+    temp = []
+    for name, row in df1.iterrows():
+        n1 = [row['report_funcuse']]
+        split_harm = split_funcuse(row['harmonized_funcuse'])
+        for n2 in split_harm:
+            s = pd.Series({'report_funcuse': n1, 'harmonized_funcuse': n2})
+            temp.append(s)
+    df1_split = pd.concat(temp, axis=1).T
+
+    # send to cleaning function
+    oecd_clean = {clean_text(key.lower().strip(), ensure_word=True): key
+                  for key in oecd_def.keys()}
+    df1_fixed = match_oecd_syn(df1_split, oecd_clean)
+    return df1_fixed
+
+
 def get_training_set():
     """Get training data.
 
@@ -104,24 +129,22 @@ def get_training_set():
                          'technical_function': 'harmonized_funcuse'})
     df1 = df1[['report_funcuse', 'harmonized_funcuse']]
 
-    # in this dataset, there are sometimes multiple assigned harmonized uses
-    # this splits them up
-    temp = []
-    for name, row in df1.iterrows():
-        n1 = [row['report_funcuse']]
-        split_harm = split_funcuse(row['harmonized_funcuse'])
-        for n2 in split_harm:
-            s = pd.Series({'report_funcuse': n1, 'harmonized_funcuse': n2})
-            temp.append(s)
-    df1_split = pd.concat(temp, axis=1).T
+    df1_formatted = format_training_set(df1)
 
-    # send to cleaning function
-    oecd_clean = {clean_text(key.lower().strip(), ensure_word=True): key
-                  for key in oecd_def.keys()}
-    df1_fixed = match_oecd_syn(df1_split, oecd_clean)
+    """
+    Begin reading functional_use_data_cleaning_7-10-2020.csv
+    """
+    df2 = pd.read_csv(
+        'functional_use_data_cleaning_7-10-2020.csv', index_col=0) \
+        .reset_index(drop=True) \
+        .rename(columns={'reported_functional_use': 'report_funcuse',
+                         'technical_function': 'harmonized_funcuse'})
+    df2 = df2[['report_funcuse', 'harmonized_funcuse']]
+
+    df2_formatted = format_training_set(df2)
 
     # combine
-    df = pd.concat([df_blank, df1_fixed])
+    df = pd.concat([df_blank, df1_formatted, df2_formatted])
 
     return df
 
