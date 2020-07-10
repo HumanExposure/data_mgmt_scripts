@@ -88,10 +88,10 @@ def format_probs(all_list, proba_pred, fu_pred, limit=0, label=''):
                 newprobs.append(avg_prob)
             else:
                 newpuc.append('')
-                newprobs.append(0)
+                newprobs.append('')
         else:
             newpuc.append('')
-            newprobs.append(0)
+            newprobs.append('')
     print('Done')
     return newpuc, newprobs
 
