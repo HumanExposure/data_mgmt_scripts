@@ -37,6 +37,7 @@ def format_probs(chem_puclist, chem_problist, chem_pucs_all,
         return [], []
 
     comb = []
+    comb_probs = []
     rem = [[], [], []]
     for level in range(3):
         all_df = pd.DataFrame(0, index=range(len(chem_puclist)),
@@ -54,32 +55,43 @@ def format_probs(chem_puclist, chem_problist, chem_pucs_all,
         newpuc = []
         newprobs = []
         rem_store = []
-        for name, row in all_df.iterrows():
-            over_lim = row.loc[row >= limit]
-            over_names = all_pick.loc[name, over_lim.index]
-
+        for name, row in all_pick.iterrows():
             if (level > 0 and name in [j for i in rem[:level] for j in i]):
                 newpuc.append('removed')
                 newprobs.append('')
             else:
-                if (len(over_lim) > num_runs/2 and
-                        over_names.value_counts(normalize=True).max() > 0.5):
+                if row.value_counts(normalize=True).max() > 0.5:
+                    mode_val = row.mode().values[0]
 
-                    modeval = over_names.mode().values[0]
-                    avg_prob = over_lim.loc[over_names == modeval].mean()
+                    # get prob for all mode_val
+                    prob_list = []
+                    for run in range(num_runs):
+                        make_prob = chem_problist[run][level]
+                        try:
+                            mode_prob = make_prob[name][mode_val]
+                        except KeyError:
+                            # assign 0 for different groups
+                            mode_prob = 0
+                        prob_list.append(mode_prob)
 
-                    if avg_prob > limit:
-                        newpuc.append(modeval)
-                        newprobs.append(avg_prob)
+                    # take median of all probs
+                    med_prob = pd.Series(prob_list).median()
+
+                    if med_prob > limit:
+                        newpuc.append(mode_val)
+                        newprobs.append(med_prob)
                     else:
                         newpuc.append('removed')
                         newprobs.append('')
+                        rem_store.append(name)
                 else:
                     newpuc.append('removed')
                     newprobs.append('')
                     rem_store.append(name)
+
         rem[level] = rem_store
         comb.append(newpuc)
+        comb_probs.append([str(i) for i in newprobs])
 
     combt = np.array(comb).T
     comb2 = []
@@ -92,7 +104,9 @@ def format_probs(chem_puclist, chem_problist, chem_pucs_all,
 
     comb3 = [[j if j != 'removed' else '' for j in i] for i in comb2]
 
-    return comb3, newprobs
+    new_prob_list = np.array(comb_probs).T
+
+    return comb3, new_prob_list
 
 
 def clean_str(brand, title):
@@ -390,6 +404,10 @@ def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
     prob_pucs, probs = format_probs(all_list, proba_pred, puc_list,
                                     limit=limit, label=label)
 
+    do_prob = False
+    if len(prob_pucs) == len(all_list):
+        do_prob = True
+
     # add back removed rows
     all_list_fixed = []
     prob_pucs_fixed = []
@@ -398,12 +416,14 @@ def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
     for n, i in enumerate(sen_itr):
         if n in removed:
             all_list_fixed.append(['', '', ''])
-            prob_pucs_fixed.append(['', '', ''])
-            probs_fixed.append('')
+            if do_prob:
+                prob_pucs_fixed.append(['', '', ''])
+                probs_fixed.append(['', '', ''])
         else:
             all_list_fixed.append(all_list[all_ct])
-            prob_pucs_fixed.append(prob_pucs[all_ct])
-            probs_fixed.append(probs[all_ct])
+            if do_prob:
+                prob_pucs_fixed.append(prob_pucs[all_ct])
+                probs_fixed.append(probs[all_ct])
             all_ct += 1
     if all_ct != len(all_list):
         print('Error fixing removed')
@@ -416,12 +436,17 @@ def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
 
     df_probs = pd.DataFrame.from_records(
         prob_pucs_fixed,
-        columns=['prob_gen_cat', 'prob_prod_fam', 'prob_prod_type'])
-    df_probs['avg_prob'] = [str(i) for i in probs_fixed]
+        columns=['prob_name_gen_cat', 'prob_name_prod_fam',
+                 'prob_name_prod_type'])
+    df_probs_values = pd.DataFrame.from_records(
+        probs_fixed,
+        columns=['prob_val_gen_cat', 'prob_val_prod_fam',
+                 'prob_val_prod_type'])
 
     to_comb = [df_sen, df_results]
-    if len(df_probs) > 0:
+    if do_prob:
         to_comb.append(df_probs)
+        to_comb.append(df_probs_values)
 
     df_comb = pd.concat(to_comb, axis=1)
 
