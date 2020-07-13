@@ -75,23 +75,46 @@ def format_probs(all_list, proba_pred, fu_pred, limit=0, label=''):
 
     newpuc = []
     newprobs = []
-    for name, row in all_df.iterrows():
-        over_lim = row.loc[row >= limit]
-        over_names = all_pick.loc[name, over_lim.index]
+    for name, row in all_pick.iterrows():
+        if row.value_counts(normalize=True).max() > 0.5:
+            mode_val = row.mode().values[0]
 
-        if (len(over_lim) > num_runs/2 and
-                over_names.value_counts(normalize=True).max() > 0.5):
-            modeval = over_names.mode().values[0]
-            avg_prob = over_lim.loc[over_names == modeval].mean()
-            if avg_prob > limit:
-                newpuc.append(modeval)
-                newprobs.append(avg_prob)
+            # get prob for all mode_val
+            prob_list = []
+            for run in range(num_runs):
+                make_prob = proba_pred[run]
+                mode_prob = make_prob[name][mode_val]
+                prob_list.append(mode_prob)
+
+            # take median of all probs
+            med_prob = pd.Series(prob_list).median()
+
+            if med_prob > limit:
+                newpuc.append(mode_val)
+                newprobs.append(med_prob)
             else:
                 newpuc.append('')
                 newprobs.append('')
         else:
             newpuc.append('')
             newprobs.append('')
+
+        # over_lim = row.loc[row >= limit]
+        # over_names = all_pick.loc[name, over_lim.index]
+
+        # if (len(over_lim) > num_runs/2 and
+        #         over_names.value_counts(normalize=True).max() > 0.5):
+        #     modeval = over_names.mode().values[0]
+        #     avg_prob = over_lim.loc[over_names == modeval].mean()
+        #     if avg_prob > limit:
+        #         newpuc.append(modeval)
+        #         newprobs.append(avg_prob)
+        #     else:
+        #         newpuc.append('')
+        #         newprobs.append('')
+        # else:
+        #     newpuc.append('')
+        #     newprobs.append('')
     print('Done')
     return newpuc, newprobs
 
