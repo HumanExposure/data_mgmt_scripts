@@ -83,7 +83,10 @@ def format_probs(all_list, proba_pred, fu_pred, limit=0, label=''):
             prob_list = []
             for run in range(num_runs):
                 make_prob = proba_pred[run]
-                mode_prob = make_prob[name][mode_val]
+                try:
+                    mode_prob = make_prob[name][mode_val]
+                except KeyError:
+                    mode_prob = 0
                 prob_list.append(mode_prob)
 
             # take median of all probs

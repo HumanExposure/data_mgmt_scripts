@@ -8,6 +8,7 @@ from oecd import oecd_def, oecd_ont, maps, manual_fix
 from embeddings import make_list
 
 import os
+import re
 import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
@@ -156,12 +157,13 @@ def clean_training_data(opts):
     df_default = get_default_set()
     df_training = get_training_set()
     df = pd.concat([df_default, df_training]).reset_index(drop=True)
-    # df['report_funcuse'] = df['report_funcuse']
+    df['report_funcuse'] = df['report_funcuse'].apply(
+        lambda x: re.sub(r'\s', ' ', x) if isinstance(x, str) else x)
     print('Done')
 
     # clean data
     print('Cleaning training data...')
-    df_clean = run_cleaning(df, keep_na=True)
+    df_clean = run_cleaning(df, keep_na=True, multi=False)
     df_class = pd.DataFrame(
         columns=['report_funcuse', 'clean_funcuse', 'clean_funcuse_hash',
                  'harmonized_funcuse'])
@@ -211,6 +213,9 @@ def clean_testing_data(test_list, opts, raw_chems=None):
         columns=['report_funcuse', 'raw_chem_name'])
     df['report_funcuse'] = test_list
     df['raw_chem_name'] = raw_chems if raw_chems is not None else np.nan
+
+    df['report_funcuse'] = df['report_funcuse'].apply(
+        lambda x: re.sub(r'\s', ' ', x) if isinstance(x, str) else x)
 
     # clean data
     print('Cleaning test data...')

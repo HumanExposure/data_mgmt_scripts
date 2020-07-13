@@ -110,6 +110,9 @@ def make_lower(x):
         if pd.notna(x):
             print(x)
         return np.nan
+
+    x = re.sub(r'\s', ' ', x)
+
     return x.strip().lower()
 
 
@@ -291,12 +294,16 @@ def run_functions(x):
     return row
 
 
-def run_cleaning(df, keep_na=True):
+def run_cleaning(df, keep_na=True, multi=False):
     """Run the cleaning with multiprocessing."""
-    with Pool() as p:
-        clean_df = [i for i in p.imap(run_functions,
-                                      [row for name, row in df.iterrows()],
-                                      1000)]
+    if multi:
+        with Pool() as p:
+            clean_df = [i for i in p.imap(run_functions,
+                                          [row for name,
+                                           row in df.iterrows()],
+                                          1000)]
+    else:
+        clean_df = [run_functions(row) for name, row in df.iterrows()]
 
     comb = pd.concat(clean_df, axis=1).T
 
