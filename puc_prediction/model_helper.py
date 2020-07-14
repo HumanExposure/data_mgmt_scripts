@@ -195,14 +195,13 @@ def model_predict(sen_vec, pkey, label=''):
     return puclist, proba_out, pucs_all
 
 
-def model_run(sen_itr, label='', mode=True, proba=False):
+def model_run(sen_itr, label='', mode=True):
     """Clean the new data and run the model.
 
     Args:
         sen_itr (list or array): List of ['brand', 'title'].
         label (str, optional): File label. Defaults to ''.
         mode (bool, optional): Whether to take mode of predictions.
-        proba (bool, optional): Whether to predict probabilities.
 
     Returns:
         all_list (list): List of product pucs.
@@ -293,6 +292,9 @@ def model_build(df_train='all', bootstrap=False, num_runs=1,
     """
     df = load_df() if isinstance(df_train, str) else df_train
     sz = len(df) if isinstance(sample_size, str) else sample_size
+    if not isinstance(sz, int):
+        print('Please enter valid sample size')
+        return None
 
     for n in range(num_runs):
         print('----- Training ' + label + '_' + str(n) + ' -----')
@@ -392,21 +394,30 @@ def load_df(label=''):
     return joblib.load('training_data' + label + '.joblib')
 
 
-def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
+def results_df(sen_itr, all_list, removed, proba_pred, puc_list,
+               proba_limit=False, label=''):
     """Format results into a dataframe."""
-    limit = 0
+    if isinstance(proba_limit, bool) or proba_limit is None:
+        do_prob = proba_limit
+        limit = 0
+    else:
+        do_prob = True
+        limit = proba_limit
 
     if isinstance(sen_itr, str):
         sen_itr = [[sen_itr]]
     sen_itr = [[i] if isinstance(i, str) else i for i in sen_itr]
     sen_itr = [['', i[0]] if len(i) == 1 else i for i in sen_itr]
 
-    prob_pucs, probs = format_probs(all_list, proba_pred, puc_list,
-                                    limit=limit, label=label)
-
-    do_prob = False
-    if len(prob_pucs) == len(all_list):
-        do_prob = True
+    if do_prob:
+        prob_pucs, probs = format_probs(all_list, proba_pred, puc_list,
+                                        limit=limit, label=label)
+        if len(prob_pucs) != len(all_list):
+            do_prob = False
+            print('Please build model with probabilities')
+    else:
+        prob_pucs = []
+        probs = []
 
     # add back removed rows
     all_list_fixed = []
@@ -431,6 +442,12 @@ def results_df(sen_itr, all_list, removed, proba_pred, puc_list, label=''):
 
     df_sen = pd.DataFrame.from_records(
         sen_itr, columns=['brand', 'title'])
+
+    # make sure there is no weird whitespace in output
+    for col in df_sen.columns:
+        df_sen[col] = df_sen[col].apply(
+            lambda x: re.sub(r'\s', ' ', x) if isinstance(x, str) else x)
+
     df_results = pd.DataFrame.from_records(
         all_list_fixed, columns=['gen_cat', 'prod_fam', 'prod_type'])
 
