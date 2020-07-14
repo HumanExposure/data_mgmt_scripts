@@ -42,15 +42,12 @@ def match_oecd_syn(oecd_syn_dict, oecd_clean):
     variations in capitolization/cleaning.
     """
     temp_list = []
-    chem = False
     if isinstance(oecd_syn_dict, dict):
         to_iter = oecd_syn_dict.items()
         isdict = True
     else:
         to_iter = oecd_syn_dict.iterrows()
         isdict = False
-        if 'raw_chem_name' in oecd_syn_dict.columns:
-            chem = True
     for key1, val1 in to_iter:
         rawchem = np.nan
         if isdict:
@@ -59,7 +56,7 @@ def match_oecd_syn(oecd_syn_dict, oecd_clean):
         else:
             key = val1['harmonized_funcuse']
             val = val1['report_funcuse']
-            if chem:
+            if 'raw_chem_name' in val1:
                 rawchem = val1['raw_chem_name']
         clean_key = clean_text(key.lower().strip(), ensure_word=True)
         df_temp = pd.DataFrame(columns=['report_funcuse',
