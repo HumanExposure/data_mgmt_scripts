@@ -136,7 +136,7 @@ def get_training_set():
         .rename(columns={'reported_function': 'report_funcuse',
                          'technical_function': 'harmonized_funcuse'})
     df1 = df1[['report_funcuse', 'harmonized_funcuse']]
-
+    df1['raw_chem_name'] = np.nan
     df1_formatted = format_training_set(df1)
 
     """
@@ -147,6 +147,7 @@ def get_training_set():
         .reset_index(drop=True) \
         .rename(columns={'reported_functional_use': 'report_funcuse',
                          'technical_function': 'harmonized_funcuse'})
+    df1['raw_chem_name'] = np.nan
     df2 = df2[['report_funcuse', 'harmonized_funcuse']]
 
     df2_formatted = format_training_set(df2)

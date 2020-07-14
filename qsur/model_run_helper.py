@@ -182,6 +182,9 @@ def model_run(sen_itr, opts, raw_chems=None, mode=True, proba=False):
     print('Cleaning input')
     if isinstance(sen_itr, str):
         sen_itr = [sen_itr]
+    sen_itr = [i for i in sen_itr]
+    if raw_chems is not None:
+        raw_chems = [i for i in raw_chems]
     if raw_chems is not None and len(raw_chems) != len(sen_itr):
         print('Raw chems list must be same length as sen_itr')
         raw_chems = None
