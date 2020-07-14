@@ -1,52 +1,37 @@
 # -*- coding: utf-8 -*-
-"""Run code."""
+"""Run model.
 
+Created on Tue Dec 17 15:13:07 2019
 
-from make_training_data import load_training_data
-from model_run_helper import model_build, predict_values, model_opts
+@author: SBURNS
+"""
+
+from model_helper import (model_initialize, load_df, model_build, model_run,
+                          results_df)
 # import pandas as pd
-
-# from data import cpdat_data
-from data import factotum_data
-
-
-def run_all(opts, df_test):
-    """Run all functions."""
-    # load the training data and create the embeddings
-    df_train, data = load_training_data(opts, reset=False)
-
-    # build model
-    model_build(df_train, opts, data,
-                bootstrap=True, num_runs=11, probab=True)
-
-    # test data
-    sen_itr = df_test['report_funcuse'].to_list()
-    raw_chems = df_test['raw_chem_name'].to_list()
-
-    # run
-    final_df = predict_values(sen_itr, opts, raw_chems,
-                              proba_limit=True, calc_similarity=True)
-
-    # final_df['correct_funcuse'] = df_test['harmonized_funcuse']
-    final_df.to_csv(opts['label'] + '_results.csv', index=False)
+# import numpy as np
+import joblib
+from sklearn.model_selection import train_test_split
 
 
-bert_list = ['bio', 'sci']
-cval_list = [0.1, 1, 10, 100]
+label = 'testing'
+model_initialize(add_groups=[37, 47, 30], label=label)
 
-df_test_all = factotum_data()
-df_test = df_test_all.sample(2000) \
-    .drop_duplicates(subset=['report_funcuse']).sample(100)
-df_test.to_csv('testing_dataset.csv', index=False)
+df = load_df(label=label)
+df_train, df_test = train_test_split(df, test_size=0.2)
 
-# test cosine
-opts = model_opts(label='testing_bio_1_cval_cosine', bert='bio',
-                  cval=1, cosine=True)
-run_all(opts, df_test)
+model_build(df_train=df_train, bootstrap=True, num_runs=11, label=label,
+            probab=True)
 
-# try different things
-for bert_i in bert_list:
-    for cval_i in cval_list:
-        label = 'testing_' + bert_i + '_' + str(cval_i) + '_cval'
-        opts = model_opts(label=label, bert=bert_i, cval=cval_i)
-        run_all(opts, df_test)
+sen_test = df_test['name']
+
+chem_puclist, chem_removed, chem_problist, chem_pucs_all = model_run(
+    sen_test, label)
+
+joblib.dump(chem_puclist, 'chem_proba_puclist' + label + '.joblib')
+joblib.dump(chem_removed, 'chem_proba_removed' + label + '.joblib')
+joblib.dump(chem_problist, 'chem_proba_problist' + label + '.joblib')
+joblib.dump(chem_pucs_all, 'chem_proba_all' + label + '.joblib')
+
+results_df(sen_test, chem_puclist, chem_removed, chem_problist, chem_pucs_all,
+           proba_limit=True, label=label)
