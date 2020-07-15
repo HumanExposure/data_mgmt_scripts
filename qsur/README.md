@@ -3,12 +3,11 @@ This set of scripts uses training data to create a model that maps a chemical's 
 
 An example of how to run the scripts is located in `run.py`. The important details are below. For additional information, check the docstrings in the scripts.
 
-## How to Use
-### Before you start
-#### Preparation
+## Before you start
+### Preparation
 All of the scripts should be in the same folder. Additionally, you need a sub-folder named `store`. This is where intermediate and cached files will be stored. The word embeddings models will need to be a folder called `bert`. Instructions on how to download the models are in the Other Info section. A few packages need to be installed. Instructions for this are also in Other Info.
 
-#### Training Data
+### Training Data
 The training data needs to be prepared before running. The training data consists of two parts: the default OECD functions and mappings, and user supplied data.
 
 The default mappings are derived from the information contained in `oecd.py`. There is a dictionary of the OECD functional uses and their definitions `oecd_def`. This dictionary is important, and the keys represent the classes the model will use. This dictionary should not need to be changed, save updating the functional uses to match those the OECD ones. 
@@ -32,8 +31,8 @@ The above code loads data that is in a CSV file, and renames the columns to matc
 You can load multiple datasets like this. Make sure to add it to the list in `pd.concat` at the end of the function.
 
 
-### Building the Model
-#### Model Options
+## Building the Model
+### Model Options
 Before running the model, you can set a few options.
 ```python
 from model_run_helper import model_opts
@@ -51,7 +50,7 @@ There are some other parameters that you should not change (they come from other
 * `flair`: Bool for whether to add flair embeddings. Would make it more accurate but you need a lot of training data.
 * `cosine`: An experiment where instead of word vectors, vectors with the distance to each class were created and used to train the model.
 
-#### Load Data
+### Load Data
 Next we have to load the training data, which includes cleaning it and creating the word embeddings. The training data itself should be added as mentioned earlier.
 
 ```python
@@ -60,7 +59,7 @@ df_train, data = load_training_data(opts, reset=False)
 ```
 `opts` was created previously, and the `reset` parameter is a bool for whether to use a cached version of the training data. Both of the returned values will be used in future functions.
 
-#### Build the Model
+### Build the Model
 ```python
 from model_run_helper import model_build
 model_build(df_train, opts, data,
@@ -75,11 +74,11 @@ To build the model, you call `model_build`. The parameters are listed below. Thi
 * `sample_size`: Number of times to sample the dataset for each model run. Can be a number or `all`.
 * `probab`: Bool for whether to calculate probabilities. Adds run time.
 
-### Making Predictions
-#### Preparing a Test Set
+## Making Predictions
+### Preparing a Test Set
 The test set should be an iterable (like a list or Series) of strings, with each string being a functional use you want to map. It should not be a DataFrame.
 
-#### Using the Model
+### Using the Model
 ```python
 from model_run_helper import predict_values
 final_df = predict_values(sen_itr, opts, raw_chems,
@@ -94,8 +93,8 @@ All of the prediction functions are wrapped in `predict_values`. The parameters 
 
 The output of this function is a DataFrame, which you can then save.
 
-### Other Info
-#### Requirements
+## Other Info
+### Requirements
 Below is a list of package requirements. You will likely need to run all of this on Linux.
 * Python (tested on 3.7)
 * Flairn (updated to work with 0.5.1)
@@ -120,7 +119,7 @@ pip install flair
 ```
 If you're running on an older operating system, you may get an error about C libraries when you import Flair. To solve this, you can run `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/miniconda3/lib/`. Replace `$HOME/miniconda3` with the path to your Anaconda folder. If you want to undo this, you can run `unset LD_LIBRARY_PATH`. 
 
-#### Downloading Models
+### Downloading Models
 There are three word embeddings models that you can use by setting the proper value when running `model_opts`. This section details where to download the models for `sci` and `bio`. Any other value will cause the default english language model to be used, which will be automatically downloaded.
 
 To download the SciBERT model, go to [this](https://github.com/allenai/scibert) page and download the `scibert-scivocab-uncased` model under `PyTorch HuggingFace Models`. On download, unpack the `.tar` file. The folder structure, relative to the scripts, should be `bert/scibert_scivocab_uncased`.
@@ -148,10 +147,10 @@ conda deactivate
 conda remove --name pytorch-transformers --all
 ```
 
-#### Other Data Sources
+### Other Data Sources
 `data.py` contains two functions to load data. `cpdat_data` can load a file called `functional_uses.xlsx` from CompTox (it's in one of the ZIP files on the downloads page) while `factotum_data` will load all of the functional use data from Factotum. These might be more suited as a test set.
 
-#### Notes on Model
+### Notes on Model
 Not all model parameters are exposed. They are located in `train_model.py`, and are copied below. The documentation for this model is [here](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html).
 
 ```python
@@ -162,6 +161,6 @@ clf = svm.SVC(gamma='scale', decision_function_shape='ovo',
 
 A note on probability: if you're predicting probability, you'll notice that two seperate prediction values are returned. One is the normal SVM prediction, and the other comes from the probability prediction. They should be the same, but since the probabilities are calculated separately, they could technically be different. I've never encountered an example of when they were different, but they have been included for completeness. More info [here](https://scikit-learn.org/stable/modules/svm.html#scores-probabilities).
 
-#### Multiple Funtional Uses
+### Multiple Funtional Uses
 Sometimes, there are multiple functional uses in one field. This is usually from one chemical having multiple uses. This model splits these uses (in `data.py`) and treats them as separate entries. When outputting the test set, split functional uses are reassembled, with ` / ` as a separator (can be changed).
 
