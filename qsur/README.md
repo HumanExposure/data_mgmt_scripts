@@ -95,14 +95,73 @@ All of the prediction functions are wrapped in `predict_values`. The parameters 
 The output of this function is a DataFrame, which you can then save.
 
 ### Other Info
+#### Requirements
+Below is a list of package requirements. You will likely need to run all of this on Linux.
+* Python (tested on 3.7)
+* Flairn (updated to work with 0.5.1)
+* PyTorch
+* Pandas
+* Numpy
+* Joblib
+* Scikit-learn
+* Spacy
+* SQLAlchemy
+* PyMySQL
+* Fuzzywuzzy
+* xlrd
+
+To easilly install all of the requirements, you can run the following in a new conda environment.
+```bash
+conda install python pandas sqlalchemy nltk pymysql scikit-learn joblib xlrd
+conda install -c conda-forge spacy spacy-lookups-data
+python -m spacy download en_core_web_sm
+pip install fuzzywuzzy[speedup]
+pip install flair
+```
+If you're running on an older operating system, you may get an error about C libraries when you import Flair. To solve this, you can run `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/miniconda3/lib/`. Replace `$HOME/miniconda3` with the path to your Anaconda folder. If you want to undo this, you can run `unset LD_LIBRARY_PATH`. 
+
+#### Downloading Models
+There are three word embeddings models that you can use by setting the proper value when running `model_opts`. This section details where to download the models for `sci` and `bio`. Any other value will cause the default english language model to be used, which will be automatically downloaded.
+
+To download the SciBERT model, go to [this](https://github.com/allenai/scibert) page and download the `scibert-scivocab-uncased` model under `PyTorch HuggingFace Models`. On download, unpack the `.tar` file. The folder structure, relative to the scripts, should be `bert/scibert_scivocab_uncased`.
+
+The process for BioBERT is more complicated. Download `BioBERT-Base v1.1` from [here](https://github.com/dmis-lab/biobert) (you can download the large one too but everything takes longer). You will need to follow the steps below to transform this model. After you're done, the folder `bert-base-biobert-cased` needs to be in the `bert` folder with `scibert_scivocab_uncased`. 
+
+```bash
+conda create --name pytorch-transformers python tensorflow
+conda activate pytorch-transformers
+conda install pytorch torchvision cpuonly -c pytorch
+pip install transformers
+export LD_LIBRARY_PATH="$HOME/miniconda3/envs/pytorch-transformers/lib"
+
+wget LINK_TO_BIOBERT_FILE
+tar -xzf biobert_v1.1_pubmed.tar.gz
+mv biobert_v1.1_pubmed bert-base-biobert-cased
+cd bert-base-biobert-cased
+transformers-cli convert --model_type bert \
+  --tf_checkpoint ./model.ckpt-1000000 \
+  --config ./bert_config.json \
+  --pytorch_dump_output ./pytorch_model.bin
+mv bert_config.json config.json
+unset LD_LIBRARY_PATH
+conda deactivate
+conda remove --name pytorch-transformers --all
+```
+
 #### Other Data Sources
 `data.py` contains two functions to load data. `cpdat_data` can load a file called `functional_uses.xlsx` from CompTox (it's in one of the ZIP files on the downloads page) while `factotum_data` will load all of the functional use data from Factotum. These might be more suited as a test set.
 
-### To Add
-* how to format biobert
-* how to download bert models
-* more info on probability
-* multiple uses
-* install packages
+#### Notes on Model
+Not all model parameters are exposed. They are located in `train_model.py`, and are copied below. The documentation for this model is [here](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html).
 
+```python
+clf = svm.SVC(gamma='scale', decision_function_shape='ovo',
+              cache_size=20000, kernel='linear', C=cval,
+              probability=proba, class_weight='balanced')
+```
+
+A note on probability: if you're predicting probability, you'll notice that two seperate prediction values are returned. One is the normal SVM prediction, and the other comes from the probability prediction. They should be the same, but since the probabilities are calculated separately, they could technically be different. I've never encountered an example of when they were different, but they have been included for completeness. More info [here](https://scikit-learn.org/stable/modules/svm.html#scores-probabilities).
+
+#### Multiple Funtional Uses
+Sometimes, there are multiple functional uses in one field. This is usually from one chemical having multiple uses. This model splits these uses (in `data.py`) and treats them as separate entries. When outputting the test set, split functional uses are reassembled, with ` / ` as a separator (can be changed).
 
