@@ -6,6 +6,9 @@ Created on Fri Feb  7 13:16:49 2020
 @author: SBURNS
 """
 
+"""
+This is the main OECD dictionary, containing the functional uses and
+definitions. Don't change this unless the functional uses are updated."""
 oecd_def = {'Abrasive': 'Chemical substance used to abrade, smooth, or polish an object. Used to smooth, scour, scrub, clean, wear down, or polish surfaces by rubbing against the surface and removing imperfections from a surface. May be used in processes such as sputter etching and physical dry etching. Also referred to as a grinding agent; usually in the form of fine powders of hard substances; e.g., sandstones; pumice; quartz; silicates; aluminium oxides; and glass. See closely related: etching agent.',
             'Absorbent': 'Chemical substance used to retain other substances by assimilation. Also referred to as an antisiccative. See closely related: adsorbent.',
             'Adhesion/cohesion promoter': 'Chemical substance, either inorganic or organic, natural or synthetic, used to join opposite surfaces to each other; to promote bonding between other substances; to promote adhesion of surfaces; or to fasten other materials together. Generally applied from a solvent solution and allowed to dry on the two facing surfaces. Also referred to as glue; paste; coupling agent; gum; adhesive cement; bonding agent; inner coating; and anchor coating.',
@@ -126,6 +129,10 @@ oecd_def = {'Abrasive': 'Chemical substance used to abrade, smooth, or polish an
             }
 
 
+"""
+Synonyms for various functional uses, mapping alternative names from the
+definitions to the harmonized ones.
+"""
 oecd_ont = {
         'abrasive':[
             'grinding agent'],
@@ -330,6 +337,9 @@ oecd_ont = {
         'other':[]
                }
 
+"""
+User-defined synonyms.
+"""
 maps = {
     "catalyst":[
         'bleach catalyst'],
@@ -442,5 +452,9 @@ maps = {
     'article':[
         'substrate','cloth','scrub pad']}
 
+"""
+Manually map some functional uses to harmonized ones.
+"""
 manual_fix = {'thickener': 'Viscosity modifier',
-              'viscosity controlling agent': 'Viscosity modifier'}
+              'viscosity controlling agent': 'Viscosity modifier',
+              'article': 'Other'}  # I didn't see an article use in the list

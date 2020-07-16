@@ -93,7 +93,7 @@ def match_oecd_syn(oecd_syn_dict, oecd_clean):
 def format_training_set(df1):
     """Format training set."""
     # in this dataset, there are sometimes multiple assigned harmonized uses
-    # this splits them up
+    # this splits them up when they couldn't be matched by the other function
     temp = []
     for name, row in df1.iterrows():
         n1 = [row['report_funcuse']]
@@ -113,13 +113,182 @@ def format_training_set(df1):
     return df1_fixed
 
 
-def get_training_set():
+def format_splits(df2, df_default, strict=True):
+    """Split both funcuse columns and check if they're even.
+
+    This function looks at if there are multiple functional uses in the
+    reported and harmonized columns in one line. If there are, it tries to
+    match them up. If it can't, it either won't do anything or it will get
+    rid of extra uses. To prevent this, have a training set with 1 to 1
+    correlation between reported and harmonized functional use.
+
+    The line 'len(harm) == 1 or len(rep) == 1' makes it so that only many
+    to many rows will go through this filter. If every row went through it,
+    it would probably be more accurate but throw out more data. This line
+    is changed with the 'strict' parameter.
+    """
+    def split_list(x):
+        """Split an input list."""
+        x = x.replace('"', "'")
+        x = x.lstrip('[').rstrip(']').strip("'")
+        x = x.split("', '")
+        return x
+
+    def do_nothing(rep, harm, row, chems):
+        """Return the originl values."""
+        newrep = '|'.join(rep)
+        newharm = '|'.join(harm)
+        new_d = {'report_funcuse': newrep,
+                 'harmonized_funcuse': newharm}
+        if chems:
+            new_d['raw_chem_name'] = row['raw_chem_name']
+        new_s = pd.Series(new_d)
+        return new_s
+
+    def match_lists(rep, harm, row, chems, same=None):
+        """Match values on lists."""
+        if same is None:
+            if len(rep) == len(harm):
+                same = True
+            else:
+                same = False
+        rem = []
+        new_rep = []
+        new_harm = []
+        bad = False
+        harm_clean = [clean_text(i.lower().strip(), ensure_word=True)
+                      for i in harm]
+        harm_d = {harm_clean[n]: i for n, i in enumerate(harm)}
+        no_use_rep = []
+        no_use_harm = []
+        for i in rep:
+            if same:
+                match_list = [j for n, j in enumerate(harm_clean)
+                              if n not in rem]
+            else:
+                match_list = harm_clean
+            clean_i = clean_text(i.lower().strip(), ensure_word=True)
+
+            if clean_i == '':
+                continue
+
+            if not same:
+                map_match = df_default.loc[
+                    (df_default['report_funcuse'] == i) |
+                    (df_default['report_funcuse'] == clean_i),
+                    'harmonized_funcuse'].to_list()
+                new_l = [i for i in (harm+harm_clean) if i in map_match]
+                if len(new_l) > 0:
+                    new_val = [i for i in map_match if i in new_l][0]
+                    new_rep.append(i)
+                    new_harm.append(new_val)
+                    continue
+            if clean_i == '':
+                print(f'------- Empty string: {row.name} -------')
+            fuzzy_match = process.extractBests(clean_i,
+                                               match_list,
+                                               limit=2,
+                                               scorer=fuzz.token_set_ratio)
+            qual = len(fuzzy_match) == 1 or \
+                fuzzy_match[0][1] - fuzzy_match[1][1] > 10
+            if not same and fuzzy_match[0][1] < 50:
+                qual = False
+            if qual:
+                new_rep.append(i)
+                new_harm.append(harm_d[fuzzy_match[0][0]])
+                rem_val = [n for n, j in enumerate(harm_clean)
+                           if j == fuzzy_match[0][0] and n not in rem]
+                if same:
+                    rem.append(rem_val[0])
+                else:
+                    if len(rem_val) > 0:
+                        rem.append(rem_val[0])
+            elif same:
+                bad = True
+                break
+            else:
+                no_use_rep.append(i)
+
+        if len(new_harm) == 0 or len(new_rep) == 0:
+            bad = True
+
+        if bad:
+            if same:
+                s_list = match_lists(rep, harm, row, chems, same=False)
+            else:
+                s_list = [do_nothing(rep, harm, row, chems)]
+        else:
+            s_list = []
+            for n, i in enumerate(new_rep):
+                new_d = {'report_funcuse': i,
+                         'harmonized_funcuse': new_harm[n]}
+                if chems:
+                    new_d['raw_chem_name'] = row['raw_chem_name']
+                new_s = pd.Series(new_d)
+                s_list.append(new_s)
+            if len(new_harm) < len(harm) and len(new_rep) < len(rep):
+                no_use_harm = [i for n, i in enumerate(harm) if n not in rem]
+                s_list.append(do_nothing(no_use_rep, no_use_harm, row, chems))
+                print(f'------- Row {row.name} -------\n' +
+                      'Added: ' + '|'.join(no_use_rep) + ' -> ' +
+                      '|'.join(no_use_harm))
+
+        if not same and not bad:
+            no_harm = ', '.join([i for i in harm
+                                 if i not in (new_harm+no_use_harm)])
+            no_rep = ', '.join([i for i in rep
+                                if i not in (new_rep+no_use_rep)])
+            if len(no_harm) > 0 or len(no_rep) > 0:
+                print(f'------- Row {row.name} -------\n' +
+                      f'Removed from report_funcuse: {no_rep}\n' +
+                      f'Removed from harmonized_funcuse: {no_harm}')
+        return s_list
+
+    new_rows = []
+    chems = False
+    if 'raw_chem_name' in df2.columns:
+        chems = True
+
+    for name, row in df2.iterrows():
+        rep = row['report_funcuse']
+        harm = row['harmonized_funcuse']
+        if rep.startswith('[') and rep.endswith(']'):
+            rep = split_list(rep)
+        else:
+            add = []
+            if 'uv' not in rep.lower():
+                add.append('/')
+            if 'humectant' in rep.lower() or 'cleaning' in rep.lower():
+                add.append('-')
+            rep = split_funcuse(rep, add=add)
+        if harm.startswith('[') and harm.endswith(']'):
+            harm = split_list(harm)
+        else:
+            add = ['/'] if 'uv' not in rep.lower() else []
+            harm = split_funcuse(harm, add=add)
+
+        if strict and (len(harm) == 1 or len(rep) == 1):
+            new_rows.append(do_nothing(rep, harm, row, chems))
+        else:
+            new_lists = match_lists(rep, harm, row, chems)
+            for v in new_lists:
+                new_rows.append(v)
+
+    df_comb = pd.concat(new_rows, axis=1).T
+    return df_comb
+
+
+def get_training_set(df_default):
     """Get training data.
 
     Should be a dataframe with the following columns:
         report_funcuse: functional use
         harmonized_funcuse: assigned OECD functional use
         raw_chem_name: name of chemical, set to NAN if missing
+
+    Load each training set and combine them at the end. There are a few
+    functions you can use for cleaning help, format_training_set and
+    format_splits.
     """
     # makes a blank dataframe
     df_blank = pd.DataFrame(
@@ -142,15 +311,30 @@ def get_training_set():
     """
     Begin reading functional_use_data_cleaning_7-10-2020.csv
     """
+    # df2 = pd.read_csv(
+    #     'functional_use_data_cleaning_7-10-2020.csv', index_col=0) \
+    #     .reset_index(drop=True) \
+    #     .rename(columns={'reported_functional_use': 'report_funcuse',
+    #                      'technical_function': 'harmonized_funcuse'})
+    # df2 = df2[['report_funcuse', 'harmonized_funcuse']]
+    # df2['raw_chem_name'] = np.nan
+
+    # df2_formatted = format_training_set(df2)
+
+    """
+    Begin reading fudc_7-15-20.csv
+    """
     df2 = pd.read_csv(
-        'functional_use_data_cleaning_7-10-2020.csv', index_col=0) \
+        'fudc_7-15-20.csv', index_col=0) \
         .reset_index(drop=True) \
         .rename(columns={'reported_functional_use': 'report_funcuse',
                          'technical_function': 'harmonized_funcuse'})
-    df2['raw_chem_name'] = np.nan
     df2 = df2[['report_funcuse', 'harmonized_funcuse']]
+    # df2_split = format_splits(df2, df_default)
+    df2_split = format_splits(df2, df_default, strict=False)
+    df2_split['raw_chem_name'] = np.nan
 
-    df2_formatted = format_training_set(df2)
+    df2_formatted = format_training_set(df2_split)
 
     # combine
     df = pd.concat([df_blank, df1_formatted, df2_formatted])
@@ -163,7 +347,7 @@ def clean_training_data(opts):
     # combine dataframes
     print('Getting training data...')
     df_default = get_default_set()
-    df_training = get_training_set()
+    df_training = get_training_set(df_default)
     df = pd.concat([df_default, df_training]).reset_index(drop=True)
     df['report_funcuse'] = df['report_funcuse'].apply(
         lambda x: re.sub(r'\s', ' ', x) if isinstance(x, str) else x)
@@ -265,7 +449,7 @@ def clean_testing_data(test_list, opts, raw_chems=None):
 
 
 def load_training_data(opts, reset=False):
-    """Load training data or create new data."""
+    """Load training data or create new data. Reset re-cleans the data."""
     fname = f"training_data_{opts['label']}.csv"
 
     def string_to_list(df):

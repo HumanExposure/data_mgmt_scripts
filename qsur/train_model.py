@@ -20,11 +20,16 @@ def build_model(data, embed_dict, cval=1, label='',
 
     Builds the and saves the models for predicting the PUCs.
     Args:
+        data (DataFrame): Training data.
+        embed_dict (dict): Word embeddings.
+        cval (int): C-value for SVM.
         label (str, optional): File labels. Defaults to ''.
         nrun (str, optional): Run number for label. Defaults to '0'.
         sample (optional): Specifies how to sample the data. See script for
             details. Defaults to 'all'.
-        proba (bool): Whether to calculate probabilities.
+        proba (bool): Whether to calculate probabilities.'
+        cosine (bool): Use similarity to each OECD use instead of embedding.
+        original_dict (dict): Dict with original OECD uses.
     Returns:
         None.
 

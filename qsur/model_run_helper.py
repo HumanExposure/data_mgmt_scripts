@@ -17,7 +17,10 @@ import torch
 
 
 def model_opts(**kwargs):
-    """Set options for embeddings."""
+    """Set options for embeddings.
+
+    Use keyword arguments to change the defaults.
+    """
     opts = {'ref': 'key',  # keep as 'key'
             'bert': 'bio',  # which bert model to use
             'document': True,  # whether to do document embeddings, keep true
@@ -40,7 +43,7 @@ def mode_fun(x):
 
 
 def format_probs(all_list, proba_pred, fu_pred, limit=0, label=''):
-    """Return the probabilities."""
+    """Return the probabilities in a list, parsed from the model output."""
     # checks for number of model
     print('Parsing probabilities...')
     if None in proba_pred:
@@ -132,7 +135,7 @@ def model_predict(sen_vec, label=''):
         label (str, optional): File label. Defaults to ''.
 
     Returns:
-        proba_out (list): List of probabilites.
+        proba_out (list): List of probabilites (needs to be parsed).
         pred1 (list): List of predicted functional uses.
 
     """
@@ -159,20 +162,22 @@ def model_predict(sen_vec, label=''):
     return pred1, proba_out
 
 
-def model_run(sen_itr, opts, raw_chems=None, mode=True, proba=False):
+def model_run(sen_itr, opts, raw_chems=None, mode=True):
     """Clean the new data and run the model.
 
     Args:
         sen_itr (list or array): List of values to predict.
-        label (str, optional): File label. Defaults to ''.
+        opts (dict): Options dictionary.
+        raw_chems (list or array, optional): List of chemicals for sen_itr.
         mode (bool, optional): Whether to take mode of predictions.
-        proba (bool, optional): Whether to predict probabilities.
 
     Returns:
-        all_list (list): List of product pucs.
-        removed (list): List of indices with names that were removed.
+        all_list (list): List of predicted functional uses.
+        fu_pred (list): List of predicted probailities.
         proba_pred (list): List of probabilites.
-        puc_list (list): List of predicted PUC for each level.
+        sen_clean (list): List of cleaned sen_itr.
+        ind_map (list): Map place in sen_itr to sen_clean
+        data_s (list): Embedding data for sen_clean.
 
     """
     label = opts['label']
@@ -251,7 +256,24 @@ def combine_results(
         sen_old, sen_itr, ind_map, all_list, opts,
         prob_choice=None, prob_val=None,
         calc_similarity=False, data=None, sep=' / '):
-    """Combine all results into one dataframe."""
+    """Combine all results into one dataframe. Most values from model_run.
+
+    Args:
+        sen_old (list): List of cleaned sen_itr.
+        sen_itr (list or array): List of test values.
+        ind_map (list): Map sen_itr to sen_old.
+        all_list (list): List of predicted values.
+        opts (dict): Options dict.
+        prob_choice (list): List of choice the probability part made.
+        prob_val (list): Probability values.
+        calc_similarity (bool): Whether to make cosine and fuzzywuzzy calcs.
+        data (list): Embeddings and related data.
+        sep (str): Separator for multiple val in one row.
+
+    Returns:
+        df2 (DataFrame): Formatted DataFrame.
+
+    """
     print('Formatting output table...')
     sen_old = sen_old.reset_index(drop=True)
 
@@ -267,7 +289,7 @@ def combine_results(
     if prob_val is not None:
         prob_val_format = [';;-;'.join([str(prob_val[j]) for j in i])
                            for i in ind_map]
-        sen_old['avg_prob'] = prob_val_format
+        sen_old['med_prob'] = prob_val_format
 
     if calc_similarity:
         fuzz_sim, cos_sim = similarity_columns(sen_old, data, opts)
@@ -323,12 +345,13 @@ def model_build(df_train, opts, data, bootstrap=False, num_runs=1,
         df_train (pd.DataFrame or str, optional): Training subset of df. Can
             be set to a str to use whole df. To get full df to subset, use
             load_df(). Defaults to 'all'.
+        opts (dict): Options dict.
+        data (list): Embeddings-realted data.
         bootstrap (bool, optional): Whether to sample with replacement or not.
             Defaults to False.
         num_runs (int, optional): Number of runs to aggregate. Defaults to 1.
         sample_size (int, str, optional): Size of training set for each run,
             sampled from the training set. Defaults to 'all'.
-        label (str, optional): File label. Defaults to ''.
         probab (bool, optional): Whether to calculate class probability.
 
     """
@@ -419,8 +442,7 @@ def predict_values(sen_itr, opts, raw_chems=None,
         limit = proba_limit
 
     all_list, fu_pred, proba_pred, sen_clean, ind_map, data_s = \
-        model_run(sen_itr, opts, raw_chems=raw_chems,
-                  mode=True, proba=proba)
+        model_run(sen_itr, opts, raw_chems=raw_chems, mode=True)
 
     if proba:
         prob_choice, prob_val = format_probs(

@@ -49,7 +49,7 @@ spacy_nlp = load_spacy()
 
 
 def read_df(table, engine):
-    """Read info from factotum."""
+    """Read functional use and chemical info from factotum."""
     sql = 'SELECT raw_chem_name, raw_cas, dsstox_id, report_funcuse ' + \
           'FROM (SELECT chem_id as rawchem_ptr_id, report_funcuse FROM ' + \
           table + ') AS t1 INNER JOIN ' + \
@@ -116,12 +116,12 @@ def make_lower(x):
     return x.strip().lower()
 
 
-def split_funcuse(x):
+def split_funcuse(x, add=[]):
     """Split the functional uses into a list."""
     if pd.isna(x):
         return np.nan
     y = [x]
-    syms = [', ', '/ ', '; ', '|']
+    syms = [', ', '/ ', '; ', '|', '_ '] + add
 
     for s in syms:
         y = [j.strip() for i in y for j in i.split(s)]
@@ -194,6 +194,7 @@ def clean_text(x, do_lemma=True, remove_symbols=True, ensure_word=False):
         return lem
 
     lem = get_lemma()
+    # make sure that lemmatization doesn't remove every word
     if ensure_word and len(lem) == 0:
         lem = get_lemma(redo=True)
 

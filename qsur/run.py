@@ -31,22 +31,13 @@ def run_all(opts, df_test):
     final_df.to_csv(opts['label'] + '_results.csv', index=False)
 
 
-bert_list = ['bio', 'sci']
-cval_list = [0.1, 1, 10, 100]
-
+# import training data. you could load this from somewhere else.
 df_test_all = factotum_data()
 df_test = df_test_all.sample(2000) \
-    .drop_duplicates(subset=['report_funcuse']).sample(100)
+    .drop_duplicates(subset=['report_funcuse']).sample(500)
 df_test.to_csv('testing_dataset.csv', index=False)
 
-# test cosine
-opts = model_opts(label='testing_bio_1_cval_cosine', bert='bio',
-                  cval=1, cosine=True)
-run_all(opts, df_test)
 
-# try different things
-for bert_i in bert_list:
-    for cval_i in cval_list:
-        label = 'testing_' + bert_i + '_' + str(cval_i) + '_cval'
-        opts = model_opts(label=label, bert=bert_i, cval=cval_i)
-        run_all(opts, df_test)
+# load options and run
+opts = model_opts(label='test_data', bert='bio', cval=1)
+run_all(opts, df_test)

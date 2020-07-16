@@ -98,7 +98,7 @@ def make_list(oecd_dict, other_use, opts, **kwargs):
     """Make a list of all functional uses in model.
 
     Other_use should be a dataframe of uses from factotum that you want to
-    match to the OECD list.
+    match to the OECD list. All embeddings are made and cached here.
     """
     # set options
     ref = opts['ref'] if 'ref' not in kwargs else kwargs['ref']
