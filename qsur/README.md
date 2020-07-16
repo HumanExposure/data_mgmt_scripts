@@ -17,16 +17,17 @@ The user can also supply training data. All of this data should be added to the 
 
 ```python
 df2 = pd.read_csv(
-    'functional_use_data_cleaning_7-10-2020.csv', index_col=0) \
+    'fudc_7-15-20.csv', index_col=0) \
     .reset_index(drop=True) \
     .rename(columns={'reported_functional_use': 'report_funcuse',
                      'technical_function': 'harmonized_funcuse'})
 df2 = df2[['report_funcuse', 'harmonized_funcuse']]
+df2_split = format_splits(df2)
 df2['raw_chem_name'] = np.nan
-df2_formatted = format_training_set(df2)
+df2_formatted = format_training_set(df2_split)
 ```
 
-The above code loads data that is in a CSV file, and renames the columns to match what was stated above. If there's no `raw_chems_name` column, you can create one and make it NAN. The other important part of this code is the `format_training_set` function. This takes the DataFrame and matches the functional uses to the necessary classes. It's not necessary if these are already matched in the first place.
+The above code loads data that is in a CSV file, and renames the columns to match what was stated above. If there's no `raw_chems_name` column, you can create one and make it NAN. The other important part of this code is the `format_training_set` function. This takes the DataFrame and matches the functional uses to the necessary classes. It's not necessary if these are already matched in the first place. There is also a function called `format_splits`. If there are multiple harmonized functional uses, this function looks to see if there is a corresponding reported functional use. It also removed lists formatted into strings in the training set.
 
 You can load multiple datasets like this. Make sure to add it to the list in `pd.concat` at the end of the function.
 
