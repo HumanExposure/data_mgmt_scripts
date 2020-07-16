@@ -159,7 +159,7 @@ clf = svm.SVC(gamma='scale', decision_function_shape='ovo',
               probability=proba, class_weight='balanced')
 ```
 
-A note on probability: if you're predicting probability, you'll notice that two seperate prediction values are returned. One is the normal SVM prediction, and the other comes from the probability prediction. They should be the same, but since the probabilities are calculated separately, they could technically be different. I've never encountered an example of when they were different, but they have been included for completeness. More info [here](https://scikit-learn.org/stable/modules/svm.html#scores-probabilities).
+A note on probability: if you're predicting probability, you'll notice that two seperate prediction values are returned. One is the normal SVM prediction, and the other comes from the probability prediction. They should be the same, but since the probabilities are calculated separately, they could technically be different. I've never encountered an example of when they were different, but they have been included for completeness. More info [here](https://scikit-learn.org/stable/modules/svm.html#scores-probabilities). Also, if you don't have much training data, the probabilities will generally be lower.
 
 ### Multiple Funtional Uses
 Sometimes, there are multiple functional uses in one field. This is usually from one chemical having multiple uses. This model splits these uses (in `data.py`) and treats them as separate entries. When outputting the test set, split functional uses are reassembled, with ` / ` as a separator (can be changed).
