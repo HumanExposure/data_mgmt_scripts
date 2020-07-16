@@ -22,8 +22,8 @@ df2 = pd.read_csv(
     .rename(columns={'reported_functional_use': 'report_funcuse',
                      'technical_function': 'harmonized_funcuse'})
 df2 = df2[['report_funcuse', 'harmonized_funcuse']]
-df2_split = format_splits(df2)
-df2['raw_chem_name'] = np.nan
+df2_split = format_splits(df2, df_default, strict=False)
+df2_split['raw_chem_name'] = np.nan
 df2_formatted = format_training_set(df2_split)
 ```
 
