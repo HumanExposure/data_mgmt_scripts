@@ -24,7 +24,7 @@ The script `model_helper.py` contains functions to make building a model straigh
 * `df_train`: A subset of the dataset that is used for training the models. Should be a DataFrame, can also be a string to use the whole training set. Defaults to `'all'`.
 * `bootstrap`: Whether to sample `df_train` with replacement or not (recommended to be set to `True` if `num_runs` is more than 1). Defailts to `False`.
 * `num_runs`: Number of times to fit the model before aggregating it. Defaults to `1`.
-* `sample_size`: Size of the training set for each run (sampled from the training set). If there are multiple runs, each sample from the training set will be this large. Can be a number, or `all`. Since SVMs can be slow with many samples, this parameter is designed to allow for fitting subets of the data in different runs to speed up computation time. Defaults to `'all'`.
+* `sample_size`: Size of the training set for each run (sampled from the training set). If there are multiple runs, each sample from the training set will be this large. Can be a number, or `all`. Since SVMs can be slow with many samples, this parameter is designed to allow for fitting subets of the data in different runs to speed up computation time. If `bootstrap` is not `True`, do not make this larger than the length of `df_train`. Defaults to `'all'`.
 * `label`: A label for the saved models. This label is used for running model predictions, as well. Any models with the same label will be overwritten. Defaults to `''`.
 * `probab`: Whether to calculate probabilities for the classes. Enabling this will increase computation time. Defaults to `False`.
 
@@ -53,6 +53,25 @@ from model_helper import model_run
 prod_names = [['clorox', 'extra fancy bleach'], ['crayola', 'purple crayons']]
 puclist, removed, problist, probnames = model_run(prod_names, label='boot')
 ```
+
+### Organizing the results
+
+There is also a function for formatting the predictions and probabilities and outputting them into a dataframe. This function is called `results_df`. The parameters are listed below. It is important to run this function because it makes the the output is the same length as `sen_itr` by adding blank rows where predictions were not made.
+* `sen_itr`: List of product names in the form `['brand', 'title']`. Same as input into `model_run`.
+* `all_list`: List of predicted PUCs, first output from `model_run`.
+* `removed`: List of removed values, second output from `model_run`.
+* `proba_pred`: List of probabilities, third output from `model_run`.
+* `puc_list`: List of PUC names, fourth output from `model_run`.
+* `proba_limit`: Bool for whether to include probabilites in output DF (if available). Can be a float to use a probability cutoff.
+* `label`: Model label, should match the label used when building the model. Defaults to `''`.
+
+```python
+from model_helper import results_df
+results = results_df(sen_test, puclist, removed, problist,
+                     probnames, proba_limit=0.8, label='boot')
+```
+
+There is a file called `run.py` included in this repo that has an example of how to run all of these commands together.
 
 ## Requirements
 
@@ -83,5 +102,7 @@ Unless otherwise noted, packages are on the main Anaconda channel. Flair has man
 * Flair (pip, **see below**)
 
 Before installing Flair, install `pytorch` by copying the command [here](https://pytorch.org/get-started/locally/). If you don't have an Nvidia GPU , select 'None' for CUDA. Also, there are many flair dependencies that are available via Anaconda. If you want to install these via Anaconda, do it before installing Flair, or else they will be automatically installed via `pip`. If you just want to use `pip`, you don't need to do anything with the other packages. See [Flair's requirements](https://github.com/zalandoresearch/flair/blob/master/requirements.txt) for more details.
+
+This script was recently updated to work on flair version 0.5.1. This package changes frequently so future versions may not be compatible.
 
 Finally, you will need to run this in the command line: `python -m spacy download en_core_web_sm`.
