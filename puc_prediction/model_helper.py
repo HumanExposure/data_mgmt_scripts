@@ -17,7 +17,22 @@ import torch
 
 def format_probs(chem_puclist, chem_problist, chem_pucs_all,
                  limit=0, label=''):
-    """Format probability columns."""
+    """Format probability columns.
+
+    Most of the inputs come from model_run.
+
+    Args:
+        chem_puclist (list): List of predicted PUCs.
+        chem_problist (list): List of probability for PUCs and levels.
+        chem_pucs_all (list): List of PUCs for each run and level.
+        limit (float, optional): Probability cutoff.
+        label (str, optional): File label. Defaults to ''.
+
+    Returns:
+        comb3 (list): List of probability-chosen PUCs.
+        new_prob_list (list): List of probabilites.
+
+    """
     if len(chem_problist) == 0 or len(chem_problist[0]) == 0:
         return [], []
 
@@ -290,7 +305,7 @@ def model_build(df_train='all', bootstrap=False, num_runs=1,
         probab (bool, optional): Whether to calculate class probability.
 
     """
-    df = load_df() if isinstance(df_train, str) else df_train
+    df = load_df(label=label) if isinstance(df_train, str) else df_train
     sz = len(df) if isinstance(sample_size, str) else sample_size
     if not isinstance(sz, int):
         print('Please enter valid sample size')
@@ -381,6 +396,7 @@ def model_initialize(add_groups=[], label=''):
                                                  )).to_list()
     joblib.dump(xdata, 'xdata' + label + '.joblib')
 
+    print('Done')
     # moved to model
     # min_max_scaler = preprocessing.MinMaxScaler()
     # xdata = min_max_scaler.fit_transform(xdata)
@@ -396,7 +412,23 @@ def load_df(label=''):
 
 def results_df(sen_itr, all_list, removed, proba_pred, puc_list,
                proba_limit=False, label=''):
-    """Format results into a dataframe."""
+    """Format results into a dataframe.
+
+    Most inputs come from model_run.
+
+    Args:
+        sen_itr (list or array): List of ['brand', 'title'].
+        all_list (list): List of predicted PUCs.
+        removed (list): List of PUCs not predicted.
+        proba_pred (list): List of probabilities for each run and level.
+        puc_list (list): List of PUCs for each prediction run and level.
+        proba_limit (float or bool): Whether to include probability, or cutoff.
+        label (str, optional): File label. Defaults to ''.
+
+    Returns:
+        df_comb (DataFrame): Combined DataFrame with inputs and outputs.
+
+    """
     if isinstance(proba_limit, bool) or proba_limit is None:
         do_prob = proba_limit
         limit = 0
@@ -469,4 +501,5 @@ def results_df(sen_itr, all_list, removed, proba_pred, puc_list,
 
     df_comb.to_csv('results_' + label + '.csv', index=False)
 
+    print('Done')
     return df_comb
