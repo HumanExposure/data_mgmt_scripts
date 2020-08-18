@@ -36,7 +36,7 @@ data.report_funcuse=data.report_funcuse.str.replace("\r"," ")
 
 #remove additional comments on chemicals, remove return carriages from chemical names, remove headers from the top of each page, and remove non printable characters
 data.loc[data.raw_chem_name.str.contains("*", regex=False), ["raw_chem_name"]]=data.raw_chem_name.str.split("*", expand=True)[0]
-data.raw_chem_name=data.raw_chem_name.str.replace("\r","")
+data.raw_chem_name=data.raw_chem_name.str.replace("\r"," ")
 data=data.loc[data.raw_cas.str.contains("[a-zA-Z]")==False]
 data.raw_chem_name=data.raw_chem_name.apply(clean)
 
