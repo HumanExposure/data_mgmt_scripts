@@ -1,0 +1,1 @@
+Chemicals and CAS numbers for this document was copied from Env_CDP_chemicals_of_high_concern_to_children.xls and pasted onto an upload template. No script was used for this extraction. Documents were downloaded from https://www.healthvermont.gov/environment/children/chemical-disclosure-program-childrens-products-manufacturers#product%20search
