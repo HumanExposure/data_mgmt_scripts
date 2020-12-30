@@ -8,13 +8,14 @@ import os
 os.chdir("//home//lkoval//comp_data_cleaning")
 
 
-raw_data=pd.read_csv("home_depot_-_icf_msds_extract_raw_extracted_records.csv", usecols=["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type__title"])
+raw_data=pd.read_csv("home_depot_-_icf_msds_extract_raw_extracted_records.csv", usecols=["ExtractedComposition_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type"])
 
-raw_data=raw_data.loc[raw_data.unit_type__title=="percent"]
+raw_data=raw_data.loc[raw_data.unit_type=="percent"]
+raw_data=raw_data.loc[raw_data.raw_central_comp!='0']
 raw_data=raw_data.loc[(pd.isnull(raw_data.raw_central_comp)==False) & raw_data.raw_central_comp.str.replace(" ","").str.contains("[A-Za-z,]")==False]
 
 raw_data=raw_data.reset_index()
-raw_data=raw_data[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
+raw_data=raw_data[["ExtractedComposition_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
 
 raw_data["raw_central_comp"]=raw_data["raw_central_comp"].str.replace(' ','').str.strip()
 raw_data.loc[(pd.isnull(raw_data.raw_central_comp)==False) & (raw_data["raw_central_comp"].str.contains("-")), ["raw_min_comp"]]=raw_data["raw_central_comp"].str.split('\-', expand=True)[0]
