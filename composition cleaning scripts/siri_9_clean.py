@@ -7,9 +7,9 @@ import os
 import math
 
 #takes a dataframe and only keeps rows that have unit type of percent, replaces all spaces with empty strings, replaces all null values with empty strings, and removes rows that have comp data that
-#is entirely alphabetic. Also removes rows with comp data of the form .x. The index is reset and the dataframe is returned with the columns ExtractedChemical_id, raw_min_comp, raw_central_comp, and raw_max_comp.
+#is entirely alphabetic. Also removes rows with comp data of the form .x. The index is reset and the dataframe is returned with the columns ExtractedComposition_id, raw_min_comp, raw_central_comp, and raw_max_comp.
 def initial_clean(df=pd.DataFrame()):
-    df=df.loc[df.unit_type__title=="percent"]
+    df=df.loc[df.unit_type=="percent"]
     df.raw_central_comp=df.raw_central_comp.str.replace(" ","")
     df.raw_min_comp=df.raw_min_comp.str.replace(" ","")
     df.raw_max_comp=df.raw_max_comp.str.replace(" ","")
@@ -17,7 +17,7 @@ def initial_clean(df=pd.DataFrame()):
     df=df.loc[~((df.raw_central_comp.str.isalpha()) | (df.raw_max_comp.str.isalpha()))]
     df=df.loc[~(df.raw_central_comp.str.contains("\.\d+\."))]
     df=df.reset_index()
-    df=df[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
+    df=df[["ExtractedComposition_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
     return df
 
 #takes a dataframe and deals with situation where on orgignal document, comp data was presented as ‎x±y which was split up during extraction and thus the raw data being read in is incorret. Raw records
@@ -37,8 +37,8 @@ def plus_minus(df=pd.DataFrame()):
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the minimum possible value ("min x", ">x", etc.) and places numerical value in
 #raw_min_comp, 100 in raw_max_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def min_split(df=pd.DataFrame()):
-    bad_comps=list(df.ExtractedChemical_id.loc[df.raw_central_comp.str.contains('^>(\d+)m/')])
-    df=df.loc[lambda df: df.ExtractedChemical_id.isin(bad_comps)==False]
+    bad_comps=list(df.ExtractedComposition_id.loc[df.raw_central_comp.str.contains('^>(\d+)m/')])
+    df=df.loc[lambda df: df.ExtractedComposition_id.isin(bad_comps)==False]
     min_keys=["^>","min$|min\.$|^min[^.]","\+$","<$"]
     df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_min_comp"]]=df["raw_central_comp"].str.replace("[minorw()<>+_/=]","").str.strip(".")
     df.loc[(df["raw_central_comp"].str.contains("|".join(min_keys))), ["raw_max_comp"]]="100"
@@ -48,8 +48,8 @@ def min_split(df=pd.DataFrame()):
 #takes a dataframe and for all values in raw_central_comp that indicate that the number provided is the maximum possible value ("max x", "<x", etc.) and places numerical value in
 #raw_max_comp, 0 in raw_min_comp, and an empty string in raw_central_comp. Extraneous characters are removed. Adjusted dataframe is returned.
 def max_split(df=pd.DataFrame()):
-    bad_comps=list(df.ExtractedChemical_id.loc[df.raw_central_comp.str.contains("^<(\d+)m/")])
-    df=df.loc[lambda df: df.ExtractedChemical_id.isin(bad_comps)==False]
+    bad_comps=list(df.ExtractedComposition_id.loc[df.raw_central_comp.str.contains("^<(\d+)m/")])
+    df=df.loc[lambda df: df.ExtractedComposition_id.isin(bad_comps)==False]
     max_keys=["^<","m[a]*x","upto"]
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_min_comp"]]="0"
     df.loc[df["raw_central_comp"].str.contains("|".join(max_keys)), ["raw_max_comp"]]=df["raw_central_comp"].str.replace("[maxuptow<_()/]","")
@@ -81,12 +81,12 @@ def remove_bad_rows(df=pd.DataFrame()):
     df=df.loc[~(df.central_wf_analysis==0)]
     df=df.loc[~(((pd.isnull(df.lower_wf_analysis)) & (pd.isnull(df.upper_wf_analysis)==False)) | ((pd.isnull(df.lower_wf_analysis)==False) & (pd.isnull(df.upper_wf_analysis))))]
     df=df.reset_index()
-    df=df[["ExtractedChemical_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
+    df=df[["ExtractedComposition_id","lower_wf_analysis","central_wf_analysis","upper_wf_analysis"]]
     return df
 
 
-os.chdir("//home//lkoval//comp_data_cleaning")
-raw_data=pd.read_csv("siri_cpcat_data_9_raw_extracted_records.csv", usecols=["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type__title"], dtype=str)
+os.chdir(r"C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Python Scripts/Data Cleaning")
+raw_data=pd.read_csv("siri_cpcat_data_9_raw_extracted_records.csv", usecols=["ExtractedComposition_id","raw_min_comp","raw_central_comp","raw_max_comp","unit_type"], dtype=str)
 
 raw_data=initial_clean(raw_data)
 raw_data=plus_minus(raw_data)
@@ -114,7 +114,7 @@ raw_data=raw_data.loc[~(raw_data.raw_min_comp.str.contains("[a-zA-Z_+*/#?)(]"))]
 raw_data=raw_data.loc[~(raw_data.raw_max_comp.str.contains("[a-zA-Z*_+()/#?]|]"))]
 
 raw_data=raw_data.reset_index()
-raw_data=raw_data[["ExtractedChemical_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
+raw_data=raw_data[["ExtractedComposition_id","raw_min_comp","raw_central_comp","raw_max_comp"]]
 
 split_data=convert_2_wf(raw_data)
 split_data=remove_bad_rows(split_data)
@@ -122,8 +122,8 @@ clean_data=split_data.fillna("")
 
 #split data in multiple files to upload due to size of clean_data
 start=0
-for i in range(1,math.ceil(len(clean_data)/7500)+1):
-    stop=i*7500
+for i in range(1,math.ceil(len(clean_data)/5000)+1):
+    stop=i*5000
     temp=clean_data.iloc[start:stop]
     temp.to_csv("siri_9_cleaned_%d.csv"%i, index=False)
     start=stop
