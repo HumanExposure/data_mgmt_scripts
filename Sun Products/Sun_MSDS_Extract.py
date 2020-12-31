@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue Jul 14 18:34:32 2020
+Created on Aug 31 2020
 
 @author: SHanda
 """
