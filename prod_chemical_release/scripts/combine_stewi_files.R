@@ -1,7 +1,7 @@
 #Script to combine StEWI files to push to prod_chemical_release database
 #Created by: Jonathan Taylor Wall
 #Created: 2020-12-31
-#Last Updated: 2021-4-12
+#Last Updated: 2021-1-05
 
 library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr)
 
@@ -11,10 +11,10 @@ library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DB
 connect_to_db <- function(){
   return(dbConnect(RMySQL::MySQL(), 
                    username = Sys.getenv("user"), password = Sys.getenv("pass"), 
-                   host = Sys.getenv("host"), port = 3306, dbname = Sys.getenv("dbname")))
+                   host = "mysql-ip-m.epa.gov", port = 3306, dbname = "prod_chemical_release"))
 }
 
-#'@description A function to derive the data source type of a filename from STeWI output files
+#'@description A function to derive the data source type of a filename from StEWI output files
 #'@param filename The filename (full or relative path) that contains the data source type
 #'@return The data source type for the filename passed
 get_source_type <- function(filename=""){
@@ -24,7 +24,7 @@ get_source_type <- function(filename=""){
   if(grepl("RCRAInfo", filename)) return("RCRAInfo")
 }
 
-#'@description A function to load STeWI output JSON metadata files and push to the prod_chemical_release database.
+#'@description A function to load StEWI output JSON metadata files and push to the prod_chemical_release database.
 #'Fills the datasource and datadocument tables in the database.
 #'@import jsonlite dplyr tidyr
 #'@return None.
@@ -64,7 +64,7 @@ fill_datasource_document_table <- function(){
   #Insert temp_table data into datasource table
   dbSendStatement(con, paste0("INSERT INTO datasource (SourceName)
                                            SELECT SourceName
-                                           FROM temp_table")) 
+                                           FROM temp_table")) %>% dbClearResult()
   #Get datasource ID values
   dbSendQuery(con, paste0("SELECT id, SourceName FROM datasource")) %T>%
     { dbFetch(., -1) ->> datasource_id } %>% #save intermediate variable, critical tee-operator
@@ -81,15 +81,15 @@ fill_datasource_document_table <- function(){
                               SourceURL, SourceVersion, StEWI_versions_version, SourceAquisitionTime)
                                            SELECT datasource_id, SourceFileName, SourceType, SourceYear, SourceURL, 
                                             SourceVersion, StEWI_versions_version, SourceAquisitionTime
-                                           FROM temp_table")) 
+                                           FROM temp_table")) %>% dbClearResult()
   #Disconnect from database
   dbDisconnect(con)
   message("Done...pushed data to datasource and datadocument table")
 }
 
-#'@description A function to pull all file paths for datadocuments in each STeWI output subfolder, grouped by datadocument.
+#'@description A function to pull all file paths for datadocuments in each StEWI output subfolder, grouped by datadocument.
 #'@import dplyr magrittr jsonlite
-#'@return A dataframe of filepaths grouped by STeWI datadocument
+#'@return A dataframe of filepaths grouped by StEWI datadocument
 get_file_list <- function(){
   #Get complete list of output files grouped by datadocument
   return(lapply(c("flow", "facility", "flowbyfacility", "validation"), #Subfolder list
@@ -105,11 +105,11 @@ get_file_list <- function(){
   )
 }
 
-#'@description A function to load datadocument data from all STeWI output subfolders into named list of dataframes
+#'@description A function to load datadocument data from all StEWI output subfolders into named list of dataframes
 #'@param files The output of get_file_list() function
 #'@param x The datadocument SourceName and Year (e.g. TRI_1998, eGRID_2014)
 #'@import dplyr magrittr readr
-#'@return A named dataframe list of data from each STeWI output file for a datadocument
+#'@return A named dataframe list of data from each StEWI output file for a datadocument
 load_datadocument <- function(files=NULL, x=NULL){
   message("Joining files for: ", x)
   #Get list of files to pull by datadocument name
@@ -162,7 +162,112 @@ filter_to_unique_facility <- function(x=NULL){
   return(tmp)
 }
 
-#'@description A function that uses all helper functions to pull STeWI output data by datasource_year (datadocument),
+#'@description A function to push NAICS codes from input file to the NAICS_info table
+#'@imort DBI dplyr readxl stringr readr tidyr
+#'@return None.
+push_NAICS_table <- function(){
+  #Pull NAICS 2017 Codes
+  NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx", col_types = "text") %>%
+    select(NAICS_code = Code, keyword = Title, description = Description) %>%
+    mutate(across(names(.), stringr::str_squish))
+  #Pull NAICS 2007 and 2012 Codes (Filter out repeats from 2017)
+  NAICS_2007_2012 = lapply(c("naics_codes/2-digit_2012_Codes.xls", 
+                             "naics_codes/6-digit_2012_Codes.xls", 
+                             "naics_codes/naics07.xls", 
+                             "naics_codes/naics07_6.xls"), 
+                           function(x){
+                             readxl::read_xls(x, col_types = c("text")) %T>% {
+                               names(.) <- stringr::str_squish(names(.))
+                               } %>%
+                               select(NAICS_code = colnames(.)[grepl("Code", colnames(.))], 
+                                      keyword = colnames(.)[grepl("Title", colnames(.))])
+  }) %>% bind_rows() %>% 
+    distinct() %>%
+    filter(!is.na(NAICS_code), 
+           !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
+    mutate(description = NA) %>%
+    mutate(across(names(.), stringr::str_squish))
+  #Pull NAICS 2002 Codes (Filter out repeats from 2017, 2012, and 2007)
+  NAICS_2002 = lapply(c("naics_codes/naics_2_6_02.txt", 
+                        "naics_codes/naics_6_02.txt"),
+                      function(x){
+                        readr::read_delim(x, delim=",", skip=5, col_names=c("NAICS")) %>%
+                          mutate(NAICS = stringr::str_replace(NAICS, "\\s", "|")) %>%
+                          tidyr::separate(NAICS, into = c("NAICS_code", "keyword"), sep = "\\|") %>%
+                          filter(!NAICS_code %in% c("Code", "NAICS"), 
+                                 !grepl("-", NAICS_code))
+  }) %>% bind_rows() %>% 
+    distinct() %>%
+    filter(!is.na(NAICS_code), 
+           !NAICS_code %in% unique(NAICS_2007_2012$NAICS_code),
+           !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
+    mutate(description = NA) %>%
+    mutate(across(names(.), stringr::str_squish))
+  #Pull NAICS 1997 (Extracted usingg scripts/extract_NAICS.R)
+  NAICS_1997 = readxl::read_xlsx("naics_codes/NAICS_1997_2021-04-23.xlsx") %>%
+    filter(!is.na(NAICS_code), 
+           !NAICS_code %in% unique(NAICS_2002$NAICS_code),
+           !NAICS_code %in% unique(NAICS_2007_2012$NAICS_code),
+           !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
+    mutate(across(names(.), stringr::str_squish))
+  
+  NAICS_list = rbind(NAICS_2017, NAICS_2007_2012, NAICS_2002, NAICS_1997) %>% 
+    filter(!grepl("-", NAICS_code)) %>%
+    distinct()
+  con = connect_to_db()
+  dbWriteTable(con, name = 'temp_table', value = NAICS_list, row.names = F, overwrite = T)
+  dbSendStatement(con, paste0("INSERT INTO naics_info (NAICS_code, keyword, description)
+                                SELECT NAICS_code, keyword, description
+                                FROM temp_table")) %>% dbClearResult()
+  dbSendStatement(con, "DROP TABLE temp_table") %>% dbClearResult()
+  dbDisconnect(con)
+}
+
+#'@description A function to pull corresponding NAICS_info table ID based on input NAICS_code
+#'@param input_NAICS A single NAICS or list of NAICS codes to pull ID values for
+#'@return A list of NAICS codes with associated NAICS_info table ID values
+get_NAICS_id <- function(input_NAICS=NULL){
+  con = connect_to_db()
+  input_NAICS = input_NAICS[!is.na(input_NAICS) & 
+                              !is.nan(input_NAICS) & 
+                              input_NAICS != "NaN" & 
+                              input_NAICS != "NA"]
+  dbSendQuery(con, paste0("SELECT id AS NAICS_id, NAICS_code FROM NAICS_info WHERE NAICS_code IN (",
+                          paste0(input_NAICS, collapse = ", "),")")) %T>%
+                          { dbFetch(., -1) ->> tmp } %>% #save intermediate variable, critical tee-operator
+    dbClearResult()
+  #See what matches
+  tmp = left_join(data.frame(NAICS_code = input_NAICS, stringsAsFactors = FALSE),
+                   tmp, 
+                   by="NAICS_code")
+  #Filter to NAICS not found in database and push/pull to get ID
+  tmp2 = tmp %>% 
+    select(NAICS_code) %>% 
+    filter(is.na(tmp$NAICS_id)) %>% 
+    unique() %>%
+    mutate(keyword = "NEED TO CURATE KEYWORD",
+           description = "NEED TO CURATE DESCRIPTION")
+  #Push missing NAICS to get IDs
+  dbWriteTable(con, name = 'temp_table', value = tmp2, row.names = F, overwrite = T)
+  dbSendStatement(con, paste0("INSERT INTO naics_info (NAICS_code, keyword, description)
+                                SELECT NAICS_code, keyword, description
+                                FROM temp_table")) %>% dbClearResult()
+  #Pull all matching NAICS again
+  dbSendQuery(con, paste0("SELECT id As NAICS_id, NAICS_code FROM NAICS_info WHERE NAICS_code IN (",
+                          paste0(input_NAICS, collapse = ", "),")")) %T>%
+                          { dbFetch(., -1) ->> tmp } %>% #save intermediate variable, critical tee-operator
+    dbClearResult()
+  dbSendStatement(con, "DROP TABLE temp_table") %>% dbClearResult()
+  dbDisconnect(con)
+  #Match ID's again
+  tmp = left_join(data.frame(NAICS_code = input_NAICS, stringsAsFactors = FALSE),
+                  tmp, 
+                  by="NAICS_code") %>%
+    distinct()
+  return(tmp)
+}
+
+#'@description A function that uses all helper functions to pull StEWI output data by datasource_year (datadocument),
 #'combine across subfolders, and push data to corresponding prod_chemical_release database tables.
 #'@import DBI dplyr magrittr
 #'@return None.
@@ -201,56 +306,73 @@ push_to_prod_chemical_release <- function(){
                  "Percent_Difference", "Conclusion")
     #Fill in missing columns (some datadocuments don't have all columns)
     dat[, tblNames[!tblNames %in% names(dat)]] <- NA
-    #Break STeWI data into database tables
+    #Break StEWI data into database tables
     facility = dat %>% 
       select(FacilityID) %>% 
       unique() %>%
       filter_to_unique_facility() #Filter to unique FacilityID not in database
-    dbWriteTable(con, name = 'temp_table', value = facility, row.names = F, overwrite = T)
-    dbSendStatement(con, paste0("INSERT INTO facility (FacilityID)
+    if(nrow(facility)){#Only send if any new facilityID values present
+      dbWriteTable(con, name = 'temp_table', value = facility, row.names = F, overwrite = T)
+      dbSendStatement(con, paste0("INSERT INTO facility (FacilityID)
                                 SELECT FacilityID
-                                FROM temp_table"))
+                                FROM temp_table")) %>% dbClearResult()
+    }
     rm(facility)
     facility_info = dat %>% select(FacilityName, CompanyName, State, County,
                                    Latitude, Longitude, Address, City, Zip,
                                    NAICS, facility_id=FacilityID, datadocument_id) %>%
-      distinct()
+      distinct() %>% #Add 0's to end of NAICS that aren't 6 digits long
+      mutate(NAICS=as.character(NAICS))
+      #mutate(NAICS = stringr::str_pad(NAICS, width=6, side="right", pad="0"))
+    #Get NAICS_id map
+    if(!all(is.na(facility_info$NAICS))) {
+      tmp = get_NAICS_id(facility_info$NAICS)
+      #Match NAICS_id and remove NAICS field
+      facility_info = facility_info %>%
+        left_join(tmp, by=c("NAICS"="NAICS_code")) %>%
+        select(-NAICS)  
+    } else {
+      facility_info = facility_info %>% dplyr::rename(NAICS_id=NAICS)
+    }
+    
     dbWriteTable(con, name = 'temp_table', value = facility_info, row.names = F, overwrite = T)
     dbSendStatement(con, paste0("INSERT INTO facility_info (FacilityName, CompanyName, State, County,
                                 Latitude, Longitude, Address, City, Zip,
-                                NAICS, facility_id, datadocument_id)
+                                NAICS_id, facility_id, datadocument_id)
                                 SELECT FacilityName, CompanyName, State, County,
                                 Latitude, Longitude, Address, City, Zip,
-                                NAICS, facility_id, datadocument_id
-                                FROM temp_table"))
+                                NAICS_id, facility_id, datadocument_id
+                                FROM temp_table")) %>% dbClearResult()
     rm(facility_info)
-    flow = dat %>% select(FlowName, FlowID, datadocument_id, CAS) %>%
-      distinct()
+    flow = dat %>% select(FlowName, FlowID, datadocument_id, CAS)# %>%
+      #distinct() #Removed distinct because we want all chemical records for RID assignment
     dbWriteTable(con, name = 'temp_table', value = flow, row.names = F, overwrite = T)
     dbSendStatement(con, paste0("INSERT INTO flow (FlowName, FlowID, datadocument_id, CAS)
                                 SELECT FlowName, FlowID, datadocument_id, CAS
-                                FROM temp_table"))
+                                FROM temp_table")) %>% dbClearResult()
     rm(flow)
     #Get Flow IDs to add to flowbyfacility table
-    dbSendQuery(con, paste0("SELECT * FROM flow")) %T>%
+    dbSendQuery(con, paste0("SELECT id, FlowName, FlowID, CAS FROM flow where datadocument_id = ", dat$datadocument_id %>% unique())) %T>%
     { dbFetch(., -1) ->> flowIDs } %>% #save intermediate variable, critical tee-operator
       dbClearResult() #clear result
     flowIDs = dplyr::rename(flowIDs, flow_id = id)
     flowbyfacility = dat %>% select(FlowAmount, ReliabilityScore, Compartment,
                                     Unit, facility_id=FacilityID, datadocument_id, 
                                     FlowName, FlowID, CAS) %>%
-      left_join(flowIDs) %>%
+      cbind(flow_id=flowIDs$flow_id) %>% #Uncertain if best practice to just cbind...but memory issues...
+      #left_join(flowIDs, by = c("FlowName", "FlowID", "CAS")) %>%
       select(-FlowName, -FlowID, -CAS) %>%
-      distinct()
+      distinct() #Should we also remove distinct here, like with flow?
     dbWriteTable(con, name = 'temp_table', value = flowbyfacility, row.names = F, overwrite = T)
     dbSendStatement(con, paste0("INSERT INTO flowbyfacility (FlowAmount, ReliabilityScore, flow_id, Compartment,
                                Unit, facility_id, datadocument_id)
                                SELECT FlowAmount, ReliabilityScore, flow_id, Compartment,
                                Unit, facility_id, datadocument_id
-                               FROM temp_table"))
+                               FROM temp_table")) %>% dbClearResult()
     rm(flowbyfacility)
     validation = dat %>% 
-      left_join(flowIDs) %>% #Add flowIDs to validation table
+      cbind(flow_id=flowIDs$flow_id) %>% #Uncertain if best practice to just cbind...but memory issues...
+      #left_join(flowIDs, by = c("FlowName", "FlowID", "CAS")) %>%
       select(Inventory_Amount, Reference_Amount, Percent_Difference,
              Conclusion, flow_id) %>%
       distinct()
@@ -259,10 +381,11 @@ push_to_prod_chemical_release <- function(){
                                Conclusion, flow_id)
                                SELECT Inventory_Amount, Reference_Amount, Percent_Difference,
                                Conclusion, flow_id
-                               FROM temp_table"))
+                               FROM temp_table")) %>% dbClearResult()
     rm(validation, flowIDs)
     dbSendStatement(con, paste0("UPDATE datadocument SET uploadComplete = 1 WHERE id = ", 
-                                unique(dat$datadocument_id)))
+                                unique(dat$datadocument_id))) %>% dbClearResult()
+    dbSendStatement(con, "DROP TABLE temp_table") %>% dbClearResult()
     dbDisconnect(con)
     message("Done...datadocument added to all database tables")
   })
@@ -280,11 +403,22 @@ reset_prod_chemical_release <- function(notDataSource=TRUE){
   if(notDataSource){#Only remove flow facility info, not datasource/document
     tblList = tblList[!tblList %in% c("datasource", "datadocument")]
   }
-  dbSendStatement(con, "SET FOREIGN_KEY_CHECKS = 0")
+  dbSendStatement(con, "SET FOREIGN_KEY_CHECKS = 0")  %>% dbClearResult()
   lapply(tblList, function(x){
-    dbSendStatement(con, paste0("TRUNCATE ", x))
+    dbSendStatement(con, paste0("TRUNCATE ", x)) %>% dbClearResult()
+    dbSendStatement(con, paste0("ALTER TABLE ",x," AUTO_INCREMENT = 1")) %>% dbClearResult()
   })
-  dbSendStatement(con, "SET FOREIGN_KEY_CHECKS = 0")
+  dbSendStatement(con, "SET FOREIGN_KEY_CHECKS = 1") %>% dbClearResult()
   dbDisconnect(con)
   message("Done...all desired tables Truncated")
+}
+
+#'@description Function to run all necessary functions in their appropriate order to build the database
+#'@import DBI dplyr
+#'@return None.
+build_prod_chemical_release <- function(){
+  reset_prod_chemical_release(notDataSource = FALSE)
+  push_NAICS_table()
+  fill_datasource_document_table()
+  push_to_prod_chemical_release()
 }
