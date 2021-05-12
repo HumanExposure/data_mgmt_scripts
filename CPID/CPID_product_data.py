@@ -42,10 +42,8 @@ driver.maximize_window()
 
 urls = csv.reader(open('cpid urls.csv')) #csv of product urls
 i=0
-fails = 0
 for row in urls:
     i+=1
-    if fails > 5: break
     docName = str(i)+'_doc.pdf'
     picName = str(i)+'_pic.png'
     classification = ''
@@ -60,14 +58,11 @@ for row in urls:
     try: #Go to product page and get prod data
         driver.get(url)
         time.sleep(random.randint(minTime,maxTime))
-        fails = 0
-        try: 
-            name = driver.find_element_by_xpath('//*[@id="cke_pastebin"]').text
-        except: 
-            try: 
-                name = driver.find_element_by_xpath('/html/body/div/h1').text
-            except: 
-                name = driver.find_element_by_xpath('//*[@id="main_container"]/div/h1').text
+        elements = driver.find_elements_by_xpath('//*/h1')    
+        for e in elements: 
+            if int(e.value_of_css_property("font-weight")) >= 300: #Product name should have a fontweight > 300
+                name = e.text
+                break
         categories = driver.find_elements_by_class_name('breadcrumbs')
         categories = [c.text for c in categories]
         cats = ', '.join(categories)
@@ -81,7 +76,6 @@ for row in urls:
             if 'usage:' in element: usage = element.split('usage:')[-1].strip()
             if 'form:' in element: form = element.split('form:')[-1].strip()
     except: 
-        fails +=1
         continue
     try: #Get link to pdf if available
         d = driver.find_element_by_xpath('//*[@id="accordion"]/li[3]/ul/li[2]/table/tbody/tr/td/a')
