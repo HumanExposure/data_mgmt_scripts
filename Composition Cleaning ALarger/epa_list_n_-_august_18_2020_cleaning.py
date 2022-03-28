@@ -28,5 +28,5 @@ for row in template:
             print('concentration out of range:',row) 
     else: print(row) #Print rows not being cleaned
 
-df = pd.DataFrame({'ExtractedChemical_id':idList, 'lower_wf_analysis':lowerList, 'central_wf_analysis':centList, 'upper_wf_analysis':upperList})
+df = pd.DataFrame({'ExtractedComposition_id':idList, 'lower_wf_analysis':lowerList, 'central_wf_analysis':centList, 'upper_wf_analysis':upperList})
 df.to_csv(newName,index=False, header=True)
