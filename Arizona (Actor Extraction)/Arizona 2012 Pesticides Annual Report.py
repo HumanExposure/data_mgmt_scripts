@@ -3,7 +3,7 @@
 Created on Wed Apr 20 17:34:54 2022
 
 2012 Pesticides Annual Report (A.R.S 49-303.C)
-Extract chemicals and CAS from tables 2-7
+Extract chemicals, functional use, and CAS from tables 2-7
 """
 
 import camelot
