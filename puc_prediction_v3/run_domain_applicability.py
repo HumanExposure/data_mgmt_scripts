@@ -10,15 +10,18 @@ Created on Thu Aug  5 08:59:37 2021
 #import datetime
 import joblib
 from puc_model.model_utils import get_prediction_ranks, slugify, convert_PUC_numeric
+from puc_model.data_processing import (load_env_file)
 import numpy as np
 import pandas as pd
 import os
 
+env = load_env_file("env.json")
 #Set parameters
-label = 'FAIO7' #Unique identifier for the model
-pucKind = 'all'#'FO'
-modelType = 'SGD'#'SVM' #Model Type (e.g. SVM, RF)
-n_models=5 #Number of models to train for Voting Classification
+label = env["model_label"]#'factotum_20211129' #Unique identifier for the model
+pucKind = env["run_model_selection_train"]['pucKind']# 'all'#'FO'
+modelType = env["run_model_selection_train"]['modelType']#'SGD'#'SVM' #Model Type (e.g. SVM, RF, SGD)
+n_models=env["run_model_selection_train"]['n_models']#5 #Number of models to train for Voting Classification
+
 inputDir='models/model_'+label+'/input/'
 compDir='models/model_'+label+'/components/'
 outputDir='models/model_'+label+'/output/'

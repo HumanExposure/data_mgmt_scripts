@@ -16,10 +16,12 @@ import shutil
 import re
 import subprocess
 import torch
-from puc_model.data_processing import load_doc_embeddings
+from puc_model.data_processing import (load_doc_embeddings, load_env_file)
 import datetime
-parallel = True
-label = 'envTest'
+env = load_env_file("env.json")
+parallel = env["xdata_components_dump"]["parallel"] #True
+label = env["model_label"]#'factotum_20211129'
+group_size = env["xdata_components_dump"]["group_size"]
 lab = '' if len(label) == 0 else '_' + label.strip('_')
 inputDir=f'models/model{lab}/input/'
 compDir=f'models/model{lab}/components/'
@@ -38,7 +40,7 @@ if not os.path.isfile(f'{compDir}xdata{lab}_components.joblib'):
                 f'{compDir}PUC_doc_embedding{lab}.pt')
     
     #Divide data into groups of size 500 (embedding can't handle large lists)
-    n= 500#6250#, 12500
+    n=group_size# 500#6250#, 12500
     data = [data[i * n:(i + 1) * n] for i in range((len(data) + n - 1) // n )]
     #Save copy of split dataset for batch
     joblib.dump(data, f'{compDir}xdata{lab}_components.joblib')

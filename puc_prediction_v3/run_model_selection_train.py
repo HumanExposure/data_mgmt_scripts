@@ -9,7 +9,7 @@ Created on Thu Feb  4 13:05:51 2021
 @author: jwall01
 """
 #Import packages and functions
-from puc_model.data_processing import (load_df)
+from puc_model.data_processing import (load_df, load_env_file)
 from puc_model.model_utils import (prep_puc_key, prep_split_dataset, model_feature_selection, 
                                split_puc_tiers, convert_PUC_numeric, model_train_selection,
                                slugify, get_modeltype_estimator,
@@ -23,22 +23,23 @@ import datetime
 import joblib
 import os
 
+env = load_env_file("env.json")
 #Set parameters
-label = 'envTest' #Unique identifier for the model
-pucKind = 'all'#'FO'
-modelType = 'SGD'#'SVM' #Model Type (e.g. SVM, RF, SGD)
-n_models=5 #Number of models to train for Voting Classification
+label = env["model_label"]#'factotum_20211129' #Unique identifier for the model
+pucKind = env["run_model_selection_train"]['pucKind']# 'all'#'FO'
+modelType = env["run_model_selection_train"]['modelType']#'SGD'#'SVM' #Model Type (e.g. SVM, RF, SGD)
+n_models=env["run_model_selection_train"]['n_models']#5 #Number of models to train for Voting Classification
 inputDir='models/model_'+label+'/input/'
 compDir='models/model_'+label+'/components/'
 outputDir='models/model_'+label+'/output/'
-del_models = False #Boolean to delete models (quick reset)
-parallel = True #Boolean to train n_models in parallel
-get_fs = True#False
-get_cv=True#False
-get_DA=True#False
-setName='val'
-predKindBool=True#False
-pred_proba=True
+del_models = env["run_model_selection_train"]['del_models']#False #Boolean to delete models (quick reset)
+parallel = env["run_model_selection_train"]['parallel']#True #Boolean to train n_models in parallel
+get_fs = env["run_model_selection_train"]['get_fs']#True#False
+get_cv=env["run_model_selection_train"]['get_cv']#True#False
+get_DA=env["run_model_selection_train"]['get_DA']#False#True
+setName=env["run_model_selection_train"]['setName']#'val'
+predKindBool=env["run_model_selection_train"]['predKindBool']#True#False
+pred_proba=env["run_model_selection_train"]['pred_proba']#True
 
 if not get_fs and modelType != 'SGD':
     print("get_fs set to False is only recommended for SGD models...")

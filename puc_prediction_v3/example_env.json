@@ -1,0 +1,39 @@
+{
+	"mysql": {
+		"username": "",
+		"password": "",
+		"server": "",
+		"port": "",
+		"database": ""
+	},
+	"model_label": "test",
+	"model_initialize": {
+		"groups": [37, 47, 30],
+		"recordMin": 100,
+		"pucType": "all",
+		"overwrite": 0	
+	},
+	"xdata_components_dump": {
+		"parallel": 1,
+		"group_size": 500
+		
+	},
+	"run_model_selection_train": {
+		"pucKind": "all",
+		"modelType": "SGD",
+		"n_models": 5,
+		"del_models": 0,
+		"parallel": 1,
+		"get_fs": 1,
+		"get_cv": 1,
+		"get_DA": 0,
+		"setName": "val",
+		"predKindBool": 1,
+		"pred_proba": 1
+	},
+	"run_model_prediction": {
+		"pred_proba": 1,
+		"dat_file": "",
+		"batchSize": 12500
+	}
+}

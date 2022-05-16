@@ -60,7 +60,7 @@ See these modules for more info about function parameters. All generated model a
 ### Pull and prepare model data
 Model training, test, and validation data are prepared from a direct data pull from the `Factotum` database.
 
-In the root of the model code directory, users must edit the `mysql.json` file with Factotum database credentials:
+In the root of the model code directory, users must copy and edit the `env.json` file with Factotum database credentials:
 ```json
 {
 	"mysql": {
