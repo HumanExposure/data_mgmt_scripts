@@ -16,3 +16,7 @@ The following are files and scripts associated with an effort to push Standardiz
   - "naics_codes/naics_6_02.txt" = "6-digit 2002 Code File"
   - "naics_codes/NAICS_1997_2021-04-23.xls" = NAICS codes extracted from the US Census website for 1997, using "scripts/extract_NAICS_1997.R"
 
+For StEWI v1.0.5, user must clone the Wiki for the v1.0.5 data, which contains a table of AWS URLs that are programmatically downloaded and extracted from.
+ -  https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
+
+For the `extract_wiki_docs()` function, set the `version` parameter to the folder the Wiki was cloned into and where the files should be downloaded into. Default is `StEWI_1.0.5`.
