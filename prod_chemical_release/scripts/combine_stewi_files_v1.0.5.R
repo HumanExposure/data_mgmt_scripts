@@ -3,10 +3,16 @@
 # Created: 2022-07-13
 # Last Updated: 2022-07-13
 # R version 3.6.1 (2019-07-05)
-# purrr_0.3.4; DBI_1.1.0; magrittr_1.5; jsonlite_1.7.1; tidyr_1.1.0; dplyr_1.0.2   
+# purrr_0.3.4; DBI_1.1.0; magrittr_1.5; jsonlite_1.7.1; tidyr_1.1.0; dplyr_1.0.2; devtools_2.4.4   
 # https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
-library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr)
+library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools)
+#If not installed, install the read.so package for reading markdown tables
+if (!"read.so"%in%installed.packages()[, "Package"]) {
+  devtools::install_github("alistaire47/read.so")
+}
+library(read.so)
+
 
 ######################################################################
 #Functions
@@ -559,32 +565,12 @@ reset_prod_chemical_release <- function(notDataSource=TRUE){
   message("Done...all desired tables Truncated")
 }
 
-# https://stackoverflow.com/questions/48087762/markdown-table-to-data-frame-in-r
-read.markdown <- function(file, stringsAsFactors = FALSE, strip.white = TRUE, ...){
-  if (length(file) > 1) {
-    lines <- file
-  } else if (grepl('\n', file)) {
-    con <- textConnection(file)
-    lines <- readLines(con)
-    close(con)
-  } else {
-    lines <- readLines(file)
-  }
-  # Close connection
-  close(file)
-  # Filter out unneeded lines
-  lines <- lines[!grepl('^[[:blank:]+-=:_|]*$|https://doi.org/10.23719/1526441|<!--|Data Catalog', lines)]
-  
-  lines <- gsub('(^\\s*?\\|)|(\\|\\s*?$)', '', lines)
-  read.delim(text = paste(lines, collapse = '\n'), sep = '|', 
-             stringsAsFactors = stringsAsFactors, strip.white = strip.white, ...)
-}
-
 #'@title Extract Wiki Docs
 #'@param overwrite Boolean to re-download files or not
 #'@description Extract stewi document information from wiki and download files
-extract_wiki_docs <- function(version = "StEWI_1.0.5", overwrite=FALSE){
-  wiki = read.markdown(file = file(paste0(version,"/standardizedinventories.wiki/DataProductLinks.md"))) %>%
+extract_wiki_docs <- function(version = "v1.0.5", overwrite=FALSE){
+  dataproductsurl <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
+  wiki = read.so::read.md(file(dataproductsurl),skip=3) %>%
     #https://statisticsglobe.com/extract-characters-between-parantheses-r
     mutate(across(!c("Year", "Source"), ~gsub("\\(([^()]+)\\)", # Extract characters within parentheses
                                           "\\1",
@@ -607,7 +593,7 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5", overwrite=FALSE){
       dir.create(paste(version, f, sep="/"), recursive = TRUE)
     }) %>% invisible()
     
-    # Download files
+    # Download files  
     lapply(seq_len(nrow(wiki)), function(r){
       f_name = paste(version, wiki$folders[r], wiki$file[r], sep="/")
       if(!file.exists(f_name)){
@@ -625,7 +611,7 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5", overwrite=FALSE){
 #'@import DBI dplyr
 #'@return None.
 build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
-  wiki = extract_wiki_docs(version = "StEWI_1.0.5", overwrite = reset)
+  wiki = extract_wiki_docs(version = "v1.0.5", overwrite = reset)
   if(reset){
     reset_prod_chemical_release(notDataSource = notDataSource)
     push_NAICS_table()
