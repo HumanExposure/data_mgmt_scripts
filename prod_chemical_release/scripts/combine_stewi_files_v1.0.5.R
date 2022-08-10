@@ -1,18 +1,27 @@
-# Script to combine StEWI files to push to prod_chemical_release database (v1.0.5)
-# Created by: Jonathan Taylor Wall
+# Script to read needed StEWI output files from data product list, download the files
+# combine StEWI files to push to prod_chemical_release database
+# Created by: Jonathan Taylor Wall, Wesley Ingwersen
 # Created: 2022-07-13
-# Last Updated: 2022-07-13
-# R version 3.6.1 (2019-07-05)
-# purrr_0.3.4; DBI_1.1.0; magrittr_1.5; jsonlite_1.7.1; tidyr_1.1.0; dplyr_1.0.2; devtools_2.4.4   
-# https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
+# Last Updated: 2022-08-10
+# R version 4.2.1 (2022-06-23 ucrt)
+# rappdirs_0.3.3 read.so_0.1.1  devtools_2.4.4 usethis_2.1.6  purrr_0.3.4    DBI_1.1.3      magrittr_2.0.3
+# jsonlite_1.8.0 tidyr_1.2.0 dplyr_1.0.9  
+# Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
-library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools)
+library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools);
+library(rappdirs)
 #If not installed, install the read.so package for reading markdown tables
 if (!"read.so"%in%installed.packages()[, "Package"]) {
   devtools::install_github("alistaire47/read.so")
 }
 library(read.so)
 
+######################################################################
+#Global Parameters
+######################################################################
+stewi_version <- "v1.0.5" # version of StEWI
+stewi_local_store <-  file.path(rappdirs::user_data_dir(), "stewi") #local directory for stewi output files
+data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
 
 ######################################################################
 #Functions
@@ -196,9 +205,9 @@ get_file_list <- function(){
   #Get complete list of output files grouped by datadocument
   lapply(c("flow", "facility", "flowbyfacility", "validation", "flowbyprocess"), #Subfolder list
          function(x){ 
-           list.files(paste0("StEWI_1.0.5/stewi/", x),
-                      pattern=".parquet|.csv",
-                      full.names=TRUE) %>% #Loopthrough each subfolder
+           list.files(file.path(stewi_local_store, x),
+                      pattern=paste0(stewi_version,".*.parquet"),
+                      full.names=TRUE) %>% #Loopthrough each subfolder getting files from specified version
              as.data.frame() %T>% { 
                names(.) <- "filename" } %>% #Add dataframe name
              mutate(type = x) #Add type of datadocument
@@ -568,8 +577,7 @@ reset_prod_chemical_release <- function(notDataSource=TRUE){
 #'@title Extract Wiki Docs
 #'@param overwrite Boolean to re-download files or not
 #'@description Extract stewi document information from wiki and download files
-extract_wiki_docs <- function(version = "v1.0.5", overwrite=FALSE){
-  dataproductsurl <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
+extract_wiki_docs <- function(version = "StEWI_1.0.5"){
   wiki = read.so::read.md(file(dataproductsurl),skip=3) %>%
     #https://statisticsglobe.com/extract-characters-between-parantheses-r
     mutate(across(!c("Year", "Source"), ~gsub("\\(([^()]+)\\)", # Extract characters within parentheses
@@ -586,23 +594,18 @@ extract_wiki_docs <- function(version = "v1.0.5", overwrite=FALSE){
            folders = dirname(path),
            version = strsplit(file, "_")[[1]][3] %>%
              gsub(".parquet", "", .))
-  # Redownload files if desired, otherwise return the wiki only
-  if(overwrite){
-    # Recursively create folders if not already present
-    lapply(unique(wiki$folders), function(f){
-      dir.create(paste(version, f, sep="/"), recursive = TRUE)
-    }) %>% invisible()
+
+
+    # Define paths to all files, check if they exist, download if not
     
-    # Download files  
     lapply(seq_len(nrow(wiki)), function(r){
-      f_name = paste(version, wiki$folders[r], wiki$file[r], sep="/")
+      f_name = file.path(rappdirs::user_data_dir(), wiki$folders[r], wiki$file[r])
       if(!file.exists(f_name)){
         Sys.sleep(0.25)
         try(download.file(wiki$url[r],
                           destfile=f_name,method="libcurl"))
       }
     }) %>% invisible() 
-  }
   return(wiki)
 }
 
@@ -611,7 +614,13 @@ extract_wiki_docs <- function(version = "v1.0.5", overwrite=FALSE){
 #'@import DBI dplyr
 #'@return None.
 build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
-  wiki = extract_wiki_docs(version = "v1.0.5", overwrite = reset)
+  wiki = extract_wiki_docs(stewi_version)
+  
+  # Before downloading data, check for and create stewi local storage
+  if(!file.exists(stewi_local_store)){
+    dir.create(stewi_local_store, recursive = TRUE)
+  }
+
   if(reset){
     reset_prod_chemical_release(notDataSource = notDataSource)
     push_NAICS_table()
