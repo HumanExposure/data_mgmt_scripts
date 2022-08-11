@@ -8,6 +8,10 @@
 # jsonlite_1.8.0 tidyr_1.2.0 dplyr_1.0.9  
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
+##INSTRUCTIONS
+#Set working directory to prod_chemical_release
+# Example is setwd("C:/%YOURPATH%/data_mgmt_scripts/prod_chemical_release")
+#Make sure the following libraries are installed 
 library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools);
 library(rappdirs); library(arrow); library(curl)
 #If not installed, install the read.so package for reading markdown tables
@@ -15,6 +19,7 @@ if (!"read.so"%in%installed.packages()[, "Package"]) {
   devtools::install_github("alistaire47/read.so")
 }
 library(read.so)
+#Modify any global parameter values in the next section
 
 ######################################################################
 #Global Parameters
@@ -556,7 +561,7 @@ push_to_prod_chemical_release <- function(){
 reset_prod_chemical_release <- function(notDataSource=TRUE){
   message("Resetting prod_chemical_release...")
   # Get list of tables in prod_chemical_release
-  tblList = query_db(query = paste0("SELECT TABLE_NAME FROM information_schema.tables WHERE table_type = 'base table' AND table_schema='",Sys.getenv("mysql_dbname"),"'"),
+  tblList = query_db(query = paste0("SHOW TABLES FROM ",Sys.getenv("mysql_dbname")),
                      con_type = "mysql") %>% unlist() %>% unname()
   if(notDataSource){#Only remove flow facility info, not datasource/document
     tblList = tblList[!tblList %in% c("datasource", "datadocument")]
@@ -645,4 +650,4 @@ build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
   push_to_prod_chemical_release()
 }
 
-build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
+#build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
