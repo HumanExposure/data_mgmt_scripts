@@ -145,25 +145,21 @@ ENGINE = InnoDB
 AUTO_INCREMENT = 20283079
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
-CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`validation` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `Inventory_Amount` VARCHAR(25) NULL DEFAULT NULL,
-  `Reference_Amount` VARCHAR(25) NULL DEFAULT NULL,
-  `Percent_Difference` VARCHAR(45) NULL DEFAULT NULL,
-  `Conclusion` VARCHAR(45) NULL DEFAULT NULL,
-  `flow_id` INT(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  INDEX `fk_validation_flow1_idx` (`flow_id` ASC) VISIBLE,
-  CONSTRAINT `fk_validation_flow1`
-    FOREIGN KEY (`flow_id`)
-    REFERENCES `prod_chemical_release`.`flow` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-AUTO_INCREMENT = 20283079
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_unicode_ci;
+--CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`validation` (
+--  `id` INT(11) NOT NULL AUTO_INCREMENT,
+--  `Inventory_Amount` VARCHAR(25) NULL DEFAULT NULL,
+--  `Reference_Amount` VARCHAR(25) NULL DEFAULT NULL,
+--  `Percent_Difference` VARCHAR(45) NULL DEFAULT NULL,
+--  `Conclusion` VARCHAR(45) NULL DEFAULT NULL,
+--  `flow_id` INT(11) NOT NULL,
+--  PRIMARY KEY (`id`),
+--  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
+--  INDEX `fk_validation_flow1_idx` (`flow_id` ASC) VISIBLE,
+--  CONSTRAINT `fk_validation_flow1`
+--    FOREIGN KEY (`flow_id`)
+--    REFERENCES `prod_chemical_release`.`flow` (`id`)
+--    ON DELETE NO ACTION
+--    ON UPDATE NO ACTION)
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

@@ -35,6 +35,7 @@ stewi_version <- "v1.0.5" # version of StEWI
 stewi_local_store <-  file.path(rappdirs::user_data_dir(), "stewi") #local directory for stewi output files
 data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
 db_name <- "prod_chemical_release"
+stewi_output_formats <- c("flow", "facility", "flowbyfacility") #flowbyprocess and validation not currently included
 #db_schema <- "database_models/prod_chemical_release.sql"
 ######################################################################
 #Functions
@@ -218,7 +219,7 @@ fill_datasource_document_table <- function(metadata=NULL){
 #'@return A dataframe of filepaths grouped by StEWI datadocument
 get_file_list <- function(){
   #Get complete list of output files grouped by datadocument
-  lapply(c("flow", "facility", "flowbyfacility", "validation", "flowbyprocess"), #Subfolder list
+  lapply(stewi_output_formats, #Subfolder list
          function(x){ 
            list.files(file.path(stewi_local_store, x),
                       pattern=paste0(stewi_version,".*.parquet"),
@@ -284,10 +285,10 @@ load_datadocument <- function(files=NULL, x=NULL){
     ) %>%
     left_join(fileList$flow#,by=c("FlowName", "Compartment", "Unit")
     )
-  if("validation" %in% names(fileList)){
-    output = output %>%
-      left_join(fileList$validation)  
-  }
+#  if("validation" %in% names(fileList)){
+#    output = output %>%
+#      left_join(fileList$validation)  
+#  }
   return(output)
 }
 
@@ -535,23 +536,23 @@ push_to_prod_chemical_release <- function(){
                                 FROM temp_table"),
                       con_type = "mysql")
     rm(flowbyfacility)
-    validation = dat %>% 
-      cbind(flow_id=flowIDs$flow_id) %>% #Uncertain if best practice to just cbind...but memory issues...
-      #left_join(flowIDs, by = c("FlowName", "FlowID", "CAS")) %>%
-      select(Inventory_Amount, Reference_Amount, Percent_Difference,
-             Conclusion, flow_id) %>%
-      distinct()
-    
-    write_table_db(name="temp_table",
-                   data = validation,
-                   con_type = "mysql")
-    send_statement_db(statement =  paste0("INSERT INTO validation (Inventory_Amount, Reference_Amount, Percent_Difference,
-                                Conclusion, flow_id)
-                                SELECT Inventory_Amount, Reference_Amount, Percent_Difference,
-                                Conclusion, flow_id
-                                FROM temp_table"),
-                      con_type = "mysql")
-    rm(validation, flowIDs)
+    # validation = dat %>% 
+    #   cbind(flow_id=flowIDs$flow_id) %>% #Uncertain if best practice to just cbind...but memory issues...
+    #   #left_join(flowIDs, by = c("FlowName", "FlowID", "CAS")) %>%
+    #   select(Inventory_Amount, Reference_Amount, Percent_Difference,
+    #          Conclusion, flow_id) %>%
+    #   distinct()
+    # 
+    # write_table_db(name="temp_table",
+    #                data = validation,
+    #                con_type = "mysql")
+    # send_statement_db(statement =  paste0("INSERT INTO validation (Inventory_Amount, Reference_Amount, Percent_Difference,
+    #                             Conclusion, flow_id)
+    #                             SELECT Inventory_Amount, Reference_Amount, Percent_Difference,
+    #                             Conclusion, flow_id
+    #                             FROM temp_table"),
+    #                   con_type = "mysql")
+    # rm(validation, flowIDs)
     send_statement_db(statement=paste0("UPDATE datadocument SET uploadComplete = 1 WHERE id = ", 
                                        unique(dat$datadocument_id)),
                       con_type="mysql")
@@ -601,6 +602,8 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
                                           "\\1",
                                           stringr::str_extract(.,
                                                                "\\(([^()]+)\\)")))) %>%
+    # Drop flow-by-process column
+    select(-"Flow.By.Process") %>%
     # Pivot to list of URLs
     tidyr::pivot_longer(!c("Year", "Source"), names_to="parent", values_to = "url") %>%
     filter(!is.na(url)) %>%
@@ -658,4 +661,4 @@ build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
   push_to_prod_chemical_release()
 }
 
-#build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
+build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
