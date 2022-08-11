@@ -1,6 +1,6 @@
 # prod_chemical_release
 
-Files and scripts to push [Standardized Emission and Waste Inventories (StEWI)](https://github.com/USEPA/standardizedinventories) output data into a relational database. This works for a selected version of StEWI output (e.g. v1.0.5).
+Files and scripts to push [Standardized Emission and Waste Inventories (StEWI)](https://github.com/USEPA/standardizedinventories) output data into a relational database. This works for a selected version of StEWI output (e.g. v1.0.5) and currently stores `flow`, `flowbyfacility`, and `facilty` data outputs from StEWI.
 
 StEWI Output files are automatically downloaded and stored in the same local data directory as used by StEWI software. See [Local Data Storage](https://github.com/USEPA/standardizedinventories/wiki/Data-Storage#local-storage) for more information.
 
