@@ -9,7 +9,7 @@
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
 library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools);
-library(rappdirs)
+library(rappdirs); library(arrow)
 #If not installed, install the read.so package for reading markdown tables
 if (!"read.so"%in%installed.packages()[, "Package"]) {
   devtools::install_github("alistaire47/read.so")
@@ -22,7 +22,7 @@ library(read.so)
 stewi_version <- "v1.0.5" # version of StEWI
 stewi_local_store <-  file.path(rappdirs::user_data_dir(), "stewi") #local directory for stewi output files
 data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
-
+#db_schema <- "database_models/prod_chemical_release.sql"
 ######################################################################
 #Functions
 ######################################################################
@@ -112,6 +112,8 @@ write_table_db <- function(name=NULL, data=NULL, con_type=NULL){
     if(con_type == "postgres"){
       dbWriteTable(con, name =c(schema, name), value = data, row.names = FALSE, overwrite = TRUE)
     } else {
+      #Make sure use of local files to write data is allowed
+      dbSendQuery(con, "SET GLOBAL local_infile = true;")
       dbWriteTable(con, name = name, value = data, row.names = FALSE, overwrite = TRUE)
     }
   },
@@ -327,6 +329,8 @@ push_NAICS_table <- function(){
            !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
     mutate(description = NA) %>%
     mutate(across(names(.), stringr::str_squish))
+  #Temp fix to force NAICS_2002 to same 3 cols as other tables
+  NAICS_2002 <- NAICS_2002[,c("NAICS_code","keyword","description")]  
   #Pull NAICS 1997 (Extracted usingg scripts/extract_NAICS.R)
   NAICS_1997 = readxl::read_xlsx("naics_codes/NAICS_1997_2021-04-23.xlsx") %>%
     filter(!is.na(NAICS_code), 
@@ -578,7 +582,7 @@ reset_prod_chemical_release <- function(notDataSource=TRUE){
 #'@param overwrite Boolean to re-download files or not
 #'@description Extract stewi document information from wiki and download files
 extract_wiki_docs <- function(version = "StEWI_1.0.5"){
-  wiki = read.so::read.md(file(dataproductsurl),skip=3) %>%
+  wiki = read.so::read.md(file(data_products_url),skip=3) %>%
     #https://statisticsglobe.com/extract-characters-between-parantheses-r
     mutate(across(!c("Year", "Source"), ~gsub("\\(([^()]+)\\)", # Extract characters within parentheses
                                           "\\1",
@@ -609,6 +613,15 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
   return(wiki)
 }
 
+#'@description Function to create tables in db if they don't exist
+#'@return None.
+# setup_db <- function() {
+#   #load schema
+#   schema <- readLines(db_schema)
+#   result <- query_db(query=schema, con_type="mysql")
+#   return(result)
+# }
+
 #'@description Function to run all necessary functions in their appropriate order to build the database
 #'@param reset Boolean of whether to reset the database (truncate all and repopulate)
 #'@import DBI dplyr
@@ -620,7 +633,10 @@ build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
   if(!file.exists(stewi_local_store)){
     dir.create(stewi_local_store, recursive = TRUE)
   }
-
+  
+  #Set up table schema automaically - NOT WORKING
+  #setup_db()
+  
   if(reset){
     reset_prod_chemical_release(notDataSource = notDataSource)
     push_NAICS_table()
