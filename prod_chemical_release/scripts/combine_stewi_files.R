@@ -252,7 +252,7 @@ load_datadocument <- function(files=NULL, x=NULL){
   }) %T>% { names(.) <- typeList }
   
   #Filter facility file to mapped fields
-  facility_map = readr::read_csv("facility_field_map_v1.0.5.csv", col_types=readr::cols())
+  facility_map = readr::read_csv("facility_field_map.csv", col_types=readr::cols())
   toMap = facility_map %>%
     filter(sourceName == get_source_type(sub("\\_.*", "", x)), !is.na(to))
   if(!nrow(toMap)){
