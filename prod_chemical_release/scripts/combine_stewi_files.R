@@ -9,6 +9,13 @@
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
 ##INSTRUCTIONS
+#The 'prod_chemical_release' MySQL database needs to be setup first by importing the MySQL workbench files in database_model
+#or using the sql script to create them
+##An .Renviron file needs to be created with values for the following:
+#mysql_user
+#mysql_pass
+#mysql_host (probably will be set to localhost if using local database)
+#The given myseql_user must have admin privledges
 #Set working directory to prod_chemical_release
 # Example is setwd("C:/%YOURPATH%/data_mgmt_scripts/prod_chemical_release")
 #Make sure the following libraries are installed 
@@ -27,6 +34,7 @@ library(read.so)
 stewi_version <- "v1.0.5" # version of StEWI
 stewi_local_store <-  file.path(rappdirs::user_data_dir(), "stewi") #local directory for stewi output files
 data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
+db_name <- "prod_chemical_release"
 #db_schema <- "database_models/prod_chemical_release.sql"
 ######################################################################
 #Functions
@@ -41,13 +49,13 @@ connect_to_db <- function(con_type){
                                 user = Sys.getenv("postgres_user"), 
                                 password = Sys.getenv("postgres_pass"), #
                                 host = Sys.getenv("postgres_host"), #
-                                dbname = Sys.getenv("postgres_dbname")),
+                                dbname = db_name),
          "mysql" = dbConnect(RMySQL::MySQL(), #Connect to database with .Renviron parameters
                              username = Sys.getenv("mysql_user"), 
                              password = Sys.getenv("mysql_pass"),
                              host = Sys.getenv("mysql_host"), 
                              port = 3306,
-                             dbname = Sys.getenv("mysql_dbname")),
+                             dbname = db_name),
          'sqlite' = dbConnect(RSQLite::SQLite(), "prod_chemical_release.sqlite")
   ) %>% return()
 }
