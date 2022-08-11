@@ -4,12 +4,12 @@
 # Created: 2022-07-13
 # Last Updated: 2022-08-10
 # R version 4.2.1 (2022-06-23 ucrt)
-# rappdirs_0.3.3 read.so_0.1.1  devtools_2.4.4 usethis_2.1.6  purrr_0.3.4    DBI_1.1.3      magrittr_2.0.3
+# curl_4.3.2 arrow_8.0.0 rappdirs_0.3.3 read.so_0.1.1  devtools_2.4.4 usethis_2.1.6  purrr_0.3.4    DBI_1.1.3      magrittr_2.0.3
 # jsonlite_1.8.0 tidyr_1.2.0 dplyr_1.0.9  
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
 library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools);
-library(rappdirs); library(arrow)
+library(rappdirs); library(arrow); library(curl)
 #If not installed, install the read.so package for reading markdown tables
 if (!"read.so"%in%installed.packages()[, "Package"]) {
   devtools::install_github("alistaire47/read.so")
@@ -606,8 +606,8 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
       f_name = file.path(rappdirs::user_data_dir(), wiki$folders[r], wiki$file[r])
       if(!file.exists(f_name)){
         Sys.sleep(0.25)
-        try(download.file(wiki$url[r],
-                          destfile=f_name,method="libcurl"))
+        try(curl::curl_download(wiki$url[r],
+                          destfile=f_name,quiet=FALSE, mode="wb"))
       }
     }) %>% invisible() 
   return(wiki)
@@ -627,7 +627,7 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
 #'@import DBI dplyr
 #'@return None.
 build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
-  wiki = extract_wiki_docs(stewi_version)
+  wiki <- extract_wiki_docs(stewi_version)
   
   # Before downloading data, check for and create stewi local storage
   if(!file.exists(stewi_local_store)){
