@@ -5,7 +5,7 @@
 # Last Updated: 2022-08-10
 # R version 4.2.1 (2022-06-23 ucrt)
 # curl_4.3.2 arrow_8.0.0 rappdirs_0.3.3 read.so_0.1.1  devtools_2.4.4 usethis_2.1.6  purrr_0.3.4    DBI_1.1.3      magrittr_2.0.3
-# jsonlite_1.8.0 tidyr_1.2.0 dplyr_1.0.9  
+# tidyr_1.2.0 dplyr_1.0.9  
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
 ##INSTRUCTIONS
@@ -19,7 +19,7 @@
 #Set working directory to prod_chemical_release
 # Example is setwd("C:/%YOURPATH%/data_mgmt_scripts/prod_chemical_release")
 #Make sure the following libraries are installed 
-library(dplyr); library(tidyr); library(jsonlite); library(magrittr); library(DBI); library(purrr);library(devtools);
+library(dplyr); library(tidyr); library(magrittr); library(DBI); library(purrr);library(devtools);
 library(rappdirs); library(arrow); library(curl)
 #If not installed, install the read.so package for reading markdown tables
 if (!"read.so"%in%installed.packages()[, "Package"]) {
@@ -57,7 +57,7 @@ connect_to_db <- function(con_type){
                              host = Sys.getenv("mysql_host"), 
                              port = 3306,
                              dbname = db_name),
-         'sqlite' = dbConnect(RSQLite::SQLite(), "prod_chemical_release.sqlite")
+         'sqlite' = dbConnect(RSQLite::SQLite(), paste0(db_name, ".sqlite"))
   ) %>% return()
 }
 
@@ -155,7 +155,7 @@ get_source_type <- function(filename=""){
 #'@description A function to load StEWI output JSON metadata files and push to the prod_chemical_release database.
 #'Fills the datasource and datadocument tables in the database.
 #'@param metadata Input dataframe of metadata Wiki
-#'@import jsonlite dplyr tidyr
+#'@import dplyr tidyr
 #'@return None.
 fill_datasource_document_table <- function(metadata=NULL){
   #Get list of JSON metadata files
@@ -215,7 +215,7 @@ fill_datasource_document_table <- function(metadata=NULL){
 }
 
 #'@description A function to pull all file paths for datadocuments in each StEWI output subfolder, grouped by datadocument.
-#'@import dplyr magrittr jsonlite
+#'@import dplyr magrittr
 #'@return A dataframe of filepaths grouped by StEWI datadocument
 get_file_list <- function(){
   #Get complete list of output files grouped by datadocument
@@ -227,7 +227,7 @@ get_file_list <- function(){
              as.data.frame() %T>% { 
                names(.) <- "filename" } %>% #Add dataframe name
              mutate(type = x) #Add type of datadocument
-         }) %>% dplyr::bind_rows() %>% #jsonlite::rbind_pages() %>% #Combine dataframes
+         }) %>% dplyr::bind_rows() %>% #Combine dataframes
     mutate(filename=as.character(filename),
            datadocument=gsub(".parquet|.csv", "", basename(filename))) %>% #Get datadocument name
     separate(datadocument, c("Source", "Year", "version"), sep="_") %>%
@@ -614,10 +614,17 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
            folders = dirname(path),
            version = strsplit(file, "_")[[1]][3] %>%
              gsub(".parquet", "", .))
-
-
+  
+    # Make parent directories
+    lapply(wiki$folders %>%
+             unique(),
+           function(p){
+             if(!dir.exists(file.path(rappdirs::user_data_dir(), p))){
+               dir.create(file.path(rappdirs::user_data_dir(), p))
+             }
+           }) %>% invisible()
+  
     # Define paths to all files, check if they exist, download if not
-    
     lapply(seq_len(nrow(wiki)), function(r){
       f_name = file.path(rappdirs::user_data_dir(), wiki$folders[r], wiki$file[r])
       if(!file.exists(f_name)){
@@ -629,29 +636,74 @@ extract_wiki_docs <- function(version = "StEWI_1.0.5"){
   return(wiki)
 }
 
+#'@description Function to parse SQL file into SQL query strings
+#'@param filepath Input SQL filepath
+parse_sql_file <- function(filepath = "database_models/prod_chemical_release.sql"){
+  # Read in SQL file lines
+  raw_query = readr::read_lines(filepath)
+  # Replace -- comments with /**/ contained comments
+  raw_query = lapply(raw_query, function(line){
+    if(grepl("--",line) == TRUE){
+      line <- paste(sub("--","/*",line),"*/")
+    }
+    return(line)
+  }) %>% unlist()
+  
+  # Empty list to append collapsed query lines
+  clean_query = list()
+  # Empty string to append query lines to for ";" checks
+  tmp_query = ""
+  for(i in seq_len(length(raw_query))){
+    tmp_query = paste(tmp_query, raw_query[i], sep=" ")
+    if(grepl(";", raw_query[i])){
+      clean_query = append(clean_query, tmp_query)
+      tmp_query = ""
+    }
+  }  
+  # Return cleaned list of queries to run
+  return(clean_query)
+}
+
 #'@description Function to create tables in db if they don't exist
 #'@return None.
-# setup_db <- function() {
-#   #load schema
-#   schema <- readLines(db_schema)
-#   result <- query_db(query=schema, con_type="mysql")
-#   return(result)
-# }
+setup_db <- function(con_type="mysql") {
+  # Make connection to host, do not specify database since one is being created
+  con = switch(con_type,
+         "postgres" = dbConnect(RPostgreSQL::PostgreSQL(), 
+                                user = Sys.getenv("postgres_user"), 
+                                password = Sys.getenv("postgres_pass"), #
+                                host = Sys.getenv("postgres_host")),
+         "mysql" = dbConnect(RMySQL::MySQL(), #Connect to database with .Renviron parameters
+                             username = Sys.getenv("mysql_user"), 
+                             password = Sys.getenv("mysql_pass"),
+                             host = Sys.getenv("mysql_host"), 
+                             port = 3306),
+         'sqlite' = dbConnect(RSQLite::SQLite(), paste0(db_name, ".sqlite")))
+  
+  tryCatch({
+    sql_file = parse_sql_file()
+    invisible(lapply(sql_file, function(query){
+      dbSendStatement(con, query) %>% dbClearResult()
+    }))
+  },
+  error=function(cond){ message("Error message: ", cond); return(NULL) },
+  finally={ dbDisconnect(con) })
+}
 
 #'@description Function to run all necessary functions in their appropriate order to build the database
 #'@param reset Boolean of whether to reset the database (truncate all and repopulate)
 #'@import DBI dplyr
 #'@return None.
 build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
-  wiki <- extract_wiki_docs(stewi_version)
-  
   # Before downloading data, check for and create stewi local storage
-  if(!file.exists(stewi_local_store)){
+  if(!dir.exists(stewi_local_store)){
     dir.create(stewi_local_store, recursive = TRUE)
   }
   
+  wiki <- extract_wiki_docs(stewi_version)
+  
   #Set up table schema automaically - NOT WORKING
-  #setup_db()
+  setup_db()
   
   if(reset){
     reset_prod_chemical_release(notDataSource = notDataSource)
