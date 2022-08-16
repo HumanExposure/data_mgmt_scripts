@@ -1,1 +1,0 @@
-tables extracted from pdf using tabula. Tables for apendix 2.1-2.3 required creation and combination of multiple csv files. Glob module used to combine csv files
