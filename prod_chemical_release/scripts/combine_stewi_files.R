@@ -69,7 +69,7 @@ connect_to_db <- function(con_type){
 #'@import DBI dplyr
 #'@return Dataframe of database query results
 query_db <- function(query=NULL, con_type, schema){
-  if(is.null(query)) return(message("Must provide a query to send"))
+  if(is.null(query)) return(cat("\nMust provide a query to send"))
   con = connect_to_db(con_type)
   query_result = tryCatch({
     if(con_type == "postgres"){#Add schema tag
@@ -78,7 +78,7 @@ query_db <- function(query=NULL, con_type, schema){
       return(dbGetQuery(con, query))
     }
   },
-  error=function(cond){ message("Error message: ", cond); return(NULL) },
+  error=function(cond){ cat(paste0("\nError message: ", cond)); return(NULL) },
   finally={ dbDisconnect(con) })
   return(query_result)
 }
@@ -91,7 +91,7 @@ query_db <- function(query=NULL, con_type, schema){
 #'@import DBI dplyr magrittr
 #'@return None. A SQL statement is passed to the database to make changes to the database.
 send_statement_db <- function(statement=NULL, con_type=NULL, schema){
-  if(is.null(statement)) return(message("Must provide a statement to send"))
+  if(is.null(statement)) return(cat("\nMust provide a statement to send"))
   con = connect_to_db(con_type=con_type)
   tryCatch({
     if(con_type == "postgres"){#Add schema tag
@@ -105,8 +105,8 @@ send_statement_db <- function(statement=NULL, con_type=NULL, schema){
       return(dbSendStatement(con, statement) %>% dbClearResult())
     }
   },
-  error=function(cond){ message("Error message: ", cond); return(NA) },
-  warning=function(cond){ message("Warning message: ", cond); return(NULL) },
+  error=function(cond){ cat(paste0("\nError message: ", cond)); return(NA) },
+  warning=function(cond){ cat(paste0("\nWarning message: ", cond)); return(NULL) },
   finally={ dbDisconnect(con) })
 }
 
@@ -119,20 +119,21 @@ send_statement_db <- function(statement=NULL, con_type=NULL, schema){
 #'@import DBI
 #'@return None. A table is written (or overwritten) on the database with a given 'name' and 'data'.
 write_table_db <- function(name=NULL, data=NULL, con_type=NULL){
-  if(is.null(name)) return(message("Must provide a name for the database table"))
-  if(is.null(data)) return(message("Must provide data to push to the database table"))
+  if(is.null(name)) return(cat("\nMust provide a name for the database table"))
+  if(is.null(data)) return(cat("\nMust provide data to push to the database table"))
   con = connect_to_db(con_type)
   tryCatch({
     if(con_type == "postgres"){
-      dbWriteTable(con, name =c(schema, name), value = data, row.names = FALSE, overwrite = TRUE)
+      dbWriteTable(con, name =c(schema, name), value = data %>% clean_str_utf8(), 
+                   row.names = FALSE, overwrite = TRUE)
     } else {
       #Make sure use of local files to write data is allowed
       dbSendQuery(con, "SET GLOBAL local_infile = true;")
       dbWriteTable(con, name = name, value = data, row.names = FALSE, overwrite = TRUE)
     }
   },
-  error=function(cond){ message("Error message: ", cond); return(NA) },
-  warning=function(cond){ message("Warning message: ", cond); return(NULL) },
+  error=function(cond){ cat(paste0("\nError message: ", cond)); return(NA) },
+  warning=function(cond){ cat(paste0("\nWarning message: ", cond)); return(NULL) },
   finally={ dbDisconnect(con) })
 }
 
@@ -211,7 +212,7 @@ fill_datasource_document_table <- function(metadata=NULL){
                               SELECT datasource_id, SourceFileName, SourceYear, StEWI_Version
                               FROM temp_table"),
                     con_type="mysql")
-  message("Done...pushed data to datasource and datadocument table")
+  cat("\nDone...pushed data to datasource and datadocument table")
 }
 
 #'@description A function to pull all file paths for datadocuments in each StEWI output subfolder, grouped by datadocument.
@@ -241,7 +242,7 @@ get_file_list <- function(){
 #'@import dplyr magrittr readr
 #'@return A named dataframe list of data from each StEWI output file for a datadocument
 load_datadocument <- function(files=NULL, x=NULL){
-  message("Joining files for: ", x)
+  cat(paste0("\nJoining files for: ", x))
   #Get list of files to pull by datadocument name
   tmp = files %>% 
     filter(datadocument == x) %>% #Filter to datadocument
@@ -258,7 +259,7 @@ load_datadocument <- function(files=NULL, x=NULL){
       d = arrow::read_parquet(y) %>%
         as.data.frame(., stringsAsFactors=FALSE)
     } else {
-      message("...unsupported file type: ", y)
+      cat(paste0("\n...unsupported file type: ", y))
       return(NULL)
     }
     d["__index_level_0__"] = NULL
@@ -331,7 +332,11 @@ push_NAICS_table <- function(){
   NAICS_2002 = lapply(c("naics_codes/naics_2_6_02.txt", 
                         "naics_codes/naics_6_02.txt"),
                       function(x){
-                        readr::read_delim(x, delim=",", skip=5, col_names=c("NAICS")) %>%
+                        readr::read_delim(x, delim="\\s", 
+                                          skip=5, col_names=c("NAICS"),
+                                          show_col_types = FALSE,
+                                          locale = readr::locale(encoding = "UTF-8")) %>%
+                          filter(!grepl("Code|NAICS", NAICS)) %>%
                           mutate(NAICS = stringr::str_replace(NAICS, "\\s", "|")) %>%
                           tidyr::separate(NAICS, into = c("NAICS_code", "keyword"), sep = "\\|") %>%
                           filter(!NAICS_code %in% c("Code", "NAICS"), 
@@ -344,7 +349,8 @@ push_NAICS_table <- function(){
     mutate(description = NA) %>%
     mutate(across(names(.), stringr::str_squish))
   #Temp fix to force NAICS_2002 to same 3 cols as other tables
-  NAICS_2002 <- NAICS_2002[,c("NAICS_code","keyword","description")]  
+  # Not needed one delim was fixed to \\s instead of ,
+  #NAICS_2002 <- NAICS_2002[,c("NAICS_code","keyword","description")]  
   #Pull NAICS 1997 (Extracted usingg scripts/extract_NAICS.R)
   NAICS_1997 = readxl::read_xlsx("naics_codes/NAICS_1997_2021-04-23.xlsx") %>%
     filter(!is.na(NAICS_code), 
@@ -415,6 +421,7 @@ push_to_prod_chemical_release <- function(){
   files = get_file_list() #Get list of all SteWI output files
   docList <- unique(files$datadocument) #Unique list of datadocuments
   lapply(docList, function(x){ #Loop through all datadocuments
+    cat(paste0("\nPushing source: ", x))
     #Add datadocument IDs
     #Pull datadocuments table
     datadocuments = query_db(query=paste0("SELECT dd.id, ds.SourceName, dd.SourceYear, dd.uploadComplete ",
@@ -425,7 +432,7 @@ push_to_prod_chemical_release <- function(){
     #Check if file already uploaded
     if(nrow(datadocuments)){
       if(datadocuments$uploadComplete){
-        message("File already uploaded...next...")
+        cat("\nFile already uploaded...next...")
         return(NULL)
       }  
     }
@@ -439,7 +446,7 @@ push_to_prod_chemical_release <- function(){
       filter(!is.na(datadocument_id))
     
     if(!nrow(dat)){
-      message("Error: no datadocuments associated with input datadocument...")
+      cat("\nError: no datadocuments associated with input datadocument...")
       return(NULL)
     }
     #List of all database fields
@@ -558,9 +565,9 @@ push_to_prod_chemical_release <- function(){
                       con_type="mysql")
     send_statement_db(statement="DROP TABLE temp_table",
                       con_type="mysql")
-    message("Done...datadocument added to all database tables")
+    cat("\nDone...datadocument added to all database tables")
     })
-  message("Done...", Sys.time())
+  cat(paste0("\nDone...", Sys.time()))
   }
 
 #'@description A function to reset the prod_chemical_release database by TRUNCATING all tables
@@ -568,9 +575,9 @@ push_to_prod_chemical_release <- function(){
 #'@import DBI
 #'@return None.
 reset_prod_chemical_release <- function(notDataSource=TRUE){
-  message("Resetting prod_chemical_release...")
+  cat("\nResetting prod_chemical_release...")
   # Get list of tables in prod_chemical_release
-  tblList = query_db(query = paste0("SHOW TABLES FROM ",Sys.getenv("mysql_dbname")),
+  tblList = query_db(query = paste0("SHOW TABLES FROM ", db_name),
                      con_type = "mysql") %>% unlist() %>% unname()
   if(notDataSource){#Only remove flow facility info, not datasource/document
     tblList = tblList[!tblList %in% c("datasource", "datadocument")]
@@ -589,7 +596,7 @@ reset_prod_chemical_release <- function(notDataSource=TRUE){
     dbSendStatement(con, paste0("ALTER TABLE ",x," AUTO_INCREMENT = 1")) %>% dbClearResult()
   })
   dbDisconnect(con)
-  message("Done...all desired tables Truncated")
+  cat("\nDone...all desired tables Truncated")
 }
 
 #'@title Extract Wiki Docs
@@ -680,14 +687,38 @@ setup_db <- function(con_type="mysql") {
                              port = 3306),
          'sqlite' = dbConnect(RSQLite::SQLite(), paste0(db_name, ".sqlite")))
   
+  cat("\nCreating empty database from SQL file...")
   tryCatch({
     sql_file = parse_sql_file()
     invisible(lapply(sql_file, function(query){
       dbSendStatement(con, query) %>% dbClearResult()
     }))
   },
-  error=function(cond){ message("Error message: ", cond); return(NULL) },
+  error=function(cond){ cat(paste0("\nError message: ", cond)); return(NULL) },
   finally={ dbDisconnect(con) })
+}
+
+#'@description Function to clean input character data to UTF8 encoding
+#'@param in_dat Input character vector or dataframe with character fields
+#'@import stringi
+#'@return Converted input
+clean_str_utf8 <- function(in_dat){
+  # Mutate across character columns
+  if(is.data.frame(in_dat)){
+    char_list = in_dat[, sapply(in_dat, class) == 'character'] %>% names()
+    in_dat = in_dat %>%
+      mutate(across(all_of(char_list), ~stringi::stri_enc_toutf8(.)),
+             across(all_of(char_list), ~utf8::as_utf8(.)))
+    
+    
+    
+  } else {
+    # Mutate just the input vector
+    in_dat = stringi::stri_enc_toutf8(in_dat) %>%
+      utf8::as_utf8()
+  }
+  
+  return(in_dat)
 }
 
 #'@description Function to run all necessary functions in their appropriate order to build the database

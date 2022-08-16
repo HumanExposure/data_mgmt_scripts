@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`datasource` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 8
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`datadocument` (
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`datadocument` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-AUTO_INCREMENT = 64
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility` (
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility` (
   UNIQUE INDEX `FacilityID_UNIQUE` (`FacilityID` ASC) VISIBLE,
   INDEX `FacilityID` (`FacilityID` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 379860
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`naics_info` (
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`naics_info` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 4096
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility_info` (
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility_info` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1974221
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flow` (
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flow` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-AUTO_INCREMENT = 20283079
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flowbyfacility` (
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flowbyfacility` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-AUTO_INCREMENT = 20283079
+AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_unicode_ci;
 --CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`validation` (
