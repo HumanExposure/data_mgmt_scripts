@@ -5,7 +5,7 @@
 # Last Updated: 2022-08-10
 # R version 4.2.1 (2022-06-23 ucrt)
 # curl_4.3.2 arrow_8.0.0 rappdirs_0.3.3 read.so_0.1.1  devtools_2.4.4 usethis_2.1.6  purrr_0.3.4    DBI_1.1.3      magrittr_2.0.3
-# tidyr_1.2.0 dplyr_1.0.9  
+# tidyr_1.2.0 dplyr_1.0.9  readr 2.1.2 (> 1.4.0)
 # Data product tables: https://github.com/USEPA/standardizedinventories/wiki/DataProductLinks
 
 ##INSTRUCTIONS
@@ -36,6 +36,11 @@ stewi_local_store <-  file.path(rappdirs::user_data_dir(), "stewi") #local direc
 data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/DataProductLinks.md"
 db_name <- "prod_chemical_release"
 stewi_output_formats <- c("flow", "facility", "flowbyfacility") #flowbyprocess and validation not currently included
+# For Windows sessions, have to set the locale so the UTF-8 encoding works
+if(any(grepl("Windows", sessionInfo()))){
+  #https://stackoverflow.com/questions/5345132/sys-setlocale-request-to-set-locale-cannot-be-honored
+  Sys.setlocale("LC_ALL", "C")
+}
 #db_schema <- "database_models/prod_chemical_release.sql"
 ######################################################################
 #Functions
@@ -308,7 +313,8 @@ filter_to_unique_facility <- function(x=NULL){
 #'@return None.
 push_NAICS_table <- function(){
   #Pull NAICS 2017 Codes
-  NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx", col_types = "text") %>%
+  NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx"#, col_types = "text"
+                                 ) %>%
     select(NAICS_code = Code, keyword = Title, description = Description) %>%
     mutate(across(names(.), stringr::str_squish))
   #Pull NAICS 2007 and 2012 Codes (Filter out repeats from 2017)
@@ -566,7 +572,7 @@ push_to_prod_chemical_release <- function(){
     send_statement_db(statement="DROP TABLE temp_table",
                       con_type="mysql")
     cat("\nDone...datadocument added to all database tables")
-    })
+    }) %>% invisible()
   cat(paste0("\nDone...", Sys.time()))
   }
 
@@ -744,4 +750,4 @@ build_prod_chemical_release <- function(reset = FALSE, notDataSource = TRUE){
   push_to_prod_chemical_release()
 }
 
-build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
+# build_prod_chemical_release(reset=TRUE, notDataSource = FALSE)
