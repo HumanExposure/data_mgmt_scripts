@@ -37,7 +37,7 @@ data_products_url <- "https://raw.github.com/wiki/USEPA/standardizedinventories/
 db_name <- "prod_chemical_release"
 stewi_output_formats <- c("flow", "facility", "flowbyfacility") #flowbyprocess and validation not currently included
 # For Windows sessions, have to set the locale so the UTF-8 encoding works
-if(any(grepl("Windows", sessionInfo()))){
+if(Sys.info()[['sysname']] == "Windows"){
   #https://stackoverflow.com/questions/5345132/sys-setlocale-request-to-set-locale-cannot-be-honored
   Sys.setlocale("LC_ALL", "C")
 }
@@ -313,8 +313,7 @@ filter_to_unique_facility <- function(x=NULL){
 #'@return None.
 push_NAICS_table <- function(){
   #Pull NAICS 2017 Codes
-  NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx"#, col_types = "text"
-                                 ) %>%
+  NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx", col_types = "text") %>%
     select(NAICS_code = Code, keyword = Title, description = Description) %>%
     mutate(across(names(.), stringr::str_squish))
   #Pull NAICS 2007 and 2012 Codes (Filter out repeats from 2017)
