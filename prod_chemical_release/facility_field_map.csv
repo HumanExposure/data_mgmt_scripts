@@ -4,9 +4,9 @@ eGRID,CompanyName,Plant operator name
 eGRID,FacilityID,FacilityID
 eGRID,State,State
 eGRID,,eGRID subregion acronym
-eGRID,County,Plant county name
-eGRID,Latitude,Plant latitude
-eGRID,Longitude,Plant longitude
+eGRID,County,County
+eGRID,Latitude,Latitude
+eGRID,Longitude,Longitude
 eGRID,,Plant primary fuel
 eGRID,,Plant primary coal/oil/gas/ other fossil fuel category
 eGRID,,NERC region acronym
@@ -25,7 +25,6 @@ eGRID,,Plant other fossil generation percent (resource mix)
 eGRID,,Plant other unknown / purchased fuel generation percent (resource mix)
 NEI,FacilityID,FacilityID
 NEI,FacilityName,FacilityName
-NEI,CompanyName,CompanyName
 NEI,Address,Address
 NEI,City,City
 NEI,State,State
@@ -52,3 +51,24 @@ RCRAInfo,Zip,Zip
 RCRAInfo,County,County
 RCRAInfo,NAICS,NAICS
 RCRAInfo,Address,Address
+DMR,FacilityID,FacilityID
+DMR,FacilityName,FacilityName
+DMR,City,City
+DMR,State,State
+DMR,Zip,Zip
+DMR,Latitude,Latitude
+DMR,Longitude,Longitude
+DMR,County,County
+DMR,NAICS,NAICS
+DMR,,SIC
+DMR,,__index_level_0__
+GHGRP,FacilityID,FacilityID
+GHGRP,FacilityName,FacilityName
+GHGRP,Address,Address
+GHGRP,City,City
+GHGRP,State,State
+GHGRP,Zip,Zip
+GHGRP,Latitude,Latitude
+GHGRP,Longitude,Longitude
+GHGRP,County,County
+GHGRP,NAICS,NAICS
