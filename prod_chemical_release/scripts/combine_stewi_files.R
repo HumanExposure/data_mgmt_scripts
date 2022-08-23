@@ -133,7 +133,7 @@ write_table_db <- function(name=NULL, data=NULL, con_type=NULL){
                    row.names = FALSE, overwrite = TRUE)
     } else {
       #Make sure use of local files to write data is allowed
-      dbSendQuery(con, "SET GLOBAL local_infile = true;")
+      #dbSendQuery(con, "SET GLOBAL local_infile = true;")
       dbWriteTable(con, name = name, value = data, row.names = FALSE, overwrite = TRUE)
     }
   },
@@ -315,7 +315,8 @@ push_NAICS_table <- function(){
   #Pull NAICS 2017 Codes
   NAICS_2017 = readxl::read_xlsx("naics_codes/2017_NAICS_Descriptions.xlsx", col_types = "text") %>%
     select(NAICS_code = Code, keyword = Title, description = Description) %>%
-    mutate(across(names(.), stringr::str_squish))
+    mutate(across(names(.), stringr::str_squish),
+           n_keyword = stringr::str_length(keyword))
   #Pull NAICS 2007 and 2012 Codes (Filter out repeats from 2017)
   NAICS_2007_2012 = lapply(c("naics_codes/2-digit_2012_Codes.xls", 
                              "naics_codes/6-digit_2012_Codes.xls", 
@@ -331,27 +332,35 @@ push_NAICS_table <- function(){
     distinct() %>%
     filter(!is.na(NAICS_code), 
            !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
-    mutate(description = NA) %>%
+    mutate(description = NA,
+           n_keyword = stringr::str_length(keyword)) %>%
     mutate(across(names(.), stringr::str_squish))
   #Pull NAICS 2002 Codes (Filter out repeats from 2017, 2012, and 2007)
   NAICS_2002 = lapply(c("naics_codes/naics_2_6_02.txt", 
                         "naics_codes/naics_6_02.txt"),
                       function(x){
-                        readr::read_delim(x, delim="\\s", 
-                                          skip=5, col_names=c("NAICS"),
-                                          show_col_types = FALSE,
-                                          locale = readr::locale(encoding = "UTF-8")) %>%
-                          filter(!grepl("Code|NAICS", NAICS)) %>%
-                          mutate(NAICS = stringr::str_replace(NAICS, "\\s", "|")) %>%
+                        # Read in lines
+                        tmp = readLines(x)
+                        # Skip first few that are just titles
+                        tmp = tmp[10:length(tmp)] %>%
+                          # Remove excess white space
+                          stringr::str_squish()
+                        # Remove unneeded fields/empty lines
+                        tmp = tmp[!tmp %in% c("", " ", "NAICS")]
+                        tmp = tmp[!grepl("2002 NAICS Title", tmp)] %>%
+                          stringr::str_replace(., "\\s", "|") %>%
+                          data.frame(stringsAsFactors = FALSE) %T>% {
+                            names(.) <- "NAICS"
+                          } %>%
                           tidyr::separate(NAICS, into = c("NAICS_code", "keyword"), sep = "\\|") %>%
-                          filter(!NAICS_code %in% c("Code", "NAICS"), 
-                                 !grepl("-", NAICS_code))
-                      }) %>% bind_rows() %>% 
+                          mutate(description = NA,
+                                 n_keyword = stringr::str_length(keyword))
+                      }) %>%
+    bind_rows() %>% 
     distinct() %>%
     filter(!is.na(NAICS_code), 
            !NAICS_code %in% unique(NAICS_2007_2012$NAICS_code),
            !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
-    mutate(description = NA) %>%
     mutate(across(names(.), stringr::str_squish))
   #Temp fix to force NAICS_2002 to same 3 cols as other tables
   # Not needed one delim was fixed to \\s instead of ,
@@ -362,10 +371,12 @@ push_NAICS_table <- function(){
            !NAICS_code %in% unique(NAICS_2002$NAICS_code),
            !NAICS_code %in% unique(NAICS_2007_2012$NAICS_code),
            !NAICS_code %in% unique(NAICS_2017$NAICS_code)) %>%
-    mutate(across(names(.), stringr::str_squish))
+    mutate(across(names(.), stringr::str_squish),
+           n_keyword = stringr::str_length(keyword))
   
   NAICS_list = rbind(NAICS_2017, NAICS_2007_2012, NAICS_2002, NAICS_1997) %>% 
     filter(!grepl("-", NAICS_code)) %>%
+    select(-n_keyword) %>%
     distinct()
   
   write_table_db(name="temp_table", data = NAICS_list, con_type="mysql")

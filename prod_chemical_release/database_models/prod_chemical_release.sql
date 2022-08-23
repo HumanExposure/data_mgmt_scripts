@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`datasource` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `SourceName` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`datadocument` (
   `SourceAcquisitionTime` VARCHAR(45) NULL DEFAULT NULL,
   `uploadComplete` INT(1) NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  INDEX `fk_datadocument_datasource1_idx` (`datasource_id` ASC) VISIBLE,
+  INDEX `fk_datadocument_datasource1_idx` (`datasource_id` ASC),
   CONSTRAINT `fk_datadocument_datasource1`
     FOREIGN KEY (`datasource_id`)
     REFERENCES `prod_chemical_release`.`datasource` (`id`)
@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `FacilityID` VARCHAR(25) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  UNIQUE INDEX `FacilityID_UNIQUE` (`FacilityID` ASC) VISIBLE,
-  INDEX `FacilityID` (`FacilityID` ASC) VISIBLE)
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `FacilityID_UNIQUE` (`FacilityID` ASC),
+  INDEX `FacilityID` (`FacilityID` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`naics_info` (
   `keyword` VARCHAR(200) NULL DEFAULT NULL,
   `description` VARCHAR(10000) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
@@ -71,9 +71,9 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`facility_info` (
   `datadocument_id` INT(10) UNSIGNED NOT NULL,
   `NAICS_id` INT(11) UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_factility_info_facility1_idx` (`facility_id` ASC) VISIBLE,
-  INDEX `fk_facility_info_datadocument1_idx` (`datadocument_id` ASC) VISIBLE,
-  INDEX `fk_facility_info_NAICS_info1_idx` (`NAICS_id` ASC) VISIBLE,
+  INDEX `fk_factility_info_facility1_idx` (`facility_id` ASC),
+  INDEX `fk_facility_info_datadocument1_idx` (`datadocument_id` ASC),
+  INDEX `fk_facility_info_NAICS_info1_idx` (`NAICS_id` ASC),
   CONSTRAINT `fk_facility_info_NAICS_info1`
     FOREIGN KEY (`NAICS_id`)
     REFERENCES `prod_chemical_release`.`naics_info` (`id`)
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flow` (
   `CAS` VARCHAR(25) NULL DEFAULT NULL,
   `rid` VARCHAR(50) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  INDEX `fk_flow_datadocument1_idx` (`datadocument_id` ASC) VISIBLE,
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  INDEX `fk_flow_datadocument1_idx` (`datadocument_id` ASC),
   CONSTRAINT `fk_flow_datadocument1`
     FOREIGN KEY (`datadocument_id`)
     REFERENCES `prod_chemical_release`.`datadocument` (`id`)
@@ -122,10 +122,10 @@ CREATE TABLE IF NOT EXISTS `prod_chemical_release`.`flowbyfacility` (
   `facility_id` VARCHAR(25) NOT NULL,
   `datadocument_id` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  INDEX `fk_flowbyfacility_flow1_idx` (`flow_id` ASC) VISIBLE,
-  INDEX `fk_flowbyfacility_facility1_idx` (`facility_id` ASC) VISIBLE,
-  INDEX `fk_flowbyfacility_datadocument1_idx` (`datadocument_id` ASC) VISIBLE,
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  INDEX `fk_flowbyfacility_flow1_idx` (`flow_id` ASC),
+  INDEX `fk_flowbyfacility_facility1_idx` (`facility_id` ASC),
+  INDEX `fk_flowbyfacility_datadocument1_idx` (`datadocument_id` ASC),
   CONSTRAINT `fk_flowbyfacility_datadocument1`
     FOREIGN KEY (`datadocument_id`)
     REFERENCES `prod_chemical_release`.`datadocument` (`id`)
@@ -153,8 +153,8 @@ COLLATE = utf8_unicode_ci;
 --  `Conclusion` VARCHAR(45) NULL DEFAULT NULL,
 --  `flow_id` INT(11) NOT NULL,
 --  PRIMARY KEY (`id`),
---  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
---  INDEX `fk_validation_flow1_idx` (`flow_id` ASC) VISIBLE,
+--  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+--  INDEX `fk_validation_flow1_idx` (`flow_id` ASC),
 --  CONSTRAINT `fk_validation_flow1`
 --    FOREIGN KEY (`flow_id`)
 --    REFERENCES `prod_chemical_release`.`flow` (`id`)
