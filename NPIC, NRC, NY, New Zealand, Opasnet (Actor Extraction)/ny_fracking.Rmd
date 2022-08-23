@@ -1,0 +1,84 @@
+---
+title: "Ny_Fracking"
+output: html_document
+author: Christian Lutz
+date: '2022-08-19'
+---
+
+installations
+```{r installations}
+install.packages("rJava")
+install.packages("devtools")
+devtools::install_github("ropensci/tabulizer", args="--no-multiarch")
+
+```
+
+
+Set up
+```{r setup, include=FALSE}
+
+library(tcltk)
+library(rJava)
+library(tabulizer)
+library(tidyverse)
+library(dplyr)
+library(data.table)
+
+
+getwd()
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/NY_fracking")
+```
+
+Extracting and cleaning table of info
+```{r}
+library(dplyr)
+library(tabulizer)
+table <- extract_tables('NY_Fracking_b.pdf', pages = 19:30)
+
+
+
+table1 <- cbind(table[[1]][,1],table[[1]][,2])
+table2 <- cbind(table[[2]][,1],table[[2]][,2])
+table3 <- cbind(table[[3]][,1],table[[3]][,2])
+table4 <- cbind(table[[4]][,1],table[[4]][,2])
+table5 <- cbind(table[[5]][,1],table[[5]][,2])
+table6 <- cbind(table[[6]][,1],table[[6]][,2])
+table7 <- cbind(table[[7]][,1],table[[7]][,2])
+table8 <- cbind(table[[8]][,1],table[[8]][,2])
+table9 <- cbind(table[[9]][,1],table[[9]][,2])
+table10 <- cbind(table[[10]][,1],table[[10]][,2])
+table11 <- cbind(table[[11]][,1],table[[11]][,2])
+table12 <- cbind(table[[12]][,1],table[[12]][,2])
+
+full_table <- as.data.frame(rbind(table1,table2,table3,table4,table5,table6,table7,table8,table9,table10,table11,table12))
+
+names(full_table)[1] <- "raw_cas"
+names(full_table)[2] <- "raw_chem_name"
+```
+
+
+
+Removing Extracted Headers from data table
+```{r}
+table_1 <- full_table %>% filter(raw_chem_name != "Parameter Name", raw_chem_name != "")
+```
+
+
+Filling out additional info
+```{r}
+
+table_2 <- table_1 %>% mutate(data_document_id="1371510", data_document_filename="NY_Fracking_b.pdf", doc_date="9/30/2009", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists
+", component="", chem_detected_flag="")
+
+col_order <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+
+ny_fracking <- table_2[,col_order]
+ny_fracking
+```
+
+
+Export to csv
+```{r}
+write.csv(ny_fracking, "C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/NY_fracking\\ny_fracking.csv", row.names = FALSE)
+```
+

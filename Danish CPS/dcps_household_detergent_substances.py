@@ -257,7 +257,7 @@ table = pd.concat(frames)
 
 #Bleaching Agents table
 
-tables224=read_pdf("e.pdf", pages="66", lattice=True, multiple_tables=True, pandas_options={'header': None})
+tables224=read_pdf("e.pdf", pages="69", lattice=True, multiple_tables=True, pandas_options={'header': None})
 table_2_4=tables224[2]
 table_2_4["raw_chem_name"]=table_2_4.iloc[1:,0]
 table_2_4=table_2_4.dropna(subset=["raw_chem_name"])
@@ -341,7 +341,7 @@ table = pd.concat(frames)
 
 #################################### 2.3 ########################
 #first table
-tables231=read_pdf("c.pdf", pages="68", lattice=True, multiple_tables=True, pandas_options={'header': None})
+tables231=read_pdf("c.pdf", pages="71", lattice=True, multiple_tables=True, pandas_options={'header': None})
 table_3_1=tables231[0]
 table_3_1["raw_chem_name"]=table_3_1.iloc[1:,2]
 table_3_1=table_3_1.dropna(subset=["raw_chem_name"])
