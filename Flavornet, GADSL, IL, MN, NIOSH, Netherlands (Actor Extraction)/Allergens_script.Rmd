@@ -1,0 +1,186 @@
+---
+title: "Flavornet Allergens Doc"
+author: "Christian Lutz"
+date: '2022-09-01'
+---
+
+Set-up
+```{r}
+
+library(tcltk)
+library(rJava)
+library(tabulizer)
+library(tidyverse)
+library(dplyr)
+library(data.table)
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/NY_fracking")
+```
+
+Extraction of Fragrance chemicals
+```{r}
+
+library(dplyr)
+library(tabulizer)
+
+#extraction of fragrances table
+fragrances_table <- as.data.frame(extract_tables('NL_RIVM_Allergens_Prod.pdf', pages = 113:114)) %>% select(X1)
+fragrances_table <- rename(fragrances_table, raw_chem_name = X1)
+
+#leftover rows that could not be extracted via tabulizer
+leftovers <- data.frame(matrix(ncol = 1, nrow = 2))
+colnames(leftovers) <- 'raw_chem_name'
+leftovers$raw_chem_name <- c("Tree Moss", "Peru Basalm")
+
+#combining fragrances data
+
+fragrances_table_v2 <- as.data.frame(rbind(fragrances_table, leftovers))
+
+c1 <- strtrim(paste(fragrances_table_v2[20,1],fragrances_table_v2[21,1], sep = ""), 46)
+c2 <- paste(fragrances_table_v2[27,1],fragrances_table_v2[28,1], sep = "")
+
+
+
+
+fragrances_table_v2[20, 1] = c1
+fragrances_table_v2[21, 1] = "NA"
+
+fragrances_table_v2[27, 1] = c2
+fragrances_table_v2[28, 1] = "NA"
+
+
+```
+
+Extraction of CAS numbers for fragrances
+```{r}
+
+#extract chemicals with cas numbers to match to list of chemicals on page 28, choose only data
+most_freq_key_table <- as.data.frame(extract_areas('NL_RIVM_Allergens_Prod.pdf', pages = 28, method = "stream"))
+less_freq_key_table <- as.data.frame(extract_areas('NL_RIVM_Allergens_Prod.pdf', pages = 28, method = "stream"))
+
+
+
+
+#rename columns
+most_freq_key_table2 <- most_freq_key_table %>% rename(raw_chem_name = X1, raw_cas = X2)
+less_freq_key_table2 <- less_freq_key_table %>% rename(raw_chem_name = X1, raw_cas = X2)
+
+#combine
+key_table <- rbind(most_freq_key_table2, less_freq_key_table2)
+
+
+#fixing mispelling of chemicals found in table in 28 based on appendix names
+ck1 <- "Hydroxymethylpentyl-cyclohexenecarboxyaldehyde"
+ck2 <- "3-Methyl-4-(2,6,6-trimethyl-2-cyclohexen-1-yl)-3-buten-2-one"
+
+
+key_table[12, 1] = ck1
+key_table[13, 1] = "NA"
+key_table[25, 1] = ck2
+key_table[26, 1] = "NA"
+
+
+```
+
+Fragrance merge with cas and clean up
+```{r}
+#merge cas numbers with chemicals where available
+fragrances_w_cas <- merge(fragrances_table_v2,key_table, by = "raw_chem_name", all.x = TRUE)
+
+#take out blank and NA rows
+fragrances_w_cas_v2 <- fragrances_w_cas %>% filter(raw_chem_name != "NA", raw_chem_name != "")
+```
+
+Extraction of Hair Dye chemicals
+```{r}
+#extract hair chemicals
+hair_dye_table <- extract_tables('NL_RIVM_Allergens_Prod.pdf', pages = 115:116)
+
+#select only needed data and reformat
+hairdye_table1 <- as.data.frame(hair_dye_table[[1]][,1])
+colnames(hairdye_table1) <- "raw_chem_name"
+hairdye_table2 <- as.data.frame(hair_dye_table[[2]][,1])
+colnames(hairdye_table2) <- "raw_chem_name"
+
+#combine two tables
+hair_dye_table_v2 <- as.data.frame(rbind(hairdye_table1, hairdye_table2))
+
+
+
+
+#Corrections to extraction 
+chd1 <- paste(hair_dye_table_v2[16,1],hair_dye_table_v2[17,1], sep = "")
+chd2 <- paste(hair_dye_table_v2[19,1],hair_dye_table_v2[20,1], sep = "")
+chd3 <- paste(hair_dye_table_v2[22,1],hair_dye_table_v2[23,1], sep = "")
+chd4 <- paste(hair_dye_table_v2[24,1],hair_dye_table_v2[25,1], sep = "")
+chd5 <- paste(hair_dye_table_v2[28,1],hair_dye_table_v2[29,1], sep = "")
+
+
+hair_dye_table_v2[16, 1] = chd1
+hair_dye_table_v2[17, 1] = "NA"
+
+hair_dye_table_v2[19, 1] = chd2
+hair_dye_table_v2[20, 1] = "NA"
+
+hair_dye_table_v2[22, 1] = chd3
+hair_dye_table_v2[23, 1] = "NA"
+
+hair_dye_table_v2[24, 1] = chd4
+hair_dye_table_v2[25, 1] = "NA"
+
+hair_dye_table_v2[28, 1] = chd5
+hair_dye_table_v2[29, 1] = "NA"
+
+
+#add blank cas column
+hair_dye_table_v2 <- hair_dye_table_v2 %>%
+  add_column(raw_cas = "")
+
+#clean up
+hair_dye_table_v3 <- hair_dye_table_v2 %>% filter(raw_chem_name != "NA", raw_chem_name != "")
+
+```
+
+Extraction of Metals chemicals
+```{r}
+#extracting metals table
+metals_table <- as.data.frame(extract_tables('NL_RIVM_Allergens_Prod.pdf', pages = 117)) %>% select(X1) %>% rename(raw_chem_name = X1)
+
+#add blank cas column
+metals_table <- metals_table %>%
+  add_column(raw_cas = "")
+
+#edits to extraction
+cm1 <- paste(metals_table[16,1],metals_table[17,1], sep = "")
+cm2 <- paste(metals_table[22,1],metals_table[23,1], sep = "")
+
+metals_table[16, 1] = cm1
+metals_table[17, 1] = "NA"
+
+metals_table[22, 1] = cm2
+metals_table[23, 1] = "NA"
+
+
+#clean up blanks and NA's
+metals_table_v2 <- metals_table %>% filter(raw_chem_name != "NA", raw_chem_name != "")
+```
+
+
+Combining all tables together
+```{r}
+#combine all tables together
+allergens_table_v1 <- rbind(fragrances_w_cas_v2, hair_dye_table_v3, metals_table_v2)
+
+
+#add other needed columns
+allergens_table_v2 <- allergens_table_v1 %>% mutate(data_document_id="1371488", data_document_filename="NL_RIVM_Allergens_Prod.pdf", doc_date="2008", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="")
+
+#reorder columns
+col_order <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+flavornet_allergens <- allergens_table_v2[,col_order]
+```
+
+CSV creation
+```{r}
+write.csv(flavornet_allergens, "C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/Flavornet Allergens\\flavornet_allergens.csv", row.names = FALSE)
+```
+
