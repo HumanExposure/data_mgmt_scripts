@@ -1,0 +1,241 @@
+---
+title: "USGS"
+author: "Christian Lutz"
+date: '2022-08-22'
+revised: '2022-9-8'
+---
+
+
+installations
+```{r installations}
+install.packages("rJava")
+install.packages("devtools")
+devtools::install_github("ropensci/tabulizer", args="--no-multiarch")
+
+```
+
+
+Set up
+```{r setup, include=FALSE}
+
+library(tcltk)
+library(rJava)
+library(tabulizer)
+library(tidyverse)
+library(dplyr)
+library(data.table)
+library(plyr)
+library(shiny)
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/NY_fracking")
+```
+
+
+
+
+"Pesticides in Selected Water-Supply Resovoirs and Finished Drinking Water, 1999-2000: Summary of Results from a Pilot Monitoring Program"
+
+Intial data extraction and corrections
+```{r}
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/USGS")
+table8 <- as.data.frame(extract_tables('USGS_PPMP.pdf', pages = 29))
+table9 <- as.data.frame(extract_tables('USGS_PPMP.pdf', pages = 31))
+table10_p1 <- as.data.frame(extract_tables('USGS_PPMP.pdf', pages = 33))
+table10_p2 <- as.data.frame(extract_tables('USGS_PPMP.pdf', pages = 34))
+
+table10 <- rbind(table10_p1,table10_p2)
+
+table8_v2 <- table8 %>% select(X1)
+table9_v2 <- table9 %>% select(X1)
+table10_v2 <- table10 %>% select(X1)
+
+table8_v3 <- table8_v2 %>% filter(X1!= "", X1!= "Compound (class)") 
+table9_v3 <- table9_v2 %>% filter(X1!= "", X1!= "Compound (class)") 
+table10_v3 <- table10_v2 %>% filter(!grepl('Compound', X1), !grepl('reporting', X1), !grepl('level', X1), X1!= "") #, X1!= "Compound (class)", X1!= "reporting", X1!= "level", X1!= "Compound Method", X1!= "Compound (class)") 
+
+full_table_8910 <- rbind(table8_v3, table9_v3, table10_v3)
+
+#needed corrections due to incorrect extraction
+correction_1 <- paste(full_table_8910[40,1],full_table_8910[41,1], sep = "")
+correction0 <- paste(full_table_8910[44,1],full_table_8910[45,1], sep = "")
+correction1 <- paste(full_table_8910[46,1],full_table_8910[47,1], sep = "")
+correction2 <- paste(full_table_8910[50,1],full_table_8910[51,1], sep = "")
+correction3 <- paste(full_table_8910[57,1],full_table_8910[58,1], sep = "")
+correction4 <- paste(full_table_8910[60,1],full_table_8910[61,1], sep = "")
+correction5 <- paste(full_table_8910[64,1],full_table_8910[65,1], sep = "")
+correction6 <- paste(full_table_8910[66,1],full_table_8910[67,1], sep = "")
+correction7 <- paste(full_table_8910[82,1],full_table_8910[83,1], sep = "")
+correction8 <- paste(full_table_8910[110,1],full_table_8910[111,1], sep = "")
+
+full_table_8910[40,1] = correction_1
+full_table_8910[41,1] = "N/A"
+full_table_8910[44,1] = correction0
+full_table_8910[45,1] = "N/A"
+full_table_8910[46,1] = correction1
+full_table_8910[47,1] = "N/A"
+full_table_8910[50,1] = correction2
+full_table_8910[51,1] = "N/A"
+full_table_8910[57,1] = correction3
+full_table_8910[58,1] = "N/A"
+full_table_8910[60,1] = correction4
+full_table_8910[61,1] = "N/A"
+full_table_8910[64,1] = correction5
+full_table_8910[65,1] = "N/A"
+full_table_8910[66,1] = correction6
+full_table_8910[67,1] = "N/A"
+full_table_8910[82,1] = correction7
+full_table_8910[83,1] = "N/A"
+full_table_8910[110,1] = correction8
+full_table_8910[111,1] = "N/A"
+
+
+pest_dw <- full_table_8910 %>% filter(X1 != "N/A") 
+
+pest_dw$last_ch <- str_extract(pest_dw$X1, ".$")
+```
+ Setting up for matching key to functional use
+```{r ppmp}
+#splitting the dataframe  to edit
+pest_dw1 <- pest_dw %>% filter(pest_dw$last_ch == ')' | pest_dw$last_ch == 'H' | pest_dw$X1 == "Caffeine*")
+pest_dw1_leftover <- pest_dw[!(pest_dw$X1 %in% pest_dw1$X1),] 
+pest_dw1 <- pest_dw1 %>% select(X1)
+colnames(pest_dw1) <- "raw_chem_name"
+
+
+
+#delete incorrect extraction from chem_names
+pest_dw1_leftover$raw_chem_name <- substring(pest_dw1_leftover$X1, 1, nchar(pest_dw1_leftover$X1)-5)
+pest_dw1_leftover <- pest_dw1_leftover %>% select(raw_chem_name)
+
+pest_dw_v2 <- rbind(pest_dw1,pest_dw1_leftover)
+
+
+#### splitting column to name and report_funcuse
+pest_dw_v3 <- pest_dw_v2 %>% mutate(report_func=(substring(raw_chem_name, nchar(raw_chem_name)-2)))#, raw_chem_name=substring(raw_chem_name, 1, nchar(pest_dw_v2$raw_chem_name)-3)) 
+pest_dw_v3 <- pest_dw_v3 %>% select(raw_chem_name, report_func)
+
+pest_dw_v3$report_func <- lapply(pest_dw_v3$report_func, gsub, pattern="[()]", replacement="")
+pest_dw_v3$report_func <- lapply(pest_dw_v3$report_func, gsub, pattern=" ", replacement="")
+
+
+pest_dw_v3$report_func <- as.vector(pest_dw_v3$report_func)
+
+
+###create key df
+report_func <- as.vector(c("H", "D", "I", "F"))
+value <- c( "herbicide", "degradate", "insecticide", "fungicide")
+funcuse_key <- data.frame(report_func, value)
+colnames(funcuse_key) <- c("report_func","value")
+
+funcuse_key$report_func <- as.list(funcuse_key$report_func)
+
+#merge to fill out funcuse
+pest_dw_v4 <- left_join(pest_dw_v3, funcuse_key,
+              by = c("report_func" = "report_func"))
+
+#final formatting
+pest_dw_v4 <- pest_dw_v4 %>% select(raw_chem_name, value) 
+colnames(pest_dw_v4)[2] <- "report_funcuse"
+
+#take out parenthesis and key from chem name
+pest_dw_v5 <- pest_dw_v4 %>% mutate(raw_chem_name2 = substring(raw_chem_name, 1, nchar(raw_chem_name)-4))
+pest_dw_v5 <- pest_dw_v5 %>% select(raw_chem_name2, report_funcuse)
+
+colnames(pest_dw_v5)[1] <- "raw_chem_name"
+
+
+
+###adding addtional info
+ppmp_table <- pest_dw_v5 %>% mutate(data_document_id="1371480", data_document_filename="USGS_PPMP.pdf", doc_date="2001", raw_category="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists
+", component="", chem_detected_flag="", raw_cas="")
+
+#re-order columns
+col_order <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+ppmp_table <- ppmp_table[,col_order]
+
+
+#quick clean up
+ppmp_table <- ppmp_table %>% filter(raw_chem_name != "compound")
+```
+
+
+
+
+
+"Pesticides in the Nation's Streams and Ground Water, 1992-2001"
+
+```{r PestClass}
+
+#set-up
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/USGS")
+pestclass_tables <- extract_tables('USGS_PestClass.pdf', pages = 163:165)
+pestclass_2ndtable <- extract_tables('USGS_PestClass.pdf', pages = 164, area = list(c(183.744,42.264,739.728,547.560)))
+
+pestclass_tables
+pestclass_2ndtable
+
+#extract columns from tables and bind rows together
+table1 <- cbind(pestclass_tables[[1]][,1],pestclass_tables[[1]][,2])
+table2 <- cbind(pestclass_2ndtable[[1]][,1],pestclass_2ndtable[[1]][,3])
+table3 <- cbind(pestclass_tables[[3]][,1],pestclass_tables[[3]][,2])
+pestclass_table <- as.data.frame(rbind(table1,table2,table3))
+
+
+
+#removing extraneous rows
+full_pesttable_v2 <- pestclass_table %>% filter(V1 != "", V2 != "")
+
+#separate functional use and cas number
+full_pesttable_v3 <- separate(full_pesttable_v2, V2, into = c("funcuse", "cas"), sep = " (?=[^ ]*$)")
+
+
+##renaming rows
+names(full_pesttable_v3)[3] <- "raw_cas"
+names(full_pesttable_v3)[1] <- "raw_chem_name"
+names(full_pesttable_v3)[2] <- "report_funcuse"
+
+
+###add additional info
+
+pest_class <- full_pesttable_v3 %>% mutate(data_document_id="1371477", data_document_filename="USGS_PestClass.pdf", doc_date="2001", raw_category="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists
+", component="", chem_detected_flag="")
+
+#re-ordering columns
+
+col_order <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+
+pest_class <- pest_class[,col_order]
+```
+
+
+"Distribution of Major Herbicides in Ground Water of the United States" - extracted manually
+
+
+
+Combining tables and writing to csv for upload
+```{r}
+usgs_tables <- rbind(ppmp_table, pest_class)
+usgs_chemicalcount <- nrow(usgs_tables)
+
+write.csv(usgs_tables, "C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/USGS\\usgsmisc_data.csv", row.names = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
