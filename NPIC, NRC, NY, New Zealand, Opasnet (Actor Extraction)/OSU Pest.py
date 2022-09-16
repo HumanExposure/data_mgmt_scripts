@@ -23,10 +23,10 @@ for j in range (1, len(tr_elements)):
     if len(T) != 5: break
     if clean(T[0].text_content()) == 'Common Name' or clean(T[0].text_content()) == '': continue
     chemName.append(clean(T[0].text_content())) #Get first column
-    chemName[-1] = chemName[-1].replace(',','_').replace(';','_').strip()
+    chemName[-1] = chemName[-1].strip()
     
 nIngredients = len(chemName)
-prodID = [1371507]*nIngredients
+prodID = [1646367]*nIngredients
 templateName = ['NPIC.pdf']*nIngredients
 msdsDate = ['7/24/94']*nIngredients
 recUse = ['']*nIngredients
@@ -35,6 +35,8 @@ descrip = ['']*nIngredients
 code = ['']*nIngredients 
 sourceType = ['ACToR Assays and Lists']*nIngredients
 casN = ['']*nIngredients 
+component = ['']*nIngredients
+chemDetected = ['']*nIngredients
 
-df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'doc_date':msdsDate, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'cat_code':catCode, 'description_cpcat': descrip, 'cpcat_code':code, 'cpcat_sourcetype':sourceType})
-df.to_csv(r'L:\Lab\HEM\ALarger\Actor Automated Extraction\NPIC, NRC, NY, New Zealand, Opasnet\OSU Extension Pesticide Properties Database\OSU Pest.csv',index=False, header=True)
+df = pd.DataFrame({'data_document_id':prodID, 'data_document_filename':templateName, 'doc_date':msdsDate, 'raw_category':recUse, 'raw_cas':casN, 'raw_chem_name':chemName, 'cat_code':catCode, 'description_cpcat': descrip, 'cpcat_code':code, 'cpcat_sourcetype':sourceType, 'component':component, 'chem_detected_flag':chemDetected})
+df.to_csv(r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/OSU pest new\OSU Pest.csv',index=False, header=True)
