@@ -34,6 +34,8 @@
 	"run_model_prediction": {
 		"pred_proba": 1,
 		"dat_file": "",
-		"batchSize": 12500
+		"batchSize": 12500,
+    "parallel": 1,
+    "n_jobs": 10
 	}
 }

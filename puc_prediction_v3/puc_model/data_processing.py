@@ -48,11 +48,33 @@ spacy_nlp = spacy.load(nlpname)
 def escape_string(s):
     if isinstance(s, str):
         return s.replace("'", "''")
+    
+def load_env_file(f, l=None):
+    """
+    Parameters
+    ----------
+    f : str, required
+        File name of environmental variable file to load (in JSON format).
+    l : str, optional
+        JSON level to return.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    with open(f, 'r') as f:
+        if l: #Select level if provided
+            return json.load(f)[l]
+        else: #Return whole env file JSON
+            return json.load(f)
 
 def read_df():
     """Read df of brand name and puc from factotum."""
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
+    cfg = load_env_file("env.json", "mysql")
+    # with open('mysql.json', 'r') as f:
+    #     cfg = json.load(f)['mysql']
     engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
                            f'{cfg["password"]}@{cfg["server"]}:' +
                            f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
@@ -109,8 +131,9 @@ def read_df():
 
 def read_df_uber():
     """Read df of brand name and puc from factotum."""
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
+    cfg = load_env_file("env.json", "mysql")
+    # with open('mysql.json', 'r') as f:
+    #     cfg = json.load(f)['mysql']
     engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
                            f'{cfg["password"]}@{cfg["server"]}:' +
                            f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
@@ -134,8 +157,9 @@ def read_df_uber():
 
 def read_group(group):
     """Read df of brand name and puc from factotum."""
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
+    cfg = load_env_file("env.json", "mysql")
+    # with open('mysql.json', 'r') as f:
+    #     cfg = json.load(f)['mysql']
     engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
                            f'{cfg["password"]}@{cfg["server"]}:' +
                            f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',
@@ -156,9 +180,10 @@ def read_puc_types(puc_type='all'):
         puc_type = '(\'UN\', \'FO\', \'AR\', \'OC\')'
     else:
         puc_type = '(\'' + puc_type  + '\')'
-        
-    with open('mysql.json', 'r') as f:
-        cfg = json.load(f)['mysql']
+    
+    cfg = load_env_file("env.json", "mysql")
+    # with open('mysql.json', 'r') as f:
+    #     cfg = json.load(f)['mysql']
     engine = create_engine(f'mysql+pymysql://{cfg["username"]}:' +
                            f'{cfg["password"]}@{cfg["server"]}:' +
                            f'{cfg["port"]}/{cfg["database"]}?charset=utf8mb4',

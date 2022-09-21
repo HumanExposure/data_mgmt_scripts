@@ -14,6 +14,8 @@ import datetime
 import math
 from puc_model.model_utils import (run_model_prediction, format_prediction_input)
 from puc_model.data_processing import (clean_str, load_env_file)
+from joblib import Parallel, delayed
+from sklearn.utils import parallel_backend
 
 env = load_env_file("env.json")
 #Set parameters
@@ -21,6 +23,7 @@ label = env["model_label"]#'factotum_20211129' #Unique identifier for the model
 pucKind = env["run_model_selection_train"]['pucKind']# 'all'#'FO'
 modelType = env["run_model_selection_train"]['modelType']#'SGD'#'SVM' #Model Type (e.g. SVM, RF, SGD)
 pred_proba = env["run_model_selection_train"]['pred_proba']# True
+run_parallel = env['run_model_prediction']['parallel']
 
 dat = None
 # #Load Data
@@ -48,8 +51,8 @@ dat = None
 # dat = pd.DataFrame(data=[('ACT Alcohol Free Anticavity Fluoride Mouthwash, Cinnamon (2016 formulation)', 'Act', 'Johnson & Johnson'), 
 #                          ('AHAVA Deadsea Algae Rich Mineral Makeup Care Foundation, Terra (old formulation)', 'AHAVA', 'Dead Sea Laboratories Ltd.')],
 #                    columns = ['title', 'brand_name', 'manufacturer'])
-
-dat = pd.read_csv(rf"{env['run_model_prediction']['dat_file']}")
+# Load and shuffle (helps wiht later tests for reproducibility)
+dat = pd.read_csv(rf"{env['run_model_prediction']['dat_file']}").sample(frac=1).reset_index(drop=True)
 dat = dat.rename(columns={"prod_title":"title"})
 #Ensure input data fits prediction format
 dat = format_prediction_input(X=dat)
@@ -62,15 +65,23 @@ if not os.path.isdir(outputDir):
 batchSize = env['run_model_prediction']['batchSize']#12500
 batchCount = math.ceil(len(dat) / batchSize) #Round up on size division
 start = 0 + (batchSize + 1) * 0 #Skipping already complete batches
-#44 : Start 550044 : End 562544
+# Create list of batch ranges to predict
+batchList = {}
 for n in range(1, batchCount+1):
     #if(n > 2):
      #   break
     end = start + batchSize
     if(end > len(dat)):
         end = len(dat)
+    batchList[n] = [start, end]
+    #Increment Start
+    start = end# + 1
+    if(end == len(dat)):
+        break
+
+def batch_prediction(start, end, df):
     print(str(n) + ' : Start ' + str(start) + ' : End ' + str(end))
-    df = dat[start:end] #Subset overall dataset
+    # df = dat[start:end] #Subset overall dataset
     
     #Filter out any empty or illegal names now
     df['name_check'] = clean_str(df['brand_name'], df['title'], df['manufacturer'])
@@ -94,9 +105,23 @@ for n in range(1, batchCount+1):
         out = predictions.drop(['xdata'], axis=1) #Drop large column
         out.to_csv(f'{outputDir}batched_predictions_{str(start)}_{str(end)}.csv', index=False)
         print('Done' + ' : Start ' + str(start) + ' : End ' + str(end))
-    #Increment Start
-    start = end# + 1
-    if(end == len(df)):
-        break
+
+# Make predictions
+if run_parallel != 1:
+    n_jobs = 1
+else:
+    n_jobs = 1# env['run_model_prediction']['n_jobs']
+
+# with parallel_backend('loky'):
+#         Parallel(n_jobs=n_jobs)(delayed(batch_prediction)(start=batchList[n][0], 
+#                                                           end=batchList[n][1], 
+#                                                           df=dat[batchList[n][0]:batchList[n][1]])
+#                             for n in range(1, batchCount+1))
+
+for n in range(1, batchCount+1):
+    batch_prediction(start=batchList[n][0], 
+                     end=batchList[n][1], 
+                     df=dat[batchList[n][0]:batchList[n][1]])
+                            
 
 print('Done - ' + str(datetime.datetime.now()))

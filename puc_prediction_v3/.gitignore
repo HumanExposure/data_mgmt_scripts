@@ -1,3 +1,7 @@
+# Ignore model directories
+cache/
+models/
+
 #Ignore env.json
 env.json
 

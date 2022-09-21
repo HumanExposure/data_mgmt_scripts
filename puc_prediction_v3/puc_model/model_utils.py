@@ -254,7 +254,8 @@ def prep_sample_df(label='', sample='all', df=None):
     #Load scaler to normalize data
     min_max_scaler = joblib.load(f'{compDir}scale{lab}.joblib')
     #Scale xdata
-    xdata_s = min_max_scaler.fit_transform(xdata_s)
+    #xdata_s = min_max_scaler.fit_transform(xdata_s)
+    xdata_s = np.transpose(min_max_scaler.fit_transform(np.transpose(xdata_s)))
     return xdata_s, name, ydata_s0, ydata_s1, ydata_s2, ydata_s3
     
 def prep_puc_key(label='', pucKind='all'):
@@ -503,8 +504,10 @@ def model_feature_selection(label='', modelName='', modelType='', estimator=None
     #print("Scaling data...")
     #Load scaler to normalize data
     min_max_scaler = joblib.load(f'{compDir}scale{lab}.joblib')
-    xdata_s = min_max_scaler.fit_transform(xdata_s)
-    xtest_s = min_max_scaler.fit_transform(xtest_s)
+    #xdata_s = min_max_scaler.fit_transform(xdata_s)
+    xdata_s = np.transpose(min_max_scaler.fit_transform(np.transpose(xdata_s)))
+    #xtest_s = min_max_scaler.fit_transform(xtest_s)
+    xtest_s = np.transpose(min_max_scaler.fit_transform(np.transpose(xtest_s)))
             
     # Initialize FeatureSelector()
     fs = FeatureSelector()
@@ -645,8 +648,10 @@ def model_train(xdata_s=None, ydata_s1=None, xtest_s=None, ytest_s1=None,
         X_selected_train = fs.transform(xdata_s)
         X_selected_test = fs.transform(xtest_s)
     #Scale selected data
-    X_selected_train = min_max_scaler.fit_transform(X_selected_train)
-    X_selected_test = min_max_scaler.fit_transform(X_selected_test)
+    # X_selected_train = min_max_scaler.fit_transform(X_selected_train)
+    X_selected_train = np.transpose(min_max_scaler.fit_transform(np.transpose(X_selected_train)))
+    # X_selected_test = min_max_scaler.fit_transform(X_selected_test)
+    X_selected_test = np.transpose(min_max_scaler.fit_transform(np.transpose(X_selected_test)))
     #https://towardsdatascience.com/designing-a-feature-selection-pipeline-in-python-859fec4d1b12
     # Initiate classifier instance
     print(f'Training model {i}: {modelName} ---- {str(datetime.datetime.now())}')
@@ -911,7 +916,8 @@ def prep_prediction_clean(sen_itr=None, label=''):
         sen_itr = pd.DataFrame(sen_itr, columns=['brand_name','title', 'manufacturer'])
     sen_clean = clean_str(sen_itr['brand_name'], sen_itr['title'], sen_itr['manufacturer'])
     #sen_clean = [clean_str(i[0], i[1]) for i in sen_itr]
-    removed = [n for n, i in enumerate(sen_clean) if len(i) < 1]
+    #Temporarily removed this logic...20211130 jwall01
+    removed = []#[n for n, i in enumerate(sen_clean) if len(i) < 1]
     sen_clean = [i for n, i in enumerate(sen_clean) if n not in removed]
     for i in removed:
         print(f'Invalid name in position {str(i)}, removing from list')
@@ -925,7 +931,8 @@ def prep_prediction_clean(sen_itr=None, label=''):
     sen_vec = [get_vector(i, doc_embeddings) for i in sen_clean]
     print("...Scaling data...")
     min_max_scaler = joblib.load(f'{compDir}scale{lab}.joblib')
-    sen_vec = min_max_scaler.fit_transform(sen_vec)
+    sen_vec = np.transpose(min_max_scaler.fit_transform(np.transpose(sen_vec)))
+    # sen_vec = min_max_scaler.fit_transform(sen_vec)
 
     return sen_vec, sen_clean
     
@@ -1000,8 +1007,10 @@ def select_model_predict(modelName='', model=None, df_input = None, xdata_s=None
             X_selected = xdata_s
         else:
             X_selected = model['fs'].transform(xdata_s)
-        #Scale data
-        X_selected = min_max_scaler.fit_transform(X_selected)
+        # Scale data ROWWISE!!!
+        # https://predictivehacks.com/?all-tips=how-to-apply-a-sklearn-scaler-to-rows-of-a-pandas-dataframe
+        # X_selected = min_max_scaler.fit_transform(X_selected) - not column-wise default
+        X_selected = np.transpose(min_max_scaler.fit_transform(np.transpose(X_selected)))
         # Make predictions
         print(f'...Making predictions...{str(datetime.datetime.now())}')
         df_input.loc[:, pred_type] = model['estimator'].predict(X_selected)
@@ -1232,8 +1241,10 @@ def select_voting_classifier_train(label = '', fs=None, modelName='', modelType=
         X_selected_test = fs.transform(xtest_s)
     #Scale data
     min_max_scaler = joblib.load(f'{compDir}scale{lab}.joblib')
-    X_selected_train = min_max_scaler.fit_transform(X_selected_train)
-    X_selected_test = min_max_scaler.fit_transform(X_selected_test)
+    #X_selected_train = min_max_scaler.fit_transform(X_selected_train)
+    X_selected_train = np.transpose(min_max_scaler.fit_transform(np.transpose(X_selected_train)))
+    #X_selected_test = min_max_scaler.fit_transform(X_selected_test)
+    X_selected_test = np.transpose(min_max_scaler.fit_transform(np.transpose(X_selected_test)))
     #https://towardsdatascience.com/designing-a-feature-selection-pipeline-in-python-859fec4d1b12
     # Initiate classifier instance
     print(f'Training VC model: {modelName} ---- {str(datetime.datetime.now())}')
