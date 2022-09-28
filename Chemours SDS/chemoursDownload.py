@@ -6,11 +6,11 @@ Created on Fri Sep 16 16:26:45 2022
 """
 
 
-import time, os, string, random
+import time, os, string, random, requests
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from PIL import Image
+from glob import glob
 
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty)) #Removes non-ASCII characters
@@ -19,12 +19,12 @@ os.chdir(path)
 minTime = 5 #minimum wait time in between clicks
 maxTime = 10 #maximum wait time in between clicks
 
-nameList = []
-weightList = []
-descripList = []
-categoryList = []
-filter1List = []
-filter2List = []
+idList = [] #ID numbers for naming files
+nameList = [] #Product name
+manufList = [] #Manufacturer name
+partList = [] #Part number
+sdsList = [] #SDS number
+
 
 chrome_options= Options()
 # chrome_options.add_argument("--headless")
@@ -35,68 +35,72 @@ driver.implicitly_wait(60)
 start = 'https://www.opteon.com/en?_gl=1*zale85*_ga*MTI1NTQwMjEyLjE2NjMzNTk1NDY.*_ga_3T57CXVGEP*MTY2MzM1OTU0Ni4xLjEuMTY2MzM2MDA5NS42MC4wLjA.&_ga=2.155550587.1984174699.1663359546-125540212.1663359546'
 driver.get(start)
 time.sleep(random.randint(minTime,maxTime))
+driver.find_element_by_xpath('/html/body/div[1]/header/div/div/div[2]/nav/ul/li[2]/a').click()
+time.sleep(random.randint(minTime,maxTime))
 
-page = 1
-cats = driver.find_elements_by_xpath('/html/body/main/div/div[1]/form/div/div[1]/div/a') 
-for c in range(1,len(cats)+1): #navigate to small molecule/biotech
-    cat = driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[1]/div['+str(c)+']/a').text
-    print(cat)
-    driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[1]/div['+str(c)+']/a').click()
+driver.switch_to.window(driver.window_handles[1]) #switch to new tab
+time.sleep(random.randint(minTime,maxTime))
+driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[1]/div/div[2]/div/div/div[6]/div/div[1]/input[2]').click() #click show all
+time.sleep(random.randint(minTime,maxTime))
+
+
+downloaded = glob('*.pdf')
+
+n=0
+nPages = int(driver.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_ctl00_Grid01_footer"]/table/tbody/tr/td[2]/div/strong[2]').text)
+for i in range(nPages):
+    docs=driver.find_elements_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr/td[1]/div/a')
+    for j in range(2,len(docs)+2):  #For each row
+        
+        #Get data in rows
+        n+=1
+        if str(n)+'_sds.pdf' in downloaded: continue #skip documents that have already been downloaded
+        
+        idList.append(n)
+        nameList.append(driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr['+str(j)+']/td[3]').text.strip())
+        manufList.append(driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr['+str(j)+']/td[4]').text.strip())
+        partList.append(driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr['+str(j)+']/td[5]').text.strip())
+        sdsList.append(driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr['+str(j)+']/td[6]').text.strip())
+        
+        #Download USA English versions of pdfs
+        try: 
+            driver.find_element_by_xpath('/html/body/form/div[6]/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr['+str(j)+']/td[1]/div/a').click()
+            time.sleep(random.randint(minTime,maxTime))
+            versions = driver.find_elements_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_ctl00_DocumentListPopupHost1_div"]/div/div')
+            docLink = ''
+            for k in range(0,len(versions)):
+                if "USA" in versions[k].text and "English" in versions[k].text:
+                    # print(versions[k].text)
+                    docLink = driver.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_ctl00_DocumentListPopupHost1_div"]/div/div['+str(k+1)+']/div[2]/a[1]').get_attribute('href')
+                    break
+            if docLink == '':
+                print('problem with SDS',sdsList[-1])
+                driver.find_element_by_xpath('/html/body/div[2]/div[1]/div/a[4]').click() #close documents popup
+                time.sleep(random.randint(minTime,maxTime))
+                continue
+            filename = str(n)+'_sds.pdf'
+            res = requests.get(docLink)
+            res.raise_for_status()
+            playFile = open(filename,'wb')
+            for chunk in res.iter_content(100000):
+                playFile.write(chunk)
+            playFile.close()
+            time.sleep(random.randint(minTime,maxTime))
+            
+            driver.find_element_by_xpath('/html/body/div[2]/div[1]/div/a[4]').click() #close documents popup
+            time.sleep(random.randint(minTime,maxTime))
+        except: 
+            print('problem with SDS',sdsList[-1])
+            time.sleep(random.randint(minTime,maxTime))
+        
+    driver.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_ctl00_Grid01_footer"]/table/tbody/tr/td[1]/table/tbody/tr/td[5]').click() #Navigate to next page
     time.sleep(random.randint(minTime,maxTime))
-    if c == 2: 
-       driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[4]/div/div[1]/label/span/span').click() #When on biotech drugs, deselect protein based therapies filter 
-       time.sleep(random.randint(minTime,maxTime))
-    groups = driver.find_elements_by_xpath('/html/body/main/div/div[1]/form/div/div[3]/div[1]/div/label/span/span')
-    for g in range(1,len(groups)+1): #Navigate to different groups (approved, nutraceutical, ...)
-        imageList = []
-        if g != 1:
-            driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[3]/div[1]/div['+str(g-1)+']/label/span/span').click() #Deselect previous filter
-            time.sleep(random.randint(minTime,maxTime))
-            driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[3]/div[1]/div['+str(g)+']/label/span/span').click() #Select next filter
-            time.sleep(random.randint(minTime,maxTime))
-        driver.find_element_by_name('commit').click() #Click apply filter
-        time.sleep(random.randint(minTime,maxTime))
-        filter2 = driver.find_element_by_xpath('/html/body/main/div/div[1]/form/div/div[3]/div[1]/div['+str(g)+']/label/span/span').text
-        print(filter2)
     
-        while True: #extract each page
-            #Extract table
-            rows = driver.find_elements_by_xpath('//*[@id="drugs-table"]/tbody/tr')
-            for r in range(1,len(rows)+1):
-                nameList.append(driver.find_element_by_xpath('//*[@id="drugs-table"]/tbody/tr['+str(r)+']/td[1]').text.replace('\n',' '))
-                weightList.append(driver.find_element_by_xpath('//*[@id="drugs-table"]/tbody/tr['+str(r)+']/td[2]').text.replace('\n',' '))
-                descripList.append(driver.find_element_by_xpath('//*[@id="drugs-table"]/tbody/tr['+str(r)+']/td[4]').text.replace('\n',' '))
-                categoryList.append(driver.find_element_by_xpath('//*[@id="drugs-table"]/tbody/tr['+str(r)+']/td[5]').text.replace('\n',' '))
-                filter1List.append(cat)
-                filter2List.append(filter2)
-                
-            ID = cat + '_' + filter2 + '_page_' + str(page)
-                
-            #Save screenshot of page
-            ele=driver.find_element_by_xpath('/html/body/main')
-            total_height = ele.size["height"]+1000
-            driver.set_window_size(1920, total_height)
-            time.sleep(random.randint(minTime,maxTime))
-            driver.save_screenshot(ID+'.png')
-            imageList.append(Image.open(ID+'.png').convert('RGB'))
-            time.sleep(random.randint(minTime,maxTime))
-    
-            try:
-                driver.find_element_by_class_name('next').click() #click next page
-                page += 1
-                time.sleep(random.randint(minTime,maxTime))
-            except:
-                page = 1
-                time.sleep(random.randint(minTime,maxTime))
-                break #last page, move on to next filter
-                
-        #Make pdf 
-        im1 = imageList[0]
-        im1.save(ID.split('_page')[0]+'.pdf',save_all=True, append_images=imageList[1:])
 
-driver.close()
+
+# driver.close()
 
 
 #Make csv
-df = pd.DataFrame({'Filter 1':filter1List, 'Filter 2':filter2List, 'Chemical name':nameList, 'Weight':weightList, 'Description':descripList, 'Categories':categoryList})
-df.to_csv('drugbank scraped data.csv',index=False, header=True, encoding='utf8')
+df = pd.DataFrame({'id':idList, 'product name':nameList, 'manufacturer':manufList, 'sds number':sdsList})
+df.to_csv('chemours scraped data 2.csv',index=False, header=True, encoding='utf8')
