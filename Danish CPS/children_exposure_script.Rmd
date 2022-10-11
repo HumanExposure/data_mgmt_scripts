@@ -18,9 +18,21 @@ library(shiny)
 setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/chemical_exposure_children")
 ```
 
+Tables extracted via script:
+4.2.3
+4.2.4
+4.2.5
+4.2.6
+4.2.7
+4.2.8
+
+6.1
+6.2
+6.3
+6.4
 
 
-
+Table 5.2 manually extracted
 
 Table 4.2.3
 
