@@ -12,8 +12,21 @@ The ingredients and CAS numbers were extracted using the Python package Camelot.
 
 - Allergens_script.Rmd
 
+Chemicals and cas numbers are extracted using the tabulizer package in R 4.1.2. It is recommended you use R 4.1.2 as there are compatibility issues in the newer versions of R. You must install and load the tabulizer package before being able to extract data using this script. Additional packages used to manipulate data include the following:
 
-(Written in , by Christian Lutz)
+tcltk
+rJava
+tabulizer
+tidyverse
+data.table
+
+The Following code may be helpful if you seem to be running into issues with installing tabulizer and other needed packages.
+
+install.packages("rJava")
+install.packages("devtools")
+devtools::install_github("ropensci/tabulizer", args="--no-multiarch")
+
+(Written in R Studio, R 4.1.2 , by Christian Lutz)
 
 ---
 
