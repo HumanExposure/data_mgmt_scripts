@@ -1,0 +1,130 @@
+---
+title: "Decorative Liquids"
+author: "Christian Lutz"
+date: '2022-09-13'
+output: html_document
+---
+
+```{r}
+library(tcltk)
+library(rJava)
+library(tabulizer)
+library(tidyverse)
+library(dplyr)
+library(data.table)
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/Substances in Decorative Liquids")
+```
+
+
+
+
+
+
+Table 5: Additives
+
+```{r}
+dl_table5 <- as.data.frame(extract_tables('document_1359425.pdf', pages = 14))
+
+dl_table5_t <- as.data.frame(t(dl_table5))
+
+dl_table5_v2 <- select(dl_table5_t, c(V1, V2, V4))
+
+
+
+
+dl_table5_v2$V2<-gsub("mg/mL","",as.character(dl_table5_v2$V2))
+
+dl_table5_v3 <- dl_table5_v2 %>% mutate( raw_chem_name = gsub(" ", "", paste(V1, V2))) %>% select(raw_chem_name, V4) %>% rename(raw_cas = V4)
+
+dl_Table5 <- dl_table5_v3 %>% filter(raw_cas != "CAS no.")
+
+
+
+######### Other needed columns
+
+dl_Table5 <- dl_Table5 %>% mutate(data_document_id="1649807", data_document_filename="decorative_liquids_a.pdf
+", doc_date="2003", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="")
+
+
+
+```
+
+Table 6
+
+```{r}
+dl_table6 <- as.data.frame(extract_tables('document_1359425.pdf', pages = 15))
+
+dl_table6_df <- select(dl_table6, X5)
+
+
+DL_table6 <-data.frame(raw_chem_name = unique(dl_table6_df$X5))
+
+
+DL_table6_v2 <- subset(DL_table6, nchar(as.character(raw_chem_name)) >= 3)
+DL_table6_v3 <- DL_table6_v2 %>% filter(!grepl('water', raw_chem_name), !grepl('Water', raw_chem_name), !grepl('Component', raw_chem_name))
+
+
+#corrections
+
+cr_dl_t6 <- paste(DL_table6_v3[15,1],DL_table6_v3[16,1], sep = "")
+
+
+
+DL_table6_v3[15, 1] = cr_dl_t6
+DL_table6_v3[16, 1] = "NA"
+
+
+DL_table6_v4 <- as.data.frame(DL_table6_v3[-c(8,10,11,12,16),])
+
+colnames(DL_table6_v4) <- "raw_chem_name"
+
+dl_Table6 <- DL_table6_v4 %>% mutate(raw_cas = "")
+
+######### Other needed columns
+
+dl_Table6 <- dl_Table6 %>% mutate(data_document_id="1372755", data_document_filename="document_1359425.pdf", doc_date="2003", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="")
+
+
+
+```
+
+
+Enclosure D
+
+```{r}
+
+
+dl_enclosured <- as.data.frame(extract_areas('document_1359425.pdf', pages = 21, method = "stream"))
+
+colnames(dl_enclosured) <- c("raw_chem_name", "raw_cas")
+
+dl_enclosure_d <- dl_enclosured %>% filter(raw_cas != "CAS no.")
+
+######### Other needed columns
+
+dl_enclosure_d <- dl_enclosure_d %>% mutate(data_document_id="1649808", data_document_filename="decorative_liquids_b.pdf
+", doc_date="2003", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="")
+
+
+```
+
+
+```{r}
+#combine all tables together
+
+liquid_decor <- rbind(dl_Table5, dl_Table6, dl_enclosure_d)
+
+
+
+#add other needed columns
+
+
+#reorder columns
+col_order <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+liquid_decor <- liquid_decor[,col_order]
+
+
+
+write.csv(liquid_decor, "C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/Substances in Decorative Liquids\\decorative_liquids.csv", row.names = FALSE)
+```
+
