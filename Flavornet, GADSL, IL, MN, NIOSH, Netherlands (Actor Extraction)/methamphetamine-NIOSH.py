@@ -8,9 +8,23 @@ Methamphetamine and Illicit Drugs, Precursors and Adulterants on Wipes by Liquid
 """
 
 import tabula as tb
-import math
-import re
+import math, string, re
 import pandas as pd
+
+# %%
+def cleanLine(line):
+    """
+    Takes in a line of text and cleans it
+    removes non-ascii characters and excess spaces, and makes all characters lowercase
+    
+    """
+    line = line.replace('±','+/-')
+    clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
+    cline = clean(line.replace('–','-'))
+    cline = cline.lower()
+    cline = re.sub(' +', ' ', cline)
+    cline = cline.strip()
+    return(cline)
 
 # %%
 pdf = 'C:\\Users\\mhorton\\OneDrive - Environmental Protection Agency (EPA)\\Profile\\Documents\\Methamphetamine and Illicit Drugs\\601a361f-4fea-4ab2-be2d-3991e2af0d5e.pdf'
@@ -41,7 +55,9 @@ for i, c in reversed(list(enumerate(chems))):
     elif len(pattern.findall(c)) != 0:
         chems[i] = c.rsplit('(', 1)[0]
 
-prods = ['1371487']*len(cas)
+chems = [cleanLine(chem) for chem in chems]
+
+prods = ['1649809']*len(cas)
 tempname = ['NIOSH_Amph_PhysProp_orig.pdf']*len(cas)
 date = ['17 October 2011']*len(cas)
 recuse = ['']*len(cas)
@@ -53,3 +69,6 @@ extdf = pd.DataFrame({'data_document_id':prods, 'data_document_filename':tempnam
                       'doc_date':date, 'raw_category':recuse, 'raw_cas':cas, 
                       'raw_chem_name':chems, 'cat_code':code, 'description_cpcat': desc, 
                       'cpcat_code':code, 'cpcat_sourcetype':source})
+extdf=extdf.drop_duplicates()
+
+extdf.to_csv('C:\\Users\\mhorton\\OneDrive - Environmental Protection Agency (EPA)\\Profile\\Documents\\Methamphetamine and Illicit Drugs\\' + 'methamphetamine_extracted-text.csv',index=False, header=True)
