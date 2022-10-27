@@ -1,0 +1,466 @@
+---
+title: "CHild_exposure"
+author: "Christian Lutz"
+date: '2022-09-21'
+
+---
+
+
+```{r}
+library(tcltk)
+library(rJava)
+library(tabulizer)
+library(tidyverse)
+library(dplyr)
+library(stringi)
+library(shiny)
+setwd("C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/chemical_exposure_children")
+options(java.parameters = "-Xmx2000m")
+```
+
+
+
+Table 4.2.5
+
+```{r}
+table4.2.5 <- as.data.frame(extract_areas('chemical_exposure_children_danishepa.pdf', pages = 42))
+table4.2.5.2 <- as.data.frame(extract_areas('chemical_exposure_children_danishepa.pdf', pages = 43))
+```
+
+
+```{r}
+toys_table1 <- table4.2.5 %>% select(X2)
+toys_table2 <- table4.2.5.2 %>% select(X2)
+
+
+
+
+toys_list_1 <- as.data.frame(strsplit(toys_table1[2,1], ","))
+toys_list_2 <- as.data.frame(strsplit(toys_table1[3,1], ","))
+toys_list_3 <- as.data.frame(strsplit(toys_table2[1,1], ","))
+toys_list_4 <- as.data.frame(strsplit(toys_table2[2,1], ","))
+toys_list_5 <- as.data.frame(strsplit(toys_table2[3,1], ","))
+toys_list_6 <- as.data.frame(strsplit(toys_table2[4,1], ","))
+toys_list_7 <- as.data.frame(strsplit(toys_table2[5,1], ","))
+toys_list_8 <- as.data.frame(strsplit(toys_table2[6,1], ","))
+toys_list_9 <- as.data.frame(strsplit(toys_table2[7,1], ","))
+toys_list_10 <- as.data.frame(strsplit(toys_table2[8,1], ","))
+
+colnames(toys_list_1) <- "raw_chem_name"
+colnames(toys_list_2) <- "raw_chem_name"
+colnames(toys_list_3) <- "raw_chem_name"
+colnames(toys_list_4) <- "raw_chem_name"
+colnames(toys_list_5) <- "raw_chem_name"
+colnames(toys_list_6) <- "raw_chem_name"
+colnames(toys_list_7) <- "raw_chem_name"
+colnames(toys_list_8) <- "raw_chem_name"
+colnames(toys_list_9) <- "raw_chem_name"
+colnames(toys_list_10) <- "raw_chem_name"
+
+
+
+full_toyslist <- as.data.frame(rbind(toys_list_1, toys_list_2, toys_list_3, toys_list_4, toys_list_5, toys_list_6, toys_list_7, toys_list_8, toys_list_9, toys_list_10))
+
+
+toys_correction_1 <- paste(full_toyslist[18,1],full_toyslist[19,1], sep = "")
+toys_correction_2 <- paste(full_toyslist[24,1],full_toyslist[25,1], sep = "") 
+toys_correction_3 <- paste(full_toyslist[38,1],full_toyslist[39,1], sep = "")
+
+
+full_toyslist[18,1] =toys_correction_1
+full_toyslist[19,1] = "N/A"
+full_toyslist[24,1] =  gsub("-", "", toys_correction_2)
+full_toyslist[25,1] = "N/A"
+full_toyslist[38,1] =  gsub("-", "", toys_correction_3)
+full_toyslist[39,1] = "N/A"
+
+
+
+toys_list <- subset(full_toyslist, full_toyslist$raw_chem_name != "N/A") 
+toys_list <- toys_list %>% mutate(raw_chem_name = trimws(gsub("\\*", "", toys_list$raw_chem_name)))
+
+
+toys_list$raw_chem_name<-gsub("/*","",as.character(toys_list$raw_chem_name))
+
+toys_list <- distinct(toys_list)
+
+
+rm(list = c("full_toyslist", "table4.2.5", "table4.2.5.2", "toys_list_1", "toys_list_2", "toys_list_3", "toys_list_4", "toys_list_5", "toys_list_6", "toys_list_7", "toys_list_8", "toys_list_9","toys_list_10","toys_correction_1", "toys_correction_2", "toys_correction_3", "correction_4", "toys_table1", "toys_table2"))
+```
+ 
+
+```{r}
+table_4_2_5 <- toys_list %>% mutate(data_document_id="1373534", data_document_filename="Exposure of Children Table 2.2.pdf", doc_date="April 2017", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="", raw_cas = "")
+
+#reorder columns
+col_order425 <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+child_exposure_425 <- table_4_2_5[,col_order425]
+
+rm(list = c("col_order425", "table_4_2_5", "toys_list"))
+```
+
+
+
+Table 6.1
+
+
+Table Extraction
+
+```{r}
+table1 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 62))
+table2 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 63))
+table3 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 64))
+table4 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 65))
+
+table <- rbind(table1, table2, table3, table4)
+
+
+newtable <- table %>% subset(X1 != "", select=X1)
+colnames(newtable) <- "raw_chem_name"
+
+
+rm(list= c("table1", "table2", "table3", "table4", "table"))
+
+```
+
+
+Table Manipulation
+
+
+
+```{r}
+remove1 <- c('Brominated substances', 'Chlorinated substances', 'Fluorinated substances', 'Metals', 'Hydrocarbons', 'Other substances', 'Pesticider', 'Phenols', 'Substance', 'UV-filters', 'Phthalates', 'Parabens', 'Medicine', 'Antioxidants')
+newtable6.1<- newtable[!grepl(paste(remove1, collapse='|'), newtable$raw_chem_name),]
+
+
+newtable6.1 <- subset(newtable6.1,nchar(newtable6.1)>=9)
+
+category6.1 <- ifelse(grepl("med", newtable6.1), "medium", ifelse(grepl("high", newtable6.1), "high", "specific"))
+
+table6.1 <- data.frame(newtable6.1, category6.1)
+
+colnames(table6.1) <- c("raw_chem_name", "category")
+
+table_collection6.1 <- split(table6.1, with(table6.1, interaction(category)), drop = TRUE)
+
+
+
+
+table_6.1_high <- table_collection6.1$high
+table_6.1_med <- table_collection6.1$medium
+table_6.1_specific <- table_collection6.1$specific
+
+
+
+table_6.1_high<- as.data.frame(str_split_fixed(table_6.1_high$raw_chem_name, ', high', 2))
+table_6.1_med<- as.data.frame(str_split_fixed(table_6.1_med$raw_chem_name, ', med', 2))
+table_6.1_specific<- as.data.frame(str_split_fixed(table_6.1_specific$raw_chem_name, ', spec', 2))
+
+
+  
+table_6.1 <- rbind(table_6.1_high, table_6.1_med, table_6.1_specific)
+
+tbl_6.1 <- as.data.frame(unique(table_6.1$V1))
+
+colnames(tbl_6.1) <- "raw_chem_name"
+table_6_1 <-  tbl_6.1 %>% filter(!row_number() %in% c(35))
+
+rm(list= c("table_6.1_high", "table_6.1_med", "table_6.1_specific", "table_6.1", "tbl_6.1", "table6.1", "table_collection6.1", "newtable", "newtable6.1", "category6.1", "remove1"))
+
+```
+
+
+```{r}
+table_6_1 <- table_6_1 %>% mutate(data_document_id="1373558", data_document_filename="Exposure of Children Table 8.10.pdf", doc_date="April 2017", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="", raw_cas="")
+
+#reorder columns
+col_order61 <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+child_exposure_61 <- table_6_1[,col_order61]
+
+
+rm(list = c("table_6_1", "col_order61"))
+```
+
+
+
+Table 6.2
+
+Table Extraction
+
+```{r}
+table6.2.1 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 66))
+table6.2.2 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 67))
+table6.2.3 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 68))
+table6.2.4 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 69))
+
+table6.2 <- rbind(table6.2.1, table6.2.2, table6.2.3, table6.2.4)
+
+
+newtable6.2 <- table6.2 %>% subset(X1 != "", select=X1)
+colnames(newtable6.2) <- "raw_chem_name"
+
+rm(list = c("table6.2.1", "table6.2.2", "table6.2.3", "table6.2.4", "table6.2"))
+
+```
+
+
+
+Table Manipulation
+```{r}
+
+remove2 <- c('Brominated substances', 'Chlorinated substances', 'Fluorerede stoffer', 'Metals', 'Hydrocarbons', 'Pesticides \\(only medium estimates available\\)', 'Other substances', 'Phenols', 'Substance')
+newtable6.2<- newtable6.2[!grepl(paste(remove2, collapse='|'), newtable6.2$raw_chem_name),]
+
+
+newtable6.2 <- subset(newtable6.2,nchar(newtable6.2)>=9)
+newtable6.2 <- newtable6.2
+
+category2 <- ifelse(grepl("med", newtable6.2), "medium", ifelse(grepl("high", newtable6.2), "high", "specific"))
+
+table6.2 <- data.frame(newtable6.2, category2)
+
+colnames(table6.2) <- c("raw_chem_name", "category")
+
+table_collection6.2 <- split(table6.2, with(table6.2, interaction(category2)), drop = TRUE)
+
+
+
+
+table_6.2_high <- table_collection6.2$high
+table_6.2_med <- table_collection6.2$medium
+table_6.2_specific <- table_collection6.2$specific
+
+
+table_6.2_high<- as.data.frame(str_split_fixed(table_6.2_high$raw_chem_name, ' high|, high', 2))
+table_6.2_med<- as.data.frame(str_split_fixed(table_6.2_med$raw_chem_name, ', med| med', 2))
+table_6.2_specific<- as.data.frame(str_split_fixed(table_6.2_specific$raw_chem_name, ', spec| spec', 2))
+
+  
+table_6.2 <- rbind(table_6.2_high, table_6.2_med, table_6.2_specific)
+
+tbl_6.2 <- as.data.frame(unique(table_6.2$V1))
+
+colnames(tbl_6.2) <- "raw_chem_name"
+
+#only need for clean up
+table_6_2 <-  tbl_6.2 %>% filter(!row_number() %in% c(35, 36, 37))
+
+#table_6_2 <- gsub("\\b(worst-|specific scenario|high)\\b", "", table_6_4$raw_chem_name)
+
+rm(list = c("table6.2", "tbl_6.2", "table_6.2_high", "table_6.2_med", "table_6.2_specific", "table_6.2", "table_collection6.2"))
+
+```
+
+
+
+```{r}
+table_6_2 <- table_6_2 %>% mutate(data_document_id="1373535", data_document_filename="Exposure of Children Table 2.3.pdf", doc_date="April 2017", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="", raw_cas="")
+
+rm(list = c("table_6.2","exposure_removed6.2", "newtable6.2"))
+
+#reorder columns
+col_order62 <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+child_exposure_62 <- table_6_2[,col_order62]
+
+
+rm(list = c("category2", "col_order62", "remove2", "table_6_2"))
+```
+
+
+
+Table 6.3
+
+Table Extraction
+
+```{r}
+
+table6.3.1 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 70))
+table6.3.2 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 71))
+table6.3.3 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 72))
+table6.3.4 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 73))
+
+
+table6.3 <- rbind(table6.3.1, table6.3.2, table6.3.3, table6.3.4)
+
+newtable6.3 <- table6.3 %>% subset(X1 != "", select=X1)
+colnames(newtable6.3) <- "raw_chem_name"
+
+rm(list = c("table6.3", "table6.3.1", "table6.3.2", "table6.3.3", "table6.3.4"))
+
+```
+
+
+Table Manipulation
+
+
+```{r}
+
+remove3 <- c('Antioxidants', 'Brominated Substances', 'Chlorinated substances', 'Fluorinated substances', 'Phthalates', 'Medicine', 'Hydrocarbons', 'Other substances', 'Pesticides', 'Phenols', 'UV-filters')
+newtable6.3<- newtable6.3[!grepl(paste(remove3, collapse='|'), newtable6.3$raw_chem_name),]
+
+
+newtable6.3 <- subset(newtable6.3,nchar(newtable6.3)>=9)
+newtable6.3 <- newtable6.3[-c(1, 54, 76)]
+newtable6.3 <- newtable6.3
+
+category <- ifelse(grepl("med", newtable6.3), "medium", ifelse(grepl("high", newtable6.3), "high", "specific"))
+
+table6.3 <- data.frame(newtable6.3, category)
+
+colnames(table6.3) <- c("raw_chem_name", "category")
+
+table_collection6.3 <- split(table6.3, with(table6.3, interaction(category)), drop = TRUE)
+
+
+
+
+table_6.3_high <- table_collection6.3$high
+table_6.3_med <- table_collection6.3$medium
+table_6.3_specific <- table_collection6.3$specific
+
+table_6.3_high<- as.data.frame(str_split_fixed(table_6.3_high$raw_chem_name, ', high', 2))
+table_6.3_med<- as.data.frame(str_split_fixed(table_6.3_med$raw_chem_name, ', med', 2))
+table_6.3_specific<- as.data.frame(str_split_fixed(table_6.3_specific$raw_chem_name, ', spec', 2))
+
+  
+table_6.3 <- rbind(table_6.3_high, table_6.3_med, table_6.3_specific)
+tbl_6.3 <- as.data.frame(unique(table_6.3$V1))
+colnames(tbl_6.3) <- "raw_chem_name"
+
+
+#only for clean up 
+#table_6_3 <-  tbl_6.3 %>% filter(!row_number() %in% c(33, 35))
+#table_6_3 <- gsub("\\b(worst-|specific scenario|high)\\b", "", table_6_3$raw_chem_name)
+
+rm(list = c("table_6.3_high", "table_6.3_med", "table_6.3_specific", "table_6.3", "table_collection6.3", "table6.3"))
+
+```
+
+
+```{r}
+table_6_3 <- tbl_6.3 %>% mutate(data_document_id="1373537", data_document_filename="Exposure of Children Table 3.2.pdf", doc_date="April 2017", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="", raw_cas = "")
+
+
+rm(list = c("tbl_6.1", "tbl_6.2", "tbl_6.3"))
+
+#reorder columns
+col_order63 <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+child_exposure_63 <- table_6_3[,col_order63]
+
+rm(list = c("table_6_3", "col_order63", "remove3", "newtable6.3"))
+```
+
+
+
+
+
+Table 6.4
+
+Table Extraction
+
+
+
+
+```{r}
+
+table6.4.1 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 74))
+table6.4.2 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 75))
+table6.4.3 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 76))
+table6.4.4 <- as.data.frame(extract_tables('chemical_exposure_children_danishepa.pdf', pages = 77))
+
+
+
+
+table6.4 <- rbind(table6.4.1, table6.4.2, table6.4.3, table6.4.4)
+
+newtable6.4 <- table6.4 %>% subset(X1 != "", select=X1)
+colnames(newtable6.4) <- "raw_chem_name"
+
+
+rm(list = c("table6.4.1", "table6.4.2", "table6.4.3", "table6.4.4", "table6.4"))
+
+
+```
+
+
+Table Manipulation
+```{r}
+
+remove <- c('Brominated substances', 'Chlorinated substances', 'Fluorinated substances', 'Metals', 'Hydrocarbons', 'Other substances', 'Pesticides', 'Phenols')
+newtable6.4<- newtable6.4[!grepl(paste(remove, collapse='|'), newtable6.4$raw_chem_name),]
+
+
+newtable6.4 <- subset(newtable6.4,nchar(newtable6.4)>=9)
+newtable6.4 <- newtable6.4[-c(1, 54, 76)]
+newtable6.4 <- newtable6.4
+
+category <- ifelse(grepl("med", newtable6.4), "medium", ifelse(grepl("high", newtable6.4), "high", "specific"))
+
+table6.4 <- data.frame(newtable6.4, category)
+
+colnames(table6.4) <- c("raw_chem_name", "category")
+
+table_collection6.4 <- split(table6.4, with(table6.4, interaction(category)), drop = TRUE)
+
+
+
+
+table_6.4_high <- table_collection6.4$high
+table_6.4_med <- table_collection6.4$medium
+table_6.4_specific <- table_collection6.4$specific
+
+table_6.4_high<- as.data.frame(str_split_fixed(table_6.4_high$raw_chem_name, ', high', 2))
+table_6.4_med<- as.data.frame(str_split_fixed(table_6.4_med$raw_chem_name, ', med', 2))
+table_6.4_specific<- as.data.frame(str_split_fixed(table_6.4_specific$raw_chem_name, ', spec', 2))
+
+  
+table_6.4 <- rbind(table_6.4_high, table_6.4_med, table_6.4_specific)
+
+tbl_6.4 <- as.data.frame(unique(table_6.4$V1))
+
+
+table_6_4 <-  tbl_6.4 %>% filter(!row_number() %in% c(33, 35))
+
+
+
+colnames(table_6_4) <- "raw_chem_name"
+table_6_4 <- as.data.frame(gsub("\\b(worst-|specific scenario|high)\\b", "", table_6_4$raw_chem_name))
+
+colnames(table_6_4) <- "raw_chem_name"
+
+view(table_6_4)
+
+rm(list = c("table_6.4_high", "table_6.4_med", "table_6.4_specific", "table_6.4", "table_collection6.4", "table6.4", "tbl_6.4", "remove"))
+
+```
+
+
+
+
+```{r}
+table_6_4 <- table_6_4 %>% mutate(data_document_id="1373536", data_document_filename="Exposure of Children Table 3.1.pdf", doc_date="April 2017", raw_category="", report_funcuse="", cat_code="", description_cpcat="", cpcat_code="", cpcat_sourcetype="ACToR Assays and Lists", component="", chem_detected_flag="", raw_cas = "")
+
+#reorder columns
+col_order64 <- c("data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name", "report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype", "component", "chem_detected_flag")
+child_exposure_64 <- table_6_4[,col_order64]
+
+
+rm(list = c("newtable6.4", "table_6_4"))
+```
+
+
+
+
+```{r}
+
+  
+#combining tables  
+combine_tables <- as.data.frame(rbind(child_exposure_425,child_exposure_61, child_exposure_62, child_exposure_63, child_exposure_64))
+rm(list = c("child_exposure_425", "child_exposure_61", "child_exposure_62", "child_exposure_63", "child_exposure_64"))
+
+child_exposure <- combine_tables %>% mutate(raw_chem_name = gsub("\\*", "", trimws(combine_tables$raw_chem_name)))
+
+write.csv(child_exposure, "C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Desktop/Extraction Scripts/chemical_exposure_children\\child_exposure.csv", row.names = FALSE)
+```
+
+
