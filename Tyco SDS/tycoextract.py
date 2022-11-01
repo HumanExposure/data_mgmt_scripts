@@ -32,11 +32,16 @@ def cleanLine(line):
 # %% Extract data from PDFs
 def extPDF(filePath, manus):    
     batches = pathPDFs(filePath)
-    extDF = makeExtDF(filePath)
-    scraped = [*set(extDF['data_document_filename'])]
-    dls = [pdf.split('\\')[1] for batch in batches for pdf in batch]
-    numunext = len(list(set(dls)-set(scraped)))
-    print(f'{numunext} PDFs not extracted')
+    extracted = []
+    
+    try:
+        csvs = glob(filePath + '*extraction.csv')
+    except: print('No extracted data.')
+    
+    for csv in csvs:
+        extbatch = pd.read_csv(csv, header = None)
+        extbatch = extbatch.T.values.tolist()
+        extracted.extend(set(extbatch[0]))
     
     for i, batch in enumerate(batches):
         pdfs = batch
@@ -45,6 +50,7 @@ def extPDF(filePath, manus):
         
         fnames = []
         prodnames = []
+        suppliers = []
         recuses = []
         dates = []
         versions = []
@@ -57,142 +63,99 @@ def extPDF(filePath, manus):
         maxs = []
         
         startTime = datetime.now()
-        try:
-            for pdf in pdfs:
-                if pdf.split('\\')[-1] in scraped:
-                    continue
-                else:
-                    fname = pdf.split('\\')[-1]
-                    
-                    text = list(filter(None, extract_text(pdf).split('\n')))
-                    
-                    prodname = ''
-                    recuse = ''
-                    date = ''
-                    version = ''
-                    
-                    for i, line in enumerate(text):
-                        if 'product name ' in cleanLine(line) and prodname == '':
-                            prodname = cleanLine(line.split('name ')[1])
-                        if 'recommended use' == cleanLine(line):
-                            recuse = cleanLine(text[i+2]).strip('.')
-                        if 'revision date' in cleanLine(line) and date == '':
-                            date = cleanLine(line.split('Revision date')[1])
-                        if 'version' in cleanLine(line) and version == '':
-                            version = line.split(' ')[-1]
-                    
-                    dfs = tb.read_pdf(pdf, pages='all', silent=True)
-                    compchems = []
-                    addchems = []
-                    addcass = []
-                    extrachems = []
-                    for df in dfs:
-                        if 'weight-%' in list(df.columns):    
-                            chem = ''
-                            cas = ''
-                            comp = ''
-                            low = ''
-                            cent = ''
-                            high = ''
-                            for index, row in df.iterrows():
-                                chem = str(row[0])
-                                cas = str(row[1])
-                                comp = str(row[2])
-                                
-                                # if the cas is nan, it is a continuation and we need to clean up the chemical name and continue
-                                if 'nan' in str(cas):
-                                    chems[-1] = chems[-1] + ', ' + chem
-                                    chem = ''
-                                elif 'nan' in comp: #if comp is nan
-                                    low = ''
-                                    high = ''
-                                    cent = ''
-                                elif '-' in comp: #if a range of weight%, assign min and max
-                                    low = comp.split('-')[0].strip()
-                                    high = comp.split('-')[1].strip()
-                                    cent = ''
-                                else: #In the event there is not a range given
-                                    cent = comp.strip()
-                                    low = ''
-                                    high = ''
-                                
-                                compchems.append(cleanLine(chem))
-                                
-                                if chem != '':
-                                    fnames.append(fname)
-                                    chems.append(cleanLine(chem))
-                                    casnums.append(cleanLine(cas))
-                                    mins.append(cleanLine(low))
-                                    cents.append(cleanLine(cent))
-                                    maxs.append(cleanLine(high))
-                                
-                                    prodnames.append(prodname)
-                                    recuses.append(recuse)
-                                    dates.append(date)
-                                    versions.append(version)
-                        else:                
-                            chem = ''
-                            cas = ''
-                            low = ''
-                            cent = ''
-                            high = ''
-                            
-                            cent = ''
-                            low = ''
-                            high = ''
-                            rawchems = df.loc[:, df.columns.str.contains('Chemical name')]
-                            if rawchems.size > 0:
-                                extrachem = rawchems[rawchems.columns[0]].values.tolist()
-                                extrachem = map(str, extrachem)
-                                extrachems.extend(extrachem)
-                            extrachems = [x for x in extrachems if x != 'nan']
-                        
-                            for index, row in enumerate(extrachems):
-                                if row.count('-') == 2 and bool(re.search('[a-zA-Z]', row)) == False: #Check if a row is probably a CAS number
-                                    addchem = cleanLine(extrachems[index - 1])
-                                    addcas = cleanLine(extrachems[index])
-                                    if addchem not in compchems and addchem not in addchems:
-                                        addchems.append(addchem) 
-                                        addcass.append(addcas)
-        
-                        if len(extrachems) > 0 and len(addchems) == 0:
-                            #if the script found extra chemicals but none were extracted
-                            for c in extrachems:
-                                if ' - ' in c:
-                                    addchem = cleanLine(c.split(' - ')[0])
-                                    addcas = cleanLine(c.split(' - ')[1])
-                                    addchems.append(addchem) 
-                                    addcass.append(addcas)
-
-                    for i, c in enumerate(addchems):
-                        fnames.append(fname)
-                        chems.append(c)
-                        casnums.append(addcass[i])
-                        mins.append(cleanLine(low))
-                        cents.append(cleanLine(cent))
-                        maxs.append(cleanLine(high))
-                    
-                        prodnames.append(prodname)
-                        recuses.append(recuse)
-                        dates.append(date)
-                        versions.append(version)
-                    
-                    if len(compchems) + len(addchems) == 0: #no chemicals extracted
-                        fnames.append(fname)
-                        chems.append('')
-                        casnums.append('')
-                        mins.append('')
-                        cents.append('')
-                        maxs.append('')
-                    
-                        prodnames.append(prodname)
-                        recuses.append(recuse)
-                        dates.append(date)
-                        versions.append(version)
-        
-        except BaseException as err:
-            print(f'Error extracting {fname}\nUnexpected {err=}, {type(err)=}\n\n')
+        for pdf in pdfs:
+            if pdf.split('\\')[-1] in extracted:
+                continue
+            else:
+                fname = pdf.split('\\')[-1]
+                # print(f'Beginning {fname} extraction...')
                 
+                text = list(filter(None, extract_text(pdf).split('\n')))
+                
+                prodname = ''
+                recuse = ''
+                date = ''
+                version = ''
+                supplier = ''
+                chem = ''
+            
+                for i, line in enumerate(text):
+                    if 'product name ' in cleanLine(line) and prodname == '':
+                        prodname = cleanLine(line.split('name ')[1])
+                    if 'recommended use' == cleanLine(line):
+                        recuse = cleanLine(text[i+2]).strip('.')
+                    if 'revision date' in cleanLine(line) and date == '':
+                        date = cleanLine(line.split('Revision date')[1])
+                    if 'version' in cleanLine(line) and version == '':
+                        version = line.split(' ')[-1]
+                    for j, manufacturer in enumerate(manus):
+                        if manufacturer in cleanLine(line) and supplier == '':
+                            supplier = manus[j]
+                
+                dfs = tb.read_pdf(pdf, pages='all', silent=True)
+                compchems = []
+                # addchems = []
+                # addcass = []
+                # extrachems = []
+                for df in dfs:
+                    if 'weight-%' in list(df.columns):    
+                        chem = ''
+                        cas = ''
+                        comp = ''
+                        low = ''
+                        cent = ''
+                        high = ''
+                        for index, row in df.iterrows():
+                            chem = str(row[0])
+                            cas = str(row[1])
+                            comp = str(row[2])
+                            
+                            # if the cas is nan, it is a continuation and we need to clean up the chemical name and continue
+                            if 'nan' in str(cas):
+                                chems[-1] = chems[-1] + ', ' + chem
+                                chem = ''
+                            elif 'nan' in comp: #if comp is nan
+                                low = ''
+                                high = ''
+                                cent = ''
+                            elif '-' in comp: #if a range of weight%, assign min and max
+                                low = comp.split('-')[0].strip()
+                                high = comp.split('-')[1].strip()
+                                cent = ''
+                            else: #In the event there is not a range given
+                                cent = comp.strip()
+                                low = ''
+                                high = ''
+                            
+                            compchems.append(cleanLine(chem))
+                            
+                            if chem != '':
+                                fnames.append(fname)
+                                chems.append(cleanLine(chem))
+                                casnums.append(cleanLine(cas))
+                                mins.append(cleanLine(low))
+                                cents.append(cleanLine(cent))
+                                maxs.append(cleanLine(high))
+                            
+                                prodnames.append(prodname)
+                                suppliers.append(supplier)
+                                recuses.append(recuse)
+                                dates.append(date)
+                                versions.append(version)
+            if chem == '':
+                fnames.append(fname)
+                chems.append('')
+                casnums.append('')
+                mins.append('')
+                cents.append('')
+                maxs.append('')
+            
+                prodnames.append(prodname)
+                suppliers.append(supplier)
+                recuses.append(recuse)
+                dates.append(date)
+                versions.append(version)
+                        
         # Create the ranks
         ranks = []
         names = []
@@ -214,7 +177,7 @@ def extPDF(filePath, manus):
                               'doc_date':dates, 'rev_num':versions, 'ingredient_rank':ranks, 
                               'raw_chem_name':chems, 'raw_cas':casnums, 'raw_min_comp':mins, 
                               'raw_central_comp':cents, 'raw_max_comp':maxs, 'raw_category':['']*len(chems), 
-                              'unit_type':['3']*len(chems)})
+                              'unit_type':['3']*len(chems), 'suppliers':suppliers})
         
         N = batch[0].rsplit('/', 1)[1].rsplit('\\', 1)[0].split('pdfs')[1]
         if len(N) < 2:
@@ -224,6 +187,7 @@ def extPDF(filePath, manus):
             extDFbatch.to_csv(filePath + N + '_tyco_extraction.csv', mode = 'a', index=False, header=False)
         except:
             extDFbatch.to_csv(filePath + N + '_tyco_extraction.csv', index=False, header=True)
+
 # %% Split PDF folders
 def splitPDFs():
     # -*- coding: utf-8 -*-
@@ -261,67 +225,6 @@ def splitPDFs():
         newPath = newFolder + '\\' + pdf
         copyfile(oldPath,newPath)
         
-# %% Go back and extract suppliers
-def manuEXT(filePath, manus):    
-    batches = pathPDFs(filePath)
-    manuDFraw = pd.DataFrame()
-
-    csvs = glob(filePath + '*suppliers.csv')
-    if len(csvs) == 0: 
-        print('No extracted data.')
-        scraped = []
-    else:
-        for csv in csvs:
-            manuDFadd = pd.read_csv(csv)
-            manuDFraw = pd.concat([manuDFraw, manuDFadd])
-        scraped = [*set(manuDFraw['data_document_filename'])]
-        dls = [pdf.split('\\')[1] for batch in batches for pdf in batch]
-        numunext = len(list(set(dls)-set(scraped)))
-        print(f'{numunext} PDFs not extracted')
-    
-    for i, batch in enumerate(batches):
-        pdfs = batch
-        batchName = batch[0].rsplit('/', 1)[1].split('\\')[0]
-        print(f'Beginning {batchName} supplier extraction...')
-        
-        fnames = []
-        suppliers = []
-        
-        startTime = datetime.now()
-        try:
-            for pdf in pdfs:
-                if pdf.split('\\')[-1] in scraped:
-                    continue
-                else:
-                    fname = pdf.split('\\')[-1]
-                    
-                    text = list(filter(None, extract_text(pdf).split('\n')))
-                    
-                    supplier = ''
-                    
-                    for i, line in enumerate(text):
-                        for j, manufacturer in enumerate(manus):
-                            if manufacturer in cleanLine(line) and supplier == '':
-                                supplier = manus[j]
-                suppliers.append(supplier)
-                fnames.append(fname)
-        
-        except BaseException as err:
-            print(f'Error extracting {fname}\nUnexpected {err=}, {type(err)=}\n\n')
-        
-        endTime = datetime.now()
-        print('Extraction time: ', endTime - startTime)
-
-        N = batch[0].rsplit('/', 1)[1].rsplit('\\', 1)[0].split('pdfs')[1]
-        if len(N) < 2:
-            N = '0' + N
-
-        manuDFbatch = pd.DataFrame({'data_document_filename':fnames, 'suppliers':suppliers})
-        manuCSV = filePath + N + '_tyco_suppliers.csv'
-        
-        if len(fnames) != 0:
-            manuDFbatch.to_csv(manuCSV, index=False, header=True)
-
 # %% Get list of PDFs, split into batches
 def pathPDFs(filePath):
     pdfsPath = filePath + 'pdfs/'
@@ -346,25 +249,35 @@ def makeExtDF(filePath):
     except: print('No extracted data.')
     
     for csv in csvs:
-        extDFadd = pd.read_csv(csv)
-        extDFraw = pd.concat([extDFraw, extDFadd])
-    
-    dates = pd.to_datetime([date.split(' ')[0] for date in list(extDFraw['doc_date'])], format='%d-%b-%Y')
-    extDFraw['datesort'] = dates
+        extDFadd = pd.read_csv(csv, names=['data_document_id', 'data_document_filename', 
+                                           'prod_name', 'report_funcuse', 'component', 
+                                           'doc_date', 'rev_num', 'ingredient_rank', 
+                                           'raw_chem_name', 'raw_cas', 'raw_min_comp', 
+                                           'raw_central_comp', 'raw_max_comp', 
+                                           'raw_category', 'unit_type', 'suppliers'])
+        extDFraw = pd.concat([extDFraw, extDFadd], ignore_index=True)
+
     extDFraw = extDFraw.fillna('')
     extDFraw = cleanComp(extDFraw)
     
     mask = extDFraw['data_document_filename'].str.contains('TEEX-500P.pdf')
     extDFraw.loc[mask, 'prod_name'] = 'thunderstorm teex-500' #manual fix for missing title
     
-    rridDF = pd.read_csv(filePath + 'tyco_fire_protection_products_thewercs_sds_registered_documents.csv')
-    file2id = dict(zip(rridDF['filename'], rridDF['DataDocument_id']))
+    # rename product names to include unique parts number
+    extDFraw['prod_name'] = extDFraw['prod_name'] + ' (' + extDFraw['data_document_id'].str.strip('.pdf') + ')'
     
-    extDFraw['data_document_id'] = extDFraw.data_document_id.replace(file2id)
+    # drop any extra rows with blank chemicals
+    extDFraw.drop(extDFraw.loc[(extDFraw['raw_chem_name'] == '' ) & (extDFraw['ingredient_rank'] != 1 )].index, inplace=True)
+    extDFraw = extDFraw.reset_index(drop = True)
     
-    extDFraw['data_document_id'] = extDFraw['data_document_id'].apply(str)
-    mask = extDFraw['data_document_id'].str.contains('.pdf')
-    extDF = extDFraw[~mask]
+    try:
+        rridDF = pd.read_csv(filePath + 'tyco_fire_protection_products_thewercs_sds_registered_documents.csv')
+        file2id = dict(zip(rridDF['filename'], rridDF['DataDocument_id']))
+    
+        extDFraw['data_document_id'] = extDFraw.data_document_id.replace(file2id)
+    except: print('Documents not yet registered.')
+
+    extDF = extDFraw.drop(['suppliers'], axis=1)
     
     extDF.to_csv(filePath + 'tyco_extracted-text.csv',index=False, header=True)
     
@@ -375,18 +288,15 @@ def makeRrDF(filePath):
     extDF = makeExtDF(filePath)
     doctype = ['SD'] * len(extDF['data_document_filename'])
     urls = ['https://tycosds.thewercs.com/external/private/search.aspx'] * len(extDF['data_document_filename'])
-    org = ['tyco fire protection products'] * len(extDF['data_document_filename'])
     blanks = [''] * len(extDF['data_document_filename'])
     
     rrDF = pd.DataFrame({'filename':extDF['data_document_filename'], 'title':extDF['prod_name'], 
-                          'document_type':doctype, 'url':urls, 'organization':org, 
+                          'document_type':doctype, 'url':urls, 'organization':extDF['suppliers'], 
                           'subtitle':blanks, 'epa_reg_number':blanks, 'pmid':blanks, 
-                          'hero_id':blanks, 'doc_date':extDF['datesort']})
+                          'hero_id':blanks})
     
-    
-    rrDF = rrDF.sort_values('doc_date').drop_duplicates('title', keep='last').drop_duplicates().reset_index(drop=True)
-    rrDF.drop('doc_date', axis=1, inplace=True)
     rrDF['title'] = rrDF['title'].apply(cleanLine)
+    rrDF = rrDF.drop_duplicates().reset_index(drop=True)
     rrDF.to_csv(filePath + 'tyco-registered-records.csv', index=False, header=True)
     
     return rrDF
@@ -449,54 +359,6 @@ def cleanComp(extDF):
     
     return splitDF
 
-# %% Collect PDFs associated with extracted text for upload
-def collectPDFs(filePath):
-    batches = pathPDFs(filePath)
-
-    rrDF = makeRrDF(filePath)
-    filenames = set(rrDF['filename'])
-    usedPDFs = []
-
-    for i, batch in enumerate(batches):
-        pdfs = batch
-        for pdf in pdfs:
-            if pdf.split('\\')[-1] in filenames:
-                usedPDFs.append(pdf)
-
-    """
-    Created on Mon Jul 29 08:49:52 2019
-    @author: ALarger
-    Splits folder of pdfs into multiple folders with 600 pdfs each to be uploaded to factotum
-    
-    Slightly modified
-    """
-    
-    import os
-    from shutil import copyfile
-    
-    path = r'C:/Users/mhorton/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/TycoSDS/pdfs/'
-    os.chdir(path)
-    pdfs = usedPDFs
-    
-    i = 0
-    j = 0
-    for pdf in pdfs:
-        if j%600 == 0:
-            i += 1
-            if len(str(i)) < 2:
-                newFolder = path + 'usedPDFs0' + str(i)
-            else:
-                newFolder = path + 'usedPDFs' + str(i)
-            try:
-                os.mkdir(newFolder)
-            except:
-                print(f'{newFolder} already exists.')
-                pass
-        j += 1
-        oldPath = pdf
-        newPath = newFolder + '\\' + pdf.split('\\')[-1]
-        copyfile(oldPath,newPath)
-        
 # %%
 def main():
     filePath = r'C:/Users/mhorton/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/TycoSDS/'
@@ -508,9 +370,8 @@ def main():
     splitPDFs()
     
     extPDF(filePath, manus) #scrape unextracted PDFs
-    manuEXT(filePath, manus) #extract manufacturers
+    makeExtDF(filePath)
     makeRrDF(filePath)
-    prodDf(filePath)
-    collectPDFs(filePath)
+    # prodDf(filePath)
 
 if __name__ == "__main__": main()
