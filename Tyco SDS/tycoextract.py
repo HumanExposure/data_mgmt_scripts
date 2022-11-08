@@ -260,6 +260,10 @@ def makeExtDF(filePath):
     extDFraw = extDFraw.fillna('')
     extDFraw = cleanComp(extDFraw)
     
+    #fix accidental transposition of raw_category and report_funcuse
+    extDFraw['raw_category'] = extDFraw['report_funcuse']
+    extDFraw['report_funcuse'] = ''
+    
     mask = extDFraw['data_document_filename'].str.contains('TEEX-500P.pdf')
     extDFraw.loc[mask, 'prod_name'] = 'thunderstorm teex-500' #manual fix for missing title
     
@@ -278,6 +282,15 @@ def makeExtDF(filePath):
     except: print('Documents not yet registered.')
 
     extDF = extDFraw.drop(['suppliers'], axis=1)
+    
+    # convert all values to strings and clean up unwanted decimals from unwanted floats
+    columns = list(extDF.columns)
+    for column in columns: # Clean up data types and unintentional floats
+        extDF[column] = extDF[column].astype(str)
+    
+    cleanups = ['rev_num','raw_min_comp', 'raw_central_comp', 'raw_max_comp']
+    for column in cleanups:
+        extDF[column] = extDF[column].apply(lambda x: x.split('.0')[0])
     
     extDF.to_csv(filePath + 'tyco_extracted-text.csv',index=False, header=True)
     
@@ -303,7 +316,7 @@ def makeRrDF(filePath):
 
 # %% Product Data CSV
 def prodDf(filePath):
-    productsDF = pd.read_csv(filePath + 'product_csv_template_932.csv')
+    productsDF = pd.read_csv(filePath + 'product_csv_template_934.csv')
     blanks = [''] * len(productsDF['data_document_filename'])
     urls = ['https://tycosds.thewercs.com/external/private/search.aspx'] * len(productsDF['data_document_filename'])
 
@@ -315,29 +328,33 @@ def prodDf(filePath):
                                 'item_id':blanks, 'parent_item_id':blanks, 'short_description':blanks, 
                                 'long_description':blanks, 'epa_reg_number':blanks, 
                                 'thumb_image':blanks, 'medium_image':blanks, 'large_image':blanks, 
-                                'model_number':blanks, 'manufacturer':productsDF['data_document_filename'], 
+                                'model_number':productsDF['data_document_filename'], 
+                                'manufacturer':productsDF['data_document_filename'], 
                                 'image_name':blanks})
     
     rrDF = pd.read_csv(filePath + 'tyco_fire_protection_products_thewercs_sds_registered_documents.csv')
     file2title = dict(zip(rrDF['filename'], rrDF['title']))
-    
-    manuDF = pd.DataFrame()
-    try:
-        csvs = glob(filePath + '*suppliers.csv')
-    except: print('No extracted data.')
-    
-    for csv in csvs:
-        manuDFadd = pd.read_csv(csv)
-        manuDF = pd.concat([manuDF, manuDFadd])
-    
-    file2manu = dict(zip(manuDF['data_document_filename'], manuDF['suppliers']))
+    file2manu = dict(zip(rrDF['filename'], rrDF['organization']))
     
     productsDF['title'] = productsDF.title.replace(file2title)
     productsDF['manufacturer'] = productsDF.manufacturer.replace(file2manu)
+    productsDF['model_number'] = productsDF['model_number'].str.strip('.pdf')
     
     productsDF = productsDF.drop_duplicates().reset_index(drop=True)
     
-    productsDF.to_csv(filePath + 'tyco_products.csv',index=False, header=True)
+    prodDFs = []
+    for i in range(len(productsDF)):
+        if i % 300 == 0:
+            prodDFs.append(productsDF[i:i+300])
+    
+    fname = 1
+    for df in prodDFs:
+        if len(str(fname)) == 1:
+            df.to_csv(filePath + 'tyco_products_' + '0' + str(fname) + '.csv',index=False, header=True)
+            fname += 1
+        else:
+            df.to_csv(filePath + 'tyco_products_' + str(fname) + '.csv',index=False, header=True)
+            fname += 1
 
 # %% 
 def cleanComp(extDF):
@@ -372,6 +389,7 @@ def main():
     extPDF(filePath, manus) #scrape unextracted PDFs
     makeExtDF(filePath)
     makeRrDF(filePath)
-    # prodDf(filePath)
+    prodDf(filePath)
 
+# %%
 if __name__ == "__main__": main()
