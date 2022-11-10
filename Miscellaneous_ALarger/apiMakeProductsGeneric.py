@@ -6,6 +6,7 @@ Created on Tue Jul 28 16:20:16 2020
 
 This script reads in a CSV of product data and folder of corresponding product images, and creates products through the Factotum API
 To run, you must have a Factotum login
+Make sure all product images have been resized to 180x180 before running
 """
 
 import json
@@ -17,14 +18,14 @@ import os
 
 
 #Edit this section to reflect the folders and file names being used for this group
-picFolder = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/EWG Pics/Healthy Cleaning Pics' #Folder pictures are in
-folder = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/EWG Pics/Healthy Cleaning Pics' #Folder the csv with product info is in
-file = 'ewg cleaning create products.csv' #Name of file with product data
+picFolder = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Big D/Big D New' #Folder pictures are in
+folder = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Big D/Big D New' #Folder the csv with product info is in
+file = 'big d webpage create products.csv' #Name of file with product data
 
 
 os.chdir(folder)
 logging.basicConfig(filename='logfile.log',level=logging.INFO)
-server_url = "https://api.factotum.epa.gov/"
+server_url = "https://ccte-api-factotum.epa.gov/"
 
 
 #Get auth token
@@ -35,8 +36,10 @@ response = requests.post(server_url+'token/', headers={'Content-Type': 'applicat
 token = "Bearer "+json.loads(response.text)['token']
 
 
-#This reads the column headers from the product csv, creates a json for each row, and sends the json to the Factotum API. If you use different column headers than what's on the product csv template in Factotum, then change the name in the brackets after df.loc[n] to reflect the column name. If the csv doesn't have a particular field, comment that line out
-df = pd.read_csv(file).fillna('')
+#This reads the column headers from the product csv, creates a json for each row, and sends the json to the Factotum API. 
+#If you use different column headers than what's on the product csv template in Factotum, then change the name in the brackets after df.loc[n] to reflect the column name. 
+#If the csv doesn't have a particular field, comment that line out
+df = pd.read_csv(file, dtype=str).fillna('')
 for n in range(0,len(df)): 
     ddid = df.loc[n]['data_document_id']
     attributes = {}
