@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Sep 29 11:51:52 2022
+Updated: 11/15/2022
 
 @author: CLUTZ01
 """
@@ -135,7 +136,7 @@ table_2_df['raw_cas'] = table_2_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_2_df)):
-    table_2_df["raw_chem_name"].iloc[j]=str(table_2_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
+    table_2_df["raw_chem_name"].iloc[j]=str(table_2_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_2_df["raw_chem_name"].iloc[j]=clean(str(table_2_df["raw_chem_name"].iloc[j]))
 
 
@@ -192,7 +193,7 @@ table_3_df['raw_cas'] = table_3_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_3_df)):
-    table_3_df["raw_chem_name"].iloc[j]=str(table_3_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
+    table_3_df["raw_chem_name"].iloc[j]=str(table_3_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_3_df["raw_chem_name"].iloc[j]=clean(str(table_3_df["raw_chem_name"].iloc[j]))
 
 
@@ -248,7 +249,7 @@ table_4_df['raw_cas'] = table_4_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_4_df)):
-    table_4_df["raw_chem_name"].iloc[j]=str(table_4_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
+    table_4_df["raw_chem_name"].iloc[j]=str(table_4_df["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_4_df["raw_chem_name"].iloc[j]=clean(str(table_4_df["raw_chem_name"].iloc[j]))
 
 
@@ -279,60 +280,53 @@ table_4_df.to_csv("pest_residue_table_4.csv", columns=["data_document_id","data_
 #####Tolerance Exemptions Food Contact surfaces
 
 
-tables5=tabula.read_pdf("tolerances&exemptions for pesticide chemical residues in food_c.pdf", pages="406-413", lattice=True, multiple_tables=True, pandas_options={'header': None})
+tables5=tabula.read_pdf("tolerances&exemptions for pesticide chemical residues in food_c.pdf", pages="413-423", lattice=True, multiple_tables=True, pandas_options={'header': None})
+table_5_prelim=pd.concat([tables5[1],tables5[2],tables5[3], tables5[4], tables5[5],tables5[6],tables5[7],tables5[8],tables5[9],tables5[10],tables5[11],tables5[12],tables5[13]], ignore_index=True)
+table_5_prelim=table_5_prelim.iloc[:,[0,1]]
+table_5_prelim.columns = ['raw_chem_name', 'raw_cas']
+table_5=table_5_prelim.drop_duplicates(['raw_chem_name'])
+table_5=table_5.dropna(subset=["raw_chem_name"])
+
+table_5=table_5[table_5["raw_chem_name"].str.contains("Pesticide Chemical")==False]
 
 
-table_5=pd.concat([tables5[1],tables5[2],tables5[3], tables5[4], tables5[5],tables5[6],tables5[7],tables5[8]], ignore_index=True)
-
-table_5=table_5.iloc[:,[0,2]]
-table_5.columns = ['chem_w_cas', 'report_funcuse']
-table_5_split= table_5['chem_w_cas'].str.split("\(CAS", expand=True)
-
-
-
-table_5_df = pd.concat([table_5,table_5_split], axis=1)
-table_5_df = table_5_df.iloc[:, [2,3,1]]
-table_5_df.columns = ['raw_chem_name','raw_cas', 'report_funcuse']
-
-table_5_df=table_5_df.dropna(subset=["raw_chem_name"])
-
-
-
-To_remove_lst_5 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "\.", "s"]
-table_5_df['raw_cas'] = table_5_df['raw_cas'].str.replace('|'.join(To_remove_lst_5), '')
-table_5_df['raw_cas'] = table_5_df['raw_cas'].str.strip()
 
 
 
 
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
-for j in range(0, len(table_5_df)):
-    table_5_df["raw_chem_name"].iloc[j]=str(table_5_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
-    table_5_df["raw_chem_name"].iloc[j]=clean(str(table_5_df["raw_chem_name"].iloc[j]))
+for j in range(0, len(table_5)):
+    table_5["raw_chem_name"].iloc[j]=str(table_5["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
+    table_5["raw_chem_name"].iloc[j]=clean(str(table_5["raw_chem_name"].iloc[j]))
 
 
 
-table_5_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_5_df['raw_cas'] = table_5_df["raw_cas"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_5_df["raw_cas"]))
-
-table_5_df['report_funcuse'] = table_5_df['report_funcuse'].str.replace('Do.', '')
-
-i5 = table_5_df[((table_5_df.raw_chem_name == 'inert ingredients'))].index
-table_5_df = table_5_df.drop(i5)
+table_5.raw_cas.fillna(value=np.nan, inplace=True)
+table_5['raw_chem_name'] = table_5["raw_chem_name"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_chem_name"]))
 
 
 
-table_5_df["data_document_id"]="1656895"
-table_5_df["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_f.pdf"
-table_5_df["doc_date"]="1/30/2019"
-table_5_df["raw_category"]=""
-table_5_df["cat_code"]=""
-table_5_df["description_cpcat"]=""
-table_5_df["cpcat_code"]=""
-table_5_df["cpcat_sourcetype"]="ACToR Assays and Lists"
+To_remove_lst_5 = ["Reg.", "reg\.","CAS", "None","No\.", "no\.","\(" ,"\)", "No", "Nos", ":", "\.", "s"]
+table_5['raw_cas'] = table_5['raw_cas'].str.replace('|'.join(To_remove_lst_5), '')
+table_5['raw_cas'] = table_5['raw_cas'].str.strip()
 
-table_5_df.to_csv("pest_residue_table_5.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
+table_5 = table_5.replace('None','', regex=True)
+table_5 = table_5.replace('None','', regex=True)
+
+
+
+table_5["data_document_id"]="1656895"
+table_5["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_f.pdf"
+table_5["doc_date"]="1/30/2019"
+table_5["raw_category"]=""
+table_5["cat_code"]=""
+table_5["report_funcuse"]=""
+table_5["description_cpcat"]=""
+table_5["cpcat_code"]=""
+table_5["cpcat_sourcetype"]="ACToR Assays and Lists"
+
+table_5.to_csv("pest_residue_table_5.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 ##Tolerance Exemptions for minimal risk active and inert ingredients
@@ -360,7 +354,7 @@ table_6_df['raw_cas'] = table_6_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_6_df)):
-    table_6_df["raw_chem_name"].iloc[j]=str(table_6_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
+    table_6_df["raw_chem_name"].iloc[j]=str(table_6_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_6_df["raw_chem_name"].iloc[j]=clean(str(table_6_df["raw_chem_name"].iloc[j]))
 
 
@@ -409,7 +403,7 @@ table_7_df['raw_cas'] = table_7_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_7_df)):
-    table_7_df["raw_chem_name"].iloc[j]=str(table_7_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha")
+    table_7_df["raw_chem_name"].iloc[j]=str(table_7_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_7_df["raw_chem_name"].iloc[j]=clean(str(table_7_df["raw_chem_name"].iloc[j]))
 
 
