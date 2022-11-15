@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Sep 29 11:51:52 2022
-Updated: 11/15/2022
 
 @author: CLUTZ01
 """
@@ -46,6 +45,7 @@ table_1.dropna(subset=['raw_chem_name'], inplace=True)
 table_1 = table_1[table_1["raw_chem_name"].str.contains("reserved") == False]
 
 
+table_1['raw_chem_name'] = table_1["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_1["raw_chem_name"]))
 
 
 table_1["data_document_id"]="1646890"
@@ -88,6 +88,9 @@ table_d['raw_chem_name'].replace('', np.nan, inplace=True)
 table_d.dropna(subset=['raw_chem_name'], inplace=True)
 
 table_d = table_d.drop(index=[2,3,4,5,6,7,9,10,11])
+
+table_d['raw_chem_name'] = table_d["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_d["raw_chem_name"]))
+
 
 table_d["data_document_id"]="1646891"
 table_d["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_b.pdf"
@@ -141,7 +144,10 @@ for j in range(0, len(table_2_df)):
 
 
 table_2_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_2_df['raw_cas'] = table_2_df["raw_cas"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+
+table_2_df['raw_chem_name'] = table_2_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
+table_2_df['raw_cas'] = table_2_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+
 
 table_2_df['report_funcuse'] = table_2_df['report_funcuse'].str.replace('Do.', '')
 
@@ -198,7 +204,9 @@ for j in range(0, len(table_3_df)):
 
 
 table_3_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_3_df['raw_cas'] = table_3_df["raw_cas"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+
+table_3_df['raw_chem_name'] = table_3_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
+table_3_df['raw_cas'] = table_3_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
 
 table_3_df['report_funcuse'] = table_3_df['report_funcuse'].str.replace('Do.', '')
 
@@ -255,7 +263,9 @@ for j in range(0, len(table_4_df)):
 
 
 table_4_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_4_df['raw_cas'] = table_4_df["raw_cas"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+table_4_df['raw_chem_name'] = table_4_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
+table_4_df['raw_cas'] = table_4_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+
 
 table_4_df['report_funcuse'] = table_4_df['report_funcuse'].str.replace('Do.', '')
 
@@ -303,8 +313,8 @@ for j in range(0, len(table_5)):
 
 
 table_5.raw_cas.fillna(value=np.nan, inplace=True)
-table_5['raw_chem_name'] = table_5["raw_chem_name"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_chem_name"]))
-
+table_5['raw_chem_name'] = table_5["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_chem_name"]))
+table_5['raw_cas'] = table_5["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_cas"]))
 
 
 To_remove_lst_5 = ["Reg.", "reg\.","CAS", "None","No\.", "no\.","\(" ,"\)", "No", "Nos", ":", "\.", "s"]
@@ -316,7 +326,7 @@ table_5 = table_5.replace('None','', regex=True)
 
 
 
-table_5["data_document_id"]="1656895"
+table_5["data_document_id"]="1646895"
 table_5["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_f.pdf"
 table_5["doc_date"]="1/30/2019"
 table_5["raw_category"]=""
@@ -360,6 +370,8 @@ for j in range(0, len(table_6_df)):
 
 
 table_6_df.raw_cas.fillna(value=np.nan, inplace=True)
+
+table_6_df['raw_chem_name'] = table_6_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_6_df["raw_chem_name"]))
 
 
 i6 = table_6_df[((table_6_df.raw_chem_name == 'chemical'))].index
@@ -409,15 +421,15 @@ for j in range(0, len(table_7_df)):
 
 
 table_7_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_7_df['raw_chem_name'] = table_7_df["raw_chem_name"].apply(lambda x: str(x[0:97]) + "..." if len(str(x)) > 100 else x, list(table_7_df["raw_chem_name"]))
-
+table_7_df['raw_chem_name'] = table_7_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_7_df["raw_chem_name"]))
+table_7_df['raw_cas'] = table_7_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_7_df["raw_cas"]))
 
 i7 = table_7_df[((table_7_df.raw_chem_name == 'CAS No.'))].index
 table_7_df = table_7_df.drop(i7)
 
 
 
-table_7_df["data_document_id"]="1676897"
+table_7_df["data_document_id"]="1646897"
 table_7_df["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_h.pdf"
 table_7_df["doc_date"]="1/30/2019"
 table_7_df["raw_category"]=""
@@ -443,7 +455,7 @@ files = glob.glob(files)
 pest_residue_df = pd.concat(map(pd.read_csv, files), ignore_index=True)
 
 
-pest_residue_df.to_csv("pest_residue_tables.csv")
+pest_residue_df.to_csv("pest_residue_tables44.csv", index=False)
 
 
 
