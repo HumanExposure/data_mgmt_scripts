@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 29 11:51:52 2022
+Updated 12/2/2022
 
 @author: CLUTZ01
 """
@@ -48,6 +48,11 @@ table_1 = table_1[table_1["raw_chem_name"].str.contains("reserved") == False]
 table_1['raw_chem_name'] = table_1["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_1["raw_chem_name"]))
 
 
+
+To_remove_lst1 = [", tolerance for residues.", "tolerance for residues."]
+table_1['raw_chem_name'] = table_1['raw_chem_name'].str.replace('|'.join(To_remove_lst1), '')
+table_1['raw_chem_name'] = table_1['raw_chem_name'].str.strip()
+
 table_1["data_document_id"]="1646890"
 table_1["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_a.pdf"
 table_1["doc_date"]="1/30/2019"
@@ -65,6 +70,8 @@ table_1.to_csv("pest_residue_table_1.csv", columns=["data_document_id","data_doc
 
 
 #Subpart D
+
+#execpath = r"C:\Users\CLUTZ01\xpdf-tools-win-4.04\bin64\pdftotext.exe"
 
 filed ='tolerances&exemptions for pesticide chemical residues in food_a.pdf'
 cmd_d = " ".join([execpath,"-margint 30", "-marginb 30","-layout","-f 8", "-l 12",'"'+filed+'"'])
@@ -92,6 +99,11 @@ table_d = table_d.drop(index=[2,3,4,5,6,7,9,10,11])
 table_d['raw_chem_name'] = table_d["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_d["raw_chem_name"]))
 
 
+
+To_remove_lstd = [", tolerance for residues.", " tolerance for residues.", ", exemption from the requirement of a tolerance.", ", exemption of","from the requirement of a tolerance." ]
+table_d['raw_chem_name'] = table_d['raw_chem_name'].str.replace('|'.join(To_remove_lstd), '')
+table_d['raw_chem_name'] = table_d['raw_chem_name'].str.strip()
+
 table_d["data_document_id"]="1646891"
 table_d["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_b.pdf"
 table_d["doc_date"]="1/30/2019"
@@ -116,9 +128,12 @@ tables2=tabula.read_pdf("tolerances&exemptions for pesticide chemical residues i
 
 table_2=pd.concat([tables2[0], tables2[1],tables2[2],tables2[3], tables2[4], tables2[5],tables2[6],tables2[7], tables2[8], tables2[9],tables2[10],tables2[11]], ignore_index=True)
 
+
+
+
 table_2=table_2.iloc[:,[0,2]]
 table_2.columns = ['chem_w_cas', 'report_funcuse']
-table_2_split= table_2['chem_w_cas'].str.split("\(CAS", expand=True)
+table_2_split= table_2['chem_w_cas'].str.split("\(CAS|\(Cas", expand=True)
 
 
 
@@ -129,23 +144,18 @@ table_2_df.columns = ['raw_chem_name','raw_cas', 'report_funcuse']
 table_2_df=table_2_df.dropna(subset=["raw_chem_name"])
 
 
-
-To_remove_lst = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "\.", "s"]
-table_2_df['raw_cas'] = table_2_df['raw_cas'].str.replace('|'.join(To_remove_lst), '')
+To_remove_lst2 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "Nos\.", "Nos", ":", "s"]
+table_2_df['raw_cas'] = table_2_df['raw_cas'].str.replace('|'.join(To_remove_lst2), '')
 table_2_df['raw_cas'] = table_2_df['raw_cas'].str.strip()
 
-
-
-
-clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
+#clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_2_df)):
-    table_2_df["raw_chem_name"].iloc[j]=str(table_2_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
-    table_2_df["raw_chem_name"].iloc[j]=clean(str(table_2_df["raw_chem_name"].iloc[j]))
+    table_2_df["raw_chem_name"].iloc[j]=str(table_2_df["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
+   # table_2_df["raw_chem_name"].iloc[j]=clean(str(table_2_df["raw_chem_name"].iloc[j]))
 
 
 table_2_df.raw_cas.fillna(value=np.nan, inplace=True)
 
-table_2_df['raw_chem_name'] = table_2_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
 table_2_df['raw_cas'] = table_2_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
 
 
@@ -190,30 +200,28 @@ table_3_df=table_3_df.dropna(subset=["raw_chem_name"])
 
 
 
-To_remove_lst_3 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "\.", "s"]
+To_remove_lst_3 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "s"]
 table_3_df['raw_cas'] = table_3_df['raw_cas'].str.replace('|'.join(To_remove_lst_3), '')
 table_3_df['raw_cas'] = table_3_df['raw_cas'].str.strip()
 
 
 
 
-clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_3_df)):
-    table_3_df["raw_chem_name"].iloc[j]=str(table_3_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
-    table_3_df["raw_chem_name"].iloc[j]=clean(str(table_3_df["raw_chem_name"].iloc[j]))
+    table_3_df["raw_chem_name"].iloc[j]=str(table_3_df["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
 
 
 table_3_df.raw_cas.fillna(value=np.nan, inplace=True)
 
-table_3_df['raw_chem_name'] = table_3_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
-table_3_df['raw_cas'] = table_3_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
+
+table_3_df['raw_cas'] = table_3_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_3_df["raw_cas"]))
 
 table_3_df['report_funcuse'] = table_3_df['report_funcuse'].str.replace('Do.', '')
 
 i3 = table_3_df[((table_3_df.raw_chem_name == 'inert ingredients'))].index
 table_3_df = table_3_df.drop(i3)
 
-
+table_3_df['raw_cas'] = table_3_df['raw_cas'].str.replace(r'\. ', '', regex=True)
 
 table_3_df["data_document_id"]="1646893"
 table_3_df["data_document_filename"]="tolerances&exemptions for pesticide chemical residues in food_d.pdf"
@@ -248,7 +256,7 @@ table_4_df=table_4_df.dropna(subset=["raw_chem_name"])
 
 
 
-To_remove_lst_4 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "\.", "s"]
+To_remove_lst_4 = ["Reg.", "reg\.", "No\.", "no\.", "\)", "No", "Nos", ":", "s"]
 table_4_df['raw_cas'] = table_4_df['raw_cas'].str.replace('|'.join(To_remove_lst_4), '')
 table_4_df['raw_cas'] = table_4_df['raw_cas'].str.strip()
 
@@ -263,7 +271,6 @@ for j in range(0, len(table_4_df)):
 
 
 table_4_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_4_df['raw_chem_name'] = table_4_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_chem_name"]))
 table_4_df['raw_cas'] = table_4_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_2_df["raw_cas"]))
 
 
@@ -305,19 +312,18 @@ table_5=table_5[table_5["raw_chem_name"].str.contains("Pesticide Chemical")==Fal
 
 
 
-clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
+#clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_5)):
-    table_5["raw_chem_name"].iloc[j]=str(table_5["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
-    table_5["raw_chem_name"].iloc[j]=clean(str(table_5["raw_chem_name"].iloc[j]))
+    table_5["raw_chem_name"].iloc[j]=str(table_5["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
+   #table_5["raw_chem_name"].iloc[j]=clean(str(table_5["raw_chem_name"].iloc[j]))
 
 
 
 table_5.raw_cas.fillna(value=np.nan, inplace=True)
-table_5['raw_chem_name'] = table_5["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_chem_name"]))
 table_5['raw_cas'] = table_5["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_5["raw_cas"]))
 
 
-To_remove_lst_5 = ["Reg.", "reg\.","CAS", "None","No\.", "no\.","\(" ,"\)", "No", "Nos", ":", "\.", "s"]
+To_remove_lst_5 = ["Reg.", "reg\.","CAS", "None","No\.", "no\.","\(" ,"\)", "No", "Nos", ":", "s"]
 table_5['raw_cas'] = table_5['raw_cas'].str.replace('|'.join(To_remove_lst_5), '')
 table_5['raw_cas'] = table_5['raw_cas'].str.strip()
 
@@ -364,14 +370,13 @@ table_6_df['raw_cas'] = table_6_df['raw_cas'].str.strip()
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_6_df)):
-    table_6_df["raw_chem_name"].iloc[j]=str(table_6_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
+    table_6_df["raw_chem_name"].iloc[j]=str(table_6_df["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
     table_6_df["raw_chem_name"].iloc[j]=clean(str(table_6_df["raw_chem_name"].iloc[j]))
 
 
 
 table_6_df.raw_cas.fillna(value=np.nan, inplace=True)
 
-table_6_df['raw_chem_name'] = table_6_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_6_df["raw_chem_name"]))
 
 
 i6 = table_6_df[((table_6_df.raw_chem_name == 'chemical'))].index
@@ -413,15 +418,14 @@ table_7_df['raw_cas'] = table_7_df['raw_cas'].str.strip()
 
 
 
-clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
+#clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(table_7_df)):
-    table_7_df["raw_chem_name"].iloc[j]=str(table_7_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
-    table_7_df["raw_chem_name"].iloc[j]=clean(str(table_7_df["raw_chem_name"].iloc[j]))
+    table_7_df["raw_chem_name"].iloc[j]=str(table_7_df["raw_chem_name"].iloc[j]).strip().lower().replace("α","alpha").replace("ω","omega").replace("β","beta").replace("γ","gamma")
+   #table_7_df["raw_chem_name"].iloc[j]=clean(str(table_7_df["raw_chem_name"].iloc[j]))
 
 
 
 table_7_df.raw_cas.fillna(value=np.nan, inplace=True)
-table_7_df['raw_chem_name'] = table_7_df["raw_chem_name"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_7_df["raw_chem_name"]))
 table_7_df['raw_cas'] = table_7_df["raw_cas"].apply(lambda x: str(x[0:96]) + "..." if len(str(x)) > 100 else x, list(table_7_df["raw_cas"]))
 
 i7 = table_7_df[((table_7_df.raw_chem_name == 'CAS No.'))].index
@@ -455,7 +459,7 @@ files = glob.glob(files)
 pest_residue_df = pd.concat(map(pd.read_csv, files), ignore_index=True)
 
 
-pest_residue_df.to_csv("pest_residue_tables44.csv", index=False)
+pest_residue_df.to_csv("pest_residue_tables.csv", index=False)
 
 
 
