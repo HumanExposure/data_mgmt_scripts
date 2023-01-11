@@ -472,24 +472,25 @@ def extCSV(extPDFs):
         ranks.extend([*range(1,(fnames.count(name)+1))])
     
     extDF = pd.DataFrame({'data_document_id':fnames, 'data_document_filename':fnames, 
-                          'prod_name':prodnames, 'report_funcuse':recuses, 'component':['']*len(chems), 
-                          'doc_date':dates, 'rev_num':['']*len(chems), 'ingredient_rank':ranks, 
-                          'raw_chem_name':chems, 'raw_cas':casnums, 'raw_min_comp':mins, 
-                          'raw_central_comp':cents, 'raw_max_comp':maxs, 'raw_category':['']*len(chems), 
-                          'unit_type':['3']*len(chems), 'suppliers':['anti-seize technology']*len(chems)})
+                          'prod_name':prodnames, 'report_funcuse':['']*len(chems), 
+                          'component':['']*len(chems), 'doc_date':dates, 'rev_num':['']*len(chems), 
+                          'ingredient_rank':ranks, 'raw_chem_name':chems, 'raw_cas':casnums, 
+                          'raw_min_comp':mins, 'raw_central_comp':cents, 'raw_max_comp':maxs, 
+                          'raw_category':recuses, 'unit_type':['3']*len(chems), 
+                          'suppliers':['anti-seize technology']*len(chems)})
     
     # some final cleanups
     i = extDF[extDF['raw_chem_name'] == 'nan'].index
     extDF.drop(i, inplace = True)
+    extDF = extDF.fillna('')
     
-    extDF.to_csv(filePath + 'antiseize_extraction.csv', mode = 'a', index=False, header=False)
     return extDF
 
 # %% Create full Extracted Text CSV
 def makeExtCSV(filePath, extDF): 
     
     try:
-        rridDF = pd.read_csv(filePath + 'tyco_fire_protection_products_thewercs_sds_registered_documents.csv')
+        rridDF = pd.read_csv(filePath + 'anti-seize_technologies_registered_documents.csv')
         file2id = dict(zip(rridDF['filename'], rridDF['DataDocument_id']))
     
         extDF['data_document_id'] = extDF.data_document_id.replace(file2id)
@@ -504,8 +505,6 @@ def makeExtCSV(filePath, extDF):
     
     extDF.to_csv(filePath + 'antiseize_extracted-text.csv',index=False, header=True)
     
-    return extDF
-
 # %% Registered Record CSV
 def rrCSV(filePath, extDF):
     doctype = ['SD'] * len(extDF['data_document_filename'])
@@ -520,12 +519,10 @@ def rrCSV(filePath, extDF):
     rrDF['title'] = rrDF['title'].apply(cleanLine)
     rrDF = rrDF.drop_duplicates().reset_index(drop=True)
     rrDF.to_csv(filePath + 'antiseize-registered-records.csv', index=False, header=True)
-    
-    return rrDF
 
 # %% Product Data CSV
-def prodDf(filePath):
-    productsDF = pd.read_csv(filePath + 'product_csv_template_934.csv')
+def prodCSV(filePath):
+    productsDF = pd.read_csv(filePath + 'product_csv_template_938.csv')
     blanks = [''] * len(productsDF['data_document_filename'])
     urls = ['https://www.antiseize.com/alphabetically-msds'] * len(productsDF['data_document_filename'])
 
@@ -537,33 +534,17 @@ def prodDf(filePath):
                                 'item_id':blanks, 'parent_item_id':blanks, 'short_description':blanks, 
                                 'long_description':blanks, 'epa_reg_number':blanks, 
                                 'thumb_image':blanks, 'medium_image':blanks, 'large_image':blanks, 
-                                'model_number':productsDF['data_document_filename'], 
-                                'manufacturer':productsDF['data_document_filename'], 
+                                'model_number':blanks, 'manufacturer':productsDF['data_document_filename'], 
                                 'image_name':blanks})
     
-    rrDF = pd.read_csv(filePath + 'tyco_fire_protection_products_thewercs_sds_registered_documents.csv')
+    rrDF = pd.read_csv(filePath + 'anti-seize_technologies_registered_documents.csv')
     file2title = dict(zip(rrDF['filename'], rrDF['title']))
     file2manu = dict(zip(rrDF['filename'], rrDF['organization']))
     
     productsDF['title'] = productsDF.title.replace(file2title)
     productsDF['manufacturer'] = productsDF.manufacturer.replace(file2manu)
-    productsDF['model_number'] = productsDF['model_number'].str.strip('.pdf')
     
-    productsDF = productsDF.drop_duplicates().reset_index(drop=True)
-    
-    prodDFs = []
-    for i in range(len(productsDF)):
-        if i % 300 == 0:
-            prodDFs.append(productsDF[i:i+300])
-    
-    fname = 1
-    for df in prodDFs:
-        if len(str(fname)) == 1:
-            df.to_csv(filePath + 'tyco_products_' + '0' + str(fname) + '.csv',index=False, header=True)
-            fname += 1
-        else:
-            df.to_csv(filePath + 'tyco_products_' + str(fname) + '.csv',index=False, header=True)
-            fname += 1
+    productsDF.to_csv(filePath + 'antiseize-products.csv', index=False, header=True)
 
 # %% 
 def cleanComp(extDF):
@@ -586,7 +567,7 @@ def cleanComp(extDF):
     return splitDF
 
 # %%
-# def main():
+def main():
 filePath = r'C:/Users/mhorton/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/AntiSeize/'
 
 startTime = datetime.now()
@@ -595,10 +576,10 @@ extPDFs = extPDF(filePath) #scrape unextracted PDFs
 extDF = extCSV(extPDFs)
 makeExtCSV(filePath, extDF)
 rrCSV(filePath, extDF)
-# prodCSV(filePath)
+prodCSV(filePath)
 
 endTime = datetime.now()
 print('Time: ', endTime - startTime)
 
 # %%
-# if __name__ == "__main__": main()
+if __name__ == "__main__": main()
