@@ -8,9 +8,7 @@ Created on Tue Dec 13 17:21:23 2022
 import os, string, csv, re
 import pandas as pd
 from glob import glob
-import PyPDF2
 from pikepdf import Pdf
-import camelot
 
 
 def pdfToText(files):
