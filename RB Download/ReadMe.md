@@ -1,4 +1,4 @@
-## rbUrls.py.
+## rbUrls.py
 Goes through the brands page on RB's website to collect product page urls and the brands associated with them. 
 Written in Python 3.7
 
