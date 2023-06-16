@@ -335,8 +335,8 @@ files = glob.glob(files)
 
 
 # joining files with concat and read_csv
-pest_residue_df = pd.concat(map(pd.read_csv, files), ignore_index=True)
+teeth_whitening_df = pd.concat(map(pd.read_csv, files), ignore_index=True)
 
 
-pest_residue_df.to_csv("teeth_whitening_ext.csv", index=False)
+teeth_whitening_df.to_csv("teeth_whitening_ext.csv", index=False)
 
