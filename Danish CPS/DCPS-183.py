@@ -244,7 +244,7 @@ table_26_raw = read_pdf(file, pages = '61', lattice = True, pandas_options={'hea
 
 #extraction and clean up
 
-table_26=table_26_raw[0]
+table_26=table_26_raw[1]
 table_26 = table_26.iloc[0,2:]
 
 table_26 = table_26.to_frame().reset_index(drop = True)
@@ -260,7 +260,7 @@ for j in range(0, len(table_26)):
 
 
 
-#Repeating values declaration 
+#Repeating values declaration
 table_26["data_document_id"]="1671703"
 table_26["data_document_filename"]="endocrine_disruptors_table_26.pdf"
 table_26["doc_date"]="December 2020"
