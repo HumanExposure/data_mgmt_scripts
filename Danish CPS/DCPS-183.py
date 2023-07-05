@@ -66,10 +66,9 @@ for j in range(0, len(table_8)):
 
 
 #Repeating values declaration 
-table_8["data_document_id"]="1670804"
+table_8["data_document_id"]="1671699"
 table_8["data_document_filename"]="endocrine_disruptors_table_8.pdf"
 table_8["doc_date"]="December 2020"
-table_8["component"]=""
 table_8["raw_category"]=""
 table_8["report_funcuse"]=""
 table_8["cat_code"]=""
@@ -79,7 +78,7 @@ table_8["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_8.to_csv("endocrine_disruptors_8.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_8.to_csv("endocrine_disruptors_8.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 # %% Table 9
@@ -108,10 +107,9 @@ for j in range(0, len(table_9)):
 
 
 #Repeating values declaration 
-table_9["data_document_id"]="1670804"
+table_9["data_document_id"]="1671700"
 table_9["data_document_filename"]="endocrine_disruptors_table_9.pdf"
 table_9["doc_date"]="December 2020"
-table_9["component"]=""
 table_9["raw_category"]=""
 table_9["report_funcuse"]=""
 table_9["cat_code"]=""
@@ -121,7 +119,7 @@ table_9["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_9.to_csv("endocrine_disruptors_9.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_9.to_csv("endocrine_disruptors_9.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 # %% Table 10
@@ -187,10 +185,9 @@ for j in range(0, len(table_10)):
 
 
 #Repeating values declaration 
-table_10["data_document_id"]="1670804"
+table_10["data_document_id"]="1671701"
 table_10["data_document_filename"]="endocrine_disruptors_table_10.pdf"
 table_10["doc_date"]="December 2020"
-table_10["component"]=""
 table_10["raw_category"]=""
 table_10["report_funcuse"]=""
 table_10["cat_code"]=""
@@ -200,7 +197,7 @@ table_10["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_10.to_csv("endocrine_disruptors_10.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_10.to_csv("endocrine_disruptors_10.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 # %% Table 24
@@ -226,10 +223,9 @@ for j in range(0, len(table_24)):
 
 
 #Repeating values declaration 
-table_24["data_document_id"]="1670804"
+table_24["data_document_id"]="1671702"
 table_24["data_document_filename"]="endocrine_disruptors_table_24.pdf"
 table_24["doc_date"]="December 2020"
-table_24["component"]=""
 table_24["raw_cas"]=""
 table_24["raw_category"]=""
 table_24["report_funcuse"]=""
@@ -240,7 +236,7 @@ table_24["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_24.to_csv("endocrine_disruptors_24.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_24.to_csv("endocrine_disruptors_24.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 # %% Table 26
 table_26_raw = read_pdf(file, pages = '61', lattice = True, pandas_options={'header': None})
@@ -265,10 +261,9 @@ for j in range(0, len(table_26)):
 
 
 #Repeating values declaration 
-table_26["data_document_id"]="1670804"
+table_26["data_document_id"]="1671703"
 table_26["data_document_filename"]="endocrine_disruptors_table_26.pdf"
 table_26["doc_date"]="December 2020"
-table_26["component"]=""
 table_26["raw_cas"]=""
 table_26["raw_category"]=""
 table_26["report_funcuse"]=""
@@ -279,11 +274,11 @@ table_26["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_26.to_csv("endocrine_disruptors_26.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_26.to_csv("endocrine_disruptors_26.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 
-# %% Table 26
+# %% Table 27
 table_27_raw = read_pdf(file, pages = '62', lattice = True, pandas_options={'header': None})
 
 
@@ -306,10 +301,9 @@ for j in range(0, len(table_27)):
 
 
 #Repeating values declaration 
-table_27["data_document_id"]="1670804"
+table_27["data_document_id"]="1671704"
 table_27["data_document_filename"]="endocrine_disruptors_table_27.pdf"
 table_27["doc_date"]="December 2020"
-table_27["component"]=""
 table_27["raw_cas"]=""
 table_27["raw_category"]=""
 table_27["report_funcuse"]=""
@@ -320,7 +314,7 @@ table_27["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 #download as csv
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Extraction Scripts\DCPS - Endocrine Disruptors\csvs')
-table_27.to_csv("endocrine_disruptors_27.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
+table_27.to_csv("endocrine_disruptors_27.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype"], index=False)
 
 
 
