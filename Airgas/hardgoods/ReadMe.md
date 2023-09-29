@@ -1,4 +1,4 @@
-This script is the generic extraction script (https://github.com/HumanExposure/data_mgmt_scripts/tree/master/generic_script/scripts), with a few edits 
+This script is the generic extraction script ([https://github.com/HumanExposure/data_mgmt_scripts/tree/master/generic_script/scripts](https://github.com/HumanExposure/data_mgmt_scripts/tree/master/generic_script)), with a few edits 
 
 Changes made:
 
