@@ -216,6 +216,10 @@ def extract_data(file_list):
       
         for c in range(0,len(chemName)): #clean up concentrations and names
             chemName[c] = re.sub(' +', ' ', chemName[c])
+            if 'tm' in chemName[c]: #Remove trademarks and check to see if it messes up the name
+                print(chemName[c])
+                chemName[c]=chemName[c].replace('tm','')
+                print(chemName[c])
             minC.append('')
             maxC.append('')
             # use.append('')
@@ -236,6 +240,10 @@ def extract_data(file_list):
         n = len(chemName)
         idList.extend([ID]*n)
         filenameList.extend([file.replace('_new.txt','.pdf')]*n)
+        if 'tm' in prodname: #Remove trademarks and check to see if it messes up the name
+            print(prodname)
+            prodname = prodname.replace('tm','')
+            print(prodname)
         prodnameList.extend([prodname]*n)
         dateList.extend([date]*n)
         revList.extend([rev]*n)
