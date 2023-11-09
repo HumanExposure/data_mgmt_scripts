@@ -2,4 +2,6 @@
 
 **resizePics.py** takes in a folder of images and resizes them to 180x180 so they will be the appropriate size to upload to Factotum. If the images aren't square, white space will be added to the sizes to make them square. Python 3.7
 
+**split_csvs_maintain_ids.py** splits an extracted text csv into multiple smaller csvs while keeping all rows with the same Factotum ID number in the same csv
+
 **split_pdf_folders.py** takes a folder of pdfs and makes subfolders with 600 pdfs in each folder, so that they can be uploaded to Factotum 
