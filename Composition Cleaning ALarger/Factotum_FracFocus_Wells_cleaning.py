@@ -43,7 +43,7 @@ for row in template:
             lowerList.append('')
             centList.append((pd.to_numeric(row[5])/100).round(10))
             upperList.append('')
-            if centList[-1] > 1 or centList[-1] < 0: #Check if wf makes sense
+            if centList[-1] > 1 or centList[-1] <= 0: #Check if wf makes sense
                 print('concentration out of range:',row)
                 del idList[-1]
                 del lowerList[-1]
