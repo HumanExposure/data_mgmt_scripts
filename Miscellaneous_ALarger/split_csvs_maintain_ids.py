@@ -4,7 +4,6 @@ import pandas as pd
 
 path = r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Airgas/Mixed/' #Path file is in
 f = 'airgas mixed extracted text.csv' #File name to be split
-nCsvs = 10 #Number of csvs you want to split the file into 
 
 os.chdir(path)
 
