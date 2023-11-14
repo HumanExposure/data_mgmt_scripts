@@ -29,7 +29,7 @@ def cleanLine(line):
     
     """
     # clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
-    cline = line.replace('–','-').replace('≤','<=')
+    cline = line.replace('–','-').replace('≤','<=').replace('®','')
     cline = cline.lower()
     # cline = re.sub(' +', ' ', cline)
     cline = cline.strip()
