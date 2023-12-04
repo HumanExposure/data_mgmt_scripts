@@ -34,6 +34,7 @@ for j in range(0,len(table_2)):
     txt=str(table_2.loc[j,"report_funcuse"])
     txt2 = txt.split(' ')[0]
     table_2.loc[j,"report_funcuse"]=txt2
+table_2.drop_duplicates('raw_chem_name',inplace=True)
 table_2.loc[8,"report_funcuse"]="Herbicide"
 table_2.loc[10,"report_funcuse"]="Biocontrol agent"
 table_2.loc[12,"report_funcuse"]="germicidal cleaner"
@@ -102,6 +103,7 @@ table_3["raw_chem_name"]=table_3.iloc[:,1]
 table_3=table_3.dropna(subset=["raw_chem_name"])
 for j in range(0, len(table_3)):
     table_3["raw_chem_name"].iloc[j]=str(table_3["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+table_3.drop_duplicates('raw_chem_name',inplace=True)
 table_3["data_document_id"]="1400359"
 table_3["data_document_filename"]="Arizona 2014 Pesticide Report Table 3.pdf"
 table_3["doc_date"]="2014"
@@ -154,6 +156,7 @@ while i < len(table_4):
 table_4=table_4.dropna(subset=["raw_chem_name"])
 for j in range(0, len(table_4)):
     table_4["raw_chem_name"].iloc[j]=str(table_4["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+table_4.drop_duplicates('raw_chem_name',inplace=True)
 table_4["data_document_id"]="1400360"
 table_4["data_document_filename"]="Arizona 2014 Pesticide Report Table 4.pdf"
 table_4["doc_date"]="2014"
@@ -200,6 +203,7 @@ for j in range(0,len(table_5)):
     txt3 = txt.split(' – ')[1]
     table_5.loc[j,"raw_min_comp"] = txt2
     table_5.loc[j,"raw_max_comp"] = txt3
+table_5.drop_duplicates('raw_chem_name',inplace=True)
 table_5["data_document_id"]="1400361"
 table_5["data_document_filename"]="Arizona 2014 Pesticide Report Table 5.pdf"
 table_5["doc_date"]="2014"
@@ -244,6 +248,7 @@ table_6.reset_index(drop=True,inplace=True)
 table_6["raw_chem_name"]=table_6["raw_chem_name"].replace(regex='\\r',value='')
 for j in range(0, len(table_6)):
     table_6["raw_chem_name"].iloc[j]=str(table_6["raw_chem_name"].iloc[j]).strip().lower()
+table_6.drop_duplicates('raw_chem_name',inplace=True)
 table_6["raw_cas"]=''
 table_6["report_funcuse"]=table_6.iloc[:,0]
 table_6["raw_central_comp"]=table_6.iloc[:,2]
@@ -297,6 +302,7 @@ table_7.drop([168],axis=0,inplace=True)
 table_7.reset_index(drop=True,inplace=True)
 for j in range(0, len(table_7)):
     table_7["raw_chem_name"].iloc[j]=str(table_7["raw_chem_name"].iloc[j]).strip().lower()
+table_7.drop_duplicates('raw_chem_name',inplace=True)
 table_7["raw_central_comp"]=table_7.iloc[:,2]
 table_7["raw_central_comp"]=table_7["raw_central_comp"].replace(regex=' ',value='')
 table_7["data_document_id"]="1400363"
@@ -312,4 +318,3 @@ table_7["chem_detected_flag"]=""
 table_7["author"]=""
 table_7["doi"]=""
 table_7.to_csv("Arizona 2014 Pesticides Annual Report Table 7.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","raw_central_comp","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse","component","chem_detected_flag","author","doi"], index=False)
-# %%
