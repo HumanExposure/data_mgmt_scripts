@@ -1,13 +1,13 @@
 #Michael Metcalf
 #10-24-2023
 #Imports
+#%%
 from tabula import read_pdf
 import pandas as pd
 import string
 import os
 import re
-os.chdir(r'C:\Users\mmetcalf')
-
+os.chdir(r'C:\Users\mmetcalf\Documents and Scripts\Arizona 2013')
 #Table 2
 #Reading table and removing empty rows/columns
 table_2=read_pdf("Arizona 2013 Pesticide Report Table 2.pdf", pages="4", lattice=False, pandas_options={'header': None})[0]
@@ -20,6 +20,7 @@ for j in range(0, len(table_2)):
     table_2["raw_chem_name"].iloc[j]=str(table_2["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
 #Asssigning required information for CSV format
 table_2.reset_index(inplace=True)
+table_2.drop_duplicates(inplace=True)
 table_2["data_document_id"]="1400352"
 table_2["data_document_filename"]="Arizona 2013 Pesticide Report Table 2.pdf"
 table_2["raw_cas"]=""
@@ -62,6 +63,7 @@ table_3["raw_chem_name"]=table_3.iloc[:,1]
 table_3=table_3.dropna(subset=["raw_chem_name"])
 for j in range(0, len(table_3)):
     table_3["raw_chem_name"].iloc[j]=str(table_3["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+table_3.drop_duplicates(inplace=True)
 table_3["data_document_id"]="1400353"
 table_3["data_document_filename"]="Arizona 2013 Pesticide Report Table 3.pdf"
 table_3["doc_date"]="2013"
@@ -90,6 +92,7 @@ table_4["raw_chem_name"]=table_4.iloc[:,1]
 table_4=table_4.dropna(subset=["raw_chem_name"])
 for j in range(0, len(table_4)):
     table_4["raw_chem_name"].iloc[j]=str(table_4["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+table_4.drop_duplicates(inplace=True)
 table_4["data_document_id"]="1400354"
 table_4["data_document_filename"]="Arizona 2013 Pesticide Report Table 4.pdf"
 table_4["doc_date"]="2013"
@@ -122,6 +125,7 @@ for j in range(0,len(table_5)):
     txt3 = txt.split(' – ')[1]
     table_5.loc[j,"raw_min_comp"] = txt2
     table_5.loc[j,"raw_max_comp"] = txt3
+table_5.drop_duplicates(inplace=True)
 table_5["data_document_id"]="1400355"
 table_5["data_document_filename"]="Arizona 2013 Pesticide Report Table 5.pdf"
 table_5["doc_date"]="2013"
@@ -155,6 +159,7 @@ table_6.reset_index(drop=True,inplace=True)
 table_6["raw_chem_name"]=table_6["raw_chem_name"].replace(regex='\\r',value='')
 for j in range(0, len(table_6)):
     table_6["raw_chem_name"].iloc[j]=str(table_6["raw_chem_name"].iloc[j]).strip().lower()
+table_6.drop_duplicates('raw_chem_name',inplace=True)
 table_6["raw_cas"]=''
 table_6["report_funcuse"]=table_6.iloc[:,0]
 table_6["raw_central_comp"]=table_6.iloc[:,2]
@@ -168,7 +173,6 @@ table_6["description_cpcat"]=""
 table_6["cpcat_code"]=""
 table_6["cpcat_sourcetype"]=""
 table_6.to_csv("Arizona 2013 Pesticides Annual Report Table 6.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","raw_central_comp","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","report_funcuse"], index=False)
-
 #Table 7
 i = 38
 table = []
@@ -201,6 +205,7 @@ table_7["raw_cas"]=''
 table_7.reset_index(drop=True,inplace=True)
 for j in range(0, len(table_7)):
     table_7["raw_chem_name"].iloc[j]=str(table_7["raw_chem_name"].iloc[j]).strip().lower()
+table_7.drop_duplicates('raw_chem_name',inplace=True)
 table_7["raw_central_comp"]=table_7.iloc[:,2]
 table_7["raw_central_comp"]=table_7["raw_central_comp"].replace(regex=' ',value='')
 table_7["data_document_id"]="1400357"
