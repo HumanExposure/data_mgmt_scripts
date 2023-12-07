@@ -65,3 +65,43 @@ table5["chem_detected_flag"]=""
 table5["author"]=""
 table5["doi"]=""
 table5.to_csv("UK_Pharm_Use_orig_b.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","component","chem_detected_flag","author","doi"], index=False)
+
+table6 = []
+i = 64
+while i < 79:
+    table6sub = read_pdf("0850.pdf", pages=i,stream=True, pandas_options={'header': None})[0]
+    table6sub.drop([0,1,2],axis=0,inplace=True)
+    table6sub.drop([1,2,3,4,5,7],axis=1,inplace=True)
+    table6.append(table6sub)
+    i = i + 1
+table6 = pd.concat(table6)
+table6.reset_index(drop=True,inplace=True)
+table6.drop([227],axis=0,inplace=True)
+table6.reset_index(drop=True,inplace=True)
+j = 0
+table6["raw_chem_name"] = table6.iloc[:,0]
+while j < len(table6):
+    if "Unknown" in table6.loc[j,"raw_chem_name"]:
+        table6.drop([j],axis=0,inplace=True)
+        table6.reset_index(drop=True,inplace=True)
+    else:
+        j = j + 1
+table6.drop_duplicates('raw_chem_name',inplace=True)
+table6.drop([0,6],axis=1,inplace=True)
+for j in range(0, len(table6)):
+     table6["raw_chem_name"].iloc[j]=str(table6["raw_chem_name"].iloc[j]).strip().lower()
+table6["data_document_id"]="1363532"
+table6["data_document_filename"]="0850.pdf"
+table6["doc_date"]="2007"
+table6["raw_category"]=""
+table6["raw_cas"] = ""
+table6["report_funcuse"] = ""
+table6["cat_code"]=""
+table6["description_cpcat"]=""
+table6["cpcat_code"]=""
+table6["cpcat_sourcetype"]=""
+table6["component"]=""
+table6["chem_detected_flag"]=""
+table6["author"]=""
+table6["doi"]=""
+table6.to_csv("0850.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","component","chem_detected_flag","author","doi"], index=False)
