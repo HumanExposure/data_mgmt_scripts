@@ -1,6 +1,5 @@
 #Michael Metcalf
 #12/14/2023
-#%%
 from tabula import read_pdf
 import pandas as pd
 import string
@@ -34,7 +33,7 @@ tableCGB["raw_max_comp"] = ""
 tableCGB.loc[0,"raw_max_comp"] = 25
 tableCGB.loc[1,"raw_max_comp"] = 75
 tableCGB.loc[2,"raw_max_comp"] = 70
-tableCGB["unit_type"] = "percent volume"
+tableCGB["unit_type"] = 14
 tableCGB["ingrediant_rank"] = ""
 tableCGB.loc[0,"ingrediant_rank"] = 1
 tableCGB.loc[1,"ingrediant_rank"] = 2
@@ -66,3 +65,44 @@ tableGWB["raw_chem_name"] = tableGWB.iloc[:,0]
 tableGWB=tableGWB.dropna(subset=["raw_chem_name"])
 for j in range(0, len(tableGWB)):
     tableGWB["raw_chem_name"].iloc[j]=str(tableGWB["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+tableGWB["report_funcuse"] = ""
+tableGWB["raw_min_comp"] = ""
+tableGWB.loc[0,"raw_min_comp"] = 2
+tableGWB.loc[1,"raw_min_comp"] = 1
+tableGWB["raw_max_comp"] = ""
+tableGWB.loc[0,"raw_max_comp"] = 8
+tableGWB.loc[1,"raw_max_comp"] = 5
+tableGWB["unit_type"] = 14
+tableGWB["ingrediant_rank"] = ""
+tableGWB.loc[0,"ingrediant_rank"] = 1
+tableGWB.loc[1,"ingrediant_rank"] = 2
+tableGWB.loc[2,"ingrediant_rank"] = 3
+tableGWB["raw_central_comp"] = ""
+tableGWB.loc[2,"raw_central_comp"] = "< 1"
+tableGWB["component"] = ""
+tableGWB.to_csv("Green's Water-Based.csv", columns=["data_document_id","data_document_filename","prod_name","doc_date","rev_num","raw_category","raw_cas","raw_chem_name","report_funcuse","raw_min_comp","raw_max_comp","unit_type","ingrediant_rank","raw_central_comp","component"], index=False)
+
+#Hydroperox
+tableH = tableGWB
+tableH.drop([0],axis=0,inplace=True)
+tableH.reset_index(drop=True,inplace=True)
+tableH["data_document_id"] = "1687047"
+tableH["data_document_filename"] = "Hydroperox3percentS.pdf"
+tableH["prod_name"] = "Hydrogen Peroxide 3%"
+tableH["doc_date"] = "November 1, 2013"
+tableH["raw_category"] = "disinfectant"
+tableH.loc[0,"raw_chem_name"] = "Water"
+tableH.loc[1,"raw_chem_name"] = "Hydrogen Peroxide"
+tableH.loc[0,"raw_cas"] = "7732-18-5"
+tableH.loc[1,"raw_cas"] = "7722-84-1"
+tableH["raw_min_comp"] = ""
+tableH["raw_max_comp"] = ""
+tableH["unit_type"] = 3
+tableH.loc[0,"raw_central_comp"] = 97
+tableH.loc[1,"raw_central_comp"] = 3
+tableH=tableH.dropna(subset=["raw_chem_name"])
+for j in range(0, len(tableH)):
+    tableH["raw_chem_name"].iloc[j]=str(tableH["raw_chem_name"].iloc[j]).strip().lower().replace("*","")
+tableH.loc[0,"ingrediant_rank"] = 1
+tableH.loc[1,"ingrediant_rank"] = 2
+tableH.to_csv("Hydroperox3percentS.csv", columns=["data_document_id","data_document_filename","prod_name","doc_date","rev_num","raw_category","raw_cas","raw_chem_name","report_funcuse","raw_min_comp","raw_max_comp","unit_type","ingrediant_rank","raw_central_comp","component"], index=False)
