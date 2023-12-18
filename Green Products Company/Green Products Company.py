@@ -106,3 +106,17 @@ for j in range(0, len(tableH)):
 tableH.loc[0,"ingrediant_rank"] = 1
 tableH.loc[1,"ingrediant_rank"] = 2
 tableH.to_csv("Hydroperox3percentS.csv", columns=["data_document_id","data_document_filename","prod_name","doc_date","rev_num","raw_category","raw_cas","raw_chem_name","report_funcuse","raw_min_comp","raw_max_comp","unit_type","ingrediant_rank","raw_central_comp","component"], index=False)
+
+#Super Tardus
+tableST = tableH
+tableST.drop([1],axis=0,inplace=True)
+tableST["data_document_id"] = "1687048"
+tableST["data_document_filename"] = "SuperTardus.pdf"
+tableST["prod_name"] = "Super-Tardus"
+tableST["doc_date"] = "November 1, 2013"
+tableST["raw_category"] = "concrete surface retarder"
+tableST["raw_cas"] = ""
+tableST["raw_chem_name"] = "Proprietary aqueous mixture"
+tableST["unit_type"] = ""
+tableST["raw_central_comp"] = ""
+tableST.to_csv("SuperTardus.csv", columns=["data_document_id","data_document_filename","prod_name","doc_date","rev_num","raw_category","raw_cas","raw_chem_name","report_funcuse","raw_min_comp","raw_max_comp","unit_type","ingrediant_rank","raw_central_comp","component"], index=False)
