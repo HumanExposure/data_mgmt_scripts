@@ -1,4 +1,5 @@
-#CSV was extracted using Tabula's web application
+#Michael Metcalf
+#12/14/2023
 from tabula import read_pdf
 import pandas as pd
 import string
