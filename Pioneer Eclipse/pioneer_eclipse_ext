@@ -1,0 +1,450 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 21 14:22:11 2023
+
+@author: CLUTZ01
+"""
+
+# %% imports
+
+import os, string, csv, re
+import pandas as pd
+import numpy as np
+
+
+
+from tabula import read_pdf
+
+
+from tqdm import tqdm
+from glob import glob
+
+
+
+# %% Definitions
+# %%% DEFINITION cleaning text
+def cleanLine(line):
+    """
+    Takes in a line of text and cleans it
+    removes non-ascii characters and excess spaces, and makes all characters lowercase
+    
+    """
+    clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
+    cline = line.replace('–','-').replace('≤','<=').replace('®', '').replace('â', '').replace('€“', '-')
+    cline = cline.lower()
+    cline = re.sub(' +', ' ', cline)
+    cline = cline.strip()
+    
+    return(cline)
+
+
+
+
+# %%% DEFINITION pdftotext
+
+def pdfToText(files):
+    """
+    Converts pdf files into text files
+    files: list of filenames
+    """
+    execfile = "pdftotext.exe"
+    execpath = r'C:\Users\CLUTZ01\xpdf-tools-win-4.04\bin64' #Path to execfile
+    for file in files:
+        pdf = '"'+file+'"'
+        cmd = os.path.join(execpath,execfile)
+        cmd = " ".join([cmd,"-nopgbrk","-table", "-enc UTF-8",pdf])
+        os.system(cmd)
+        
+    return
+
+    os.chdir(r'C:/Users/CLUTZ01/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Extraction Scripts/Eastman/pdfs')
+    remainder = glob('*.pdf')
+    
+    
+    pdfToText(remainder)
+
+# %%% DEFINITION findchars
+def findchars(stringx):
+    res = ""
+    # Nonetype = type(None)
+    # if isinstance(stringx, NoneType):
+    #     return False
+    for i in stringx:
+        if i.isalpha():
+            res = "".join([res, i])
+    return res
+
+
+
+# %%renaming files
+
+os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse')
+
+
+
+
+
+data = os.path.abspath("pdfs/")
+
+for i, f in enumerate(os.listdir(data)):
+    src = os.path.join(data, f)
+    dst = os.path.join(data, re.sub(r'^pdfs', '', str(f)))
+    os.rename(src, dst)
+    
+    
+# %% file set up
+os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse\pdfs')
+fileList = glob("*.pdf")
+
+
+
+# %% create txt files
+
+pdfToText(fileList)
+
+
+# %% find fields with no hazardous materials
+
+
+no_hazards = []
+for file in fileList:
+    ifile = open(file.replace('.pdf', '.txt'), encoding='utf-8')
+    text = ifile.read()
+    
+    
+    cleaned = text
+    cleaned = cleanLine(text)
+    cleaned = re.sub(' +', ' ', cleaned)
+    lines = cleaned.split('\n')
+    clean_lines = [x for x in lines if len(x) > 0]
+    
+    
+    for j in clean_lines:
+        if 'does not contain' in str(j):
+            print(str(j))
+            no_hazards.append(file)
+            
+hazardous_products = [i for i in fileList if i not in no_hazards]
+# %% dicts set up
+data_dict = {}
+not_sure = {}
+
+
+# %%extraction
+for file in tqdm(hazardous_products):
+    if file in data_dict.keys():
+        continue
+    
+    try:
+        raw_extraction=read_pdf(file, pages='all',lattice=True, multiple_tables=True, pandas_options={'header': None})
+    
+    
+        raw_list = []
+        for r in raw_extraction:
+            df = r.dropna(how = 'all', axis = 1)
+            df.reset_index(drop = True, inplace = True)
+            if df.shape[1] > 1:
+                raw_list.append(df)
+                break
+            
+        try:
+            data = raw_list[0]
+            data_dict[file] = data
+        except:
+            not_sure[file] = data
+
+    except Exception as e: 
+        print(e)
+        print(file)
+# %%% pickle it
+# %%%% saving
+import pickle
+os.chdir(r"C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse")
+with open('data_dict.pickle', 'wb') as handle:
+    pickle.dump(data_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+
+with open('data_dict.pickle', 'rb') as handle:
+    b = pickle.load(handle)
+# %%%% loading
+os.chdir(r"C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse")
+data_dict = pd.read_pickle(r'data_dict.pickle')
+    
+objects = []
+with (open("data_dict.pickle", "rb")) as openfile:
+    while True:
+        try:
+            objects.append(pickle.load(openfile))
+        except EOFError:
+            break
+    
+        
+# %% cleaning
+# =============================================================================
+# for k,v in tqdm(data_dict.items()):
+#     v.columns = v.iloc[0]
+#     new_v = v.iloc[1:,:]
+#     
+#     data_dict.update({k:new_v})
+#    
+# =============================================================================
+os.chdir(r"C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse\pdfs")
+new_dict = {}
+for k,v in tqdm(data_dict.items()):
+    v.columns = v.iloc[0]
+    new_v = v.iloc[1:,:]
+    new_v.columns = ['raw_chem_name', 'raw_cas', 'cent_c']
+    
+    new_v['min_c'] = np.NaN
+    new_v['max_c'] = np.NaN
+    for i,j in enumerate(new_v['cent_c']):
+        if "-" in str(j).lower():
+            split_pairs = str(j).split('-', 1)
+            new_v['min_c'].iloc[i] = split_pairs[0]
+            new_v['max_c'].iloc[i] = split_pairs[1]
+            new_v['cent_c'].iloc[i] = np.NaN
+            
+        else:
+            continue
+        
+    for i,j in enumerate(new_v['raw_cas']):
+        if re.search(r'\d+-\d\d-\d', str(j)):
+            continue
+        else:
+            new_v['raw_cas'].iloc[i] = np.NaN
+            
+    for i,j in enumerate(new_v['raw_chem_name']):
+        new_v['raw_chem_name'].iloc[i] = cleanLine(str(j))
+        
+    new_v['filename'] = k
+    new_dict[k] = new_v
+# %%    
+df_ls = []
+for k,v in new_dict.items():
+    df_ls.append(v)    
+    
+    
+all_dfs = pd.concat(df_ls)
+
+
+
+# %%
+
+
+dfs = []
+for k,v in tqdm(new_dict.items()):
+
+    prod_name = ''
+    date = ''
+    rev = ''
+    raw_cat = ''
+    id = ''
+    unit = ''
+    component = ''
+    
+    
+    
+    idList = [] #list of product IDs
+    filenameList = [] #list of file names matching those in the extacted text template
+    prodnameList = [] #list of product names
+    dateList = [] #list of msdsDates
+    revList = [] #list of revision numbers
+    catList = [] #list of product categories
+    unitList = []
+    
+    
+    # k = 'best_view_ammoniated_glass_cleaner.pdf'
+    # v = new_dict.get(k)
+    ifile = open(k.replace('.pdf', '.txt'), encoding='utf-8')
+    text = ifile.read()
+    
+    
+    cleaned = text
+    cleaned = cleanLine(text)
+    cleaned = re.sub(' +', ' ', cleaned)
+    lines = cleaned.split('\n')
+    clean_lines = [x for x in lines if len(x) > 0]
+
+    template = csv.reader(open(r"C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse\doc_records.csv"))
+    for row in template:
+        if row[6] == k:
+            id = row[0]
+    
+    #get product name
+    for l in clean_lines:
+        if 'product name:' in str(l):
+            product_name = str(l).split("product")
+            if len(product_name) == 3:
+                prod_name = product_name[1]
+            elif len(product_name) == 2:
+                prod_name = product_name[-1]
+            
+            if ":" in prod_name:
+                prod_name = prod_name.split(":", 1)[-1].strip()
+            else:
+                prod_name = prod_name.strip()
+            break
+        
+        
+    #get date
+    for l in clean_lines:
+        if "issued" in l:
+            date = str(l).split(":", 1)[-1].strip()
+            break
+            
+    
+    
+    
+    #get raw_cat
+    for l in lines:
+        if 'recommended use' in str(l):
+            raw_cat = str(l).split(':', 1)[-1].strip()
+            
+    print(raw_cat)
+
+   
+        
+        
+    n = len(v)
+    idList.extend([id]*n)
+    filenameList.extend([k]*n)
+    prodnameList.extend([prod_name]*n)
+    dateList.extend([date]*n)
+    revList.extend([rev]*n)
+    catList.extend([raw_cat]*n)
+    
+    
+    v['rank'] = np.NaN
+    for i,j in enumerate(v['raw_chem_name']):
+        v['rank'] = str(i + 1)
+    
+    v['unit'] = np.NaN
+    for i,j in enumerate(v['cent_c']):
+        if 'nan' in str(j) and 'nan' in str(v['min_c'].iloc[i]) and 'nan' in str(v['max_c'].iloc[i]):
+            continue
+        else:
+            v['unit'].iloc[i] = '3'
+            
+    
+    
+    
+    df=pd.DataFrame({'data_document_id':idList, 'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':v['raw_cas'], 'raw_chem_name':v['raw_chem_name'], 'raw_min_comp': v['min_c'], 'raw_max_comp': v['max_c'],'unit_type': v['unit'], 'ingredient_rank':v['rank'],'raw_central_comp':v['cent_c']}) #'raw_min_comp': minList, 'raw_max_comp':maxList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList, 'component':componentList})            
+    
+    print('yes')
+    
+    dfs.append(df)
+
+# %% no hazards
+for n in no_hazards:
+    print('#############')
+    print(n)
+    print('\n')
+    
+    
+    # n = pdfs_no_hazards[0]
+    prodname = ''
+    date = ''
+    rev = ''
+    cat = ''
+    id = ''
+    unit = ''
+    component = ''
+    min_C = np.NaN
+    max_C = np.NaN
+    rank = np.NaN
+    raw_chem_name = np.NaN
+    raw_cas = np.NaN
+    centC = np.NaN
+    
+    
+    #set up lists for document data
+    
+    idList = [] #list of product IDs
+    filenameList = [] #list of file names matching those in the extacted text template
+    prodnameList = [] #list of product names
+    dateList = [] #list of msdsDates
+    revList = [] #list of revision numbers
+    catList = [] #list of product categories
+    unitList = []
+    min_cList = []
+    max_cList = []
+    raw_chem_nameList = []
+    raw_casList = []
+    centCList = []
+    
+    
+    # k = 'best_view_ammoniated_glass_cleaner.pdf'
+    # v = new_dict.get(k)
+    ifile = open(n.replace('.pdf', '.txt'), encoding='utf-8')
+    text = ifile.read()
+    
+    
+    cleaned = text
+    cleaned = cleanLine(text)
+    cleaned = re.sub(' +', ' ', cleaned)
+    lines = cleaned.split('\n')
+    clean_lines = [x for x in lines if len(x) > 0]
+
+    template = csv.reader(open(r"C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Pioneer Eclipse\doc_records.csv"))
+    for row in template:
+        if row[6] == k:
+            id = row[0]
+    
+    #get product name
+    for l in clean_lines:
+        if 'product name:' in str(l):
+            product_name = str(l).split("product")
+            if len(product_name) == 3:
+                prod_name = product_name[1]
+            elif len(product_name) == 2:
+                prod_name = product_name[-1]
+            
+            if ":" in prod_name:
+                prod_name = prod_name.split(":", 1)[-1].strip()
+            else:
+                prod_name = prod_name.strip()
+            break
+        
+        
+    #get date
+    for l in clean_lines:
+        if "issued" in l:
+            date = str(l).split(":", 1)[-1].strip()
+            break
+            
+    
+    
+    
+    #get raw_cat
+    for l in lines:
+        if 'recommended use' in str(l):
+            raw_cat = str(l).split(':', 1)[-1].strip()
+            
+    print(raw_cat)
+
+            
+     #fill in repeated info
+    num = 1
+    idList.extend([id]*num)
+    filenameList.extend([n]*num)
+    prodnameList.extend([prodname]*num)
+    dateList.extend([date]*num)
+    revList.extend([rev]*num)
+    catList.extend([cat]*num)
+    min_cList.extend([min_C]*num)
+    max_cList.extend([max_C]*num)
+    raw_chem_nameList.extend([raw_chem_name]*num)
+    raw_casList.extend([raw_cas]*num)
+    centCList.extend([centC]*num)
+    unitList.extend([unit]*num)
+    
+    
+    #create rank and append new df to list of dfs
+    df=pd.DataFrame({'data_document_id':idList, 'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas': v['raw_cas'], 'raw_chem_name':v['raw_chem_name'],'raw_central_comp':v['cent_c'], 'raw_min_comp': v['min_c'], 'raw_max_comp': v['max_c'], 'rank': v['rank'], 'unit_type':unitList}) #'raw_min_comp': minList, 'raw_max_comp':maxList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList, 'component':componentList})            
+    df=pd.DataFrame({'data_document_id':idList, 'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':df['raw_cas'], 'raw_chem_name':df['raw_chem_name'], 'raw_min_comp': df['raw_min_comp'], 'raw_max_comp': df['raw_max_comp'],'unit_type': df['unit_type'], 'ingredient_rank':df['rank'],'raw_central_comp':df['raw_central_comp']}) #'raw_min_comp': minList, 'raw_max_comp':maxList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList, 'component':componentList})            
+    
+    dfs.append(df)
+    
+# %%
+extracted_dfs=pd.concat(dfs, axis=0, ignore_index=True)
