@@ -105,3 +105,47 @@ table6["chem_detected_flag"]=""
 table6["author"]=""
 table6["doi"]=""
 table6.to_csv("0850.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","component","chem_detected_flag","author","doi"], index=False)
+
+table = []
+i = 18
+while i < 39:
+    table.append(i)
+    i = i + 1
+table7 = read_pdf("UK_Cosmetics_Provisional_2004_Substance_b.pdf",pages=table, lattice=True, pandas_options={'header': None})
+table7 = pd.concat(table7,ignore_index=True)
+table7.drop([0,1],axis=0,inplace=True)
+table7.drop([2,3],axis=1,inplace=True)
+table7.reset_index(drop=True,inplace=True)
+table7.drop([769,798],axis=0,inplace=True)
+table7.reset_index(drop=True,inplace=True)
+
+table7.iloc[174,1] = str(table7.iloc[174,1]) + str(table7.iloc[175,1])
+table7.iloc[425,1] = str(table7.iloc[425,1]) + " " + str(table7.iloc[426,1])
+table7.iloc[469,1] = str(table7.iloc[469,1]) + " " + str(table7.iloc[470,1])
+table7.iloc[683,1] = str(table7.iloc[683,1]) + " " + str(table7.iloc[684,1])
+table7.iloc[770,1] = str(table7.iloc[770,1]) + " " + str(table7.iloc[771,1])
+table7.drop([175,426,470,684,771],axis=0,inplace=True)
+table7.reset_index(drop=True,inplace=True)
+table7.drop([768,796],axis=0,inplace=True)
+table7.reset_index(drop=True,inplace=True)
+table7.drop([0],axis=1,inplace=True)
+table7.reset_index(drop=True,inplace=True)
+table7["raw_chem_name"] = table7.iloc[:,0]
+for j in range(0, len(table7)):
+     table7["raw_chem_name"].iloc[j]=str(table7["raw_chem_name"].iloc[j]).strip().lower()
+table7.drop_duplicates(["raw_chem_name"])
+table7["data_document_id"]="1363531"
+table7["data_document_filename"]="UK_Cosmetics_Provisional_2004_Substance_b.pdf"
+table7["doc_date"]="2004"
+table7["raw_category"]=""
+table7["raw_cas"] = ""
+table7["report_funcuse"] = ""
+table7["cat_code"]=""
+table7["description_cpcat"]=""
+table7["cpcat_code"]=""
+table7["cpcat_sourcetype"]=""
+table7["component"]=""
+table7["chem_detected_flag"]=""
+table7["author"]=""
+table7["doi"]=""
+table7.to_csv("UK_Cosmetics_Provisional_2004_Substance_b.csv", columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","cpcat_sourcetype","component","chem_detected_flag","author","doi"], index=False)
