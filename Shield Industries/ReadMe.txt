@@ -1,1 +1,1 @@
-Script was used in conjunction with the tabula web extractor
+Shield Industries SDS Script is used for linking the csv to the datagroup. The Shield Industries Extraction is for editting the data in each CSV. The data in each CSV was extracted using Tabula's online extraction tool.
