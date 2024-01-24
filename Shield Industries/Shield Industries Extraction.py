@@ -108,3 +108,16 @@ for csv_file in csv_files:
 
     new_csv_file = csv_file.replace('tabula-', '')
     df.to_csv(os.path.join(target_directory, new_csv_file), index=False)
+
+source = r"C:\Users\mmetcalf\Documents and Scripts\Shield Industries\CSVs"
+
+dfs = []
+
+for filename in os.listdir(source):
+    if filename.endswith(".csv"):
+        dft = pd.read_csv(os.path.join(source,filename))
+        dfs.append(dft)
+
+combined_df = pd.concat(dfs)
+
+combined_df.to_csv('combined.csv', index=False)
