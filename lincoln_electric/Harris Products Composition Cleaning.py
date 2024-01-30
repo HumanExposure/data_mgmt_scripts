@@ -32,6 +32,8 @@ for index, row in df.iterrows():
         df.at[index, 'lower_wf_analysis'] = x / 100
         df.at[index, 'upper_wf_analysis'] = y / 100
         df.at[index, 'central_wf_analysis'] = ''
+    elif math.isnan(row['raw_min_comp']) and math.isnan(row['raw_max_comp']) and math.isnan(row['raw_central_comp']):
+        df.drop(index, inplace=True)
 
 df = df[['ExtractedComposition_id', 'lower_wf_analysis', 'central_wf_analysis', 'upper_wf_analysis']]
 
