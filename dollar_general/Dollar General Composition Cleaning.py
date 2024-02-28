@@ -1,4 +1,3 @@
-#%%
 import os
 import pandas as pd
 import numpy as np
@@ -11,44 +10,41 @@ df = pd.read_csv('Factotum_Dollar_General_SDS_raw_extracted_records_20240227.csv
 
 def process_cell(cell):
     if isinstance(cell,str):
-        # If dash is present, keep only the dash and remove other symbols
         processed_cell = re.sub(r'[^\d.-]','', cell)
         processed_cell = re.sub(r'^-+(?=\d)', '', processed_cell)
         return processed_cell
     else:
-        # If no dash, return the original value
         return cell
 
-# Apply the processing function to each cell in the column
 df['raw_central_comp'] = df['raw_central_comp'].apply(process_cell)
 
+def split_and_assign(cell):
+    if isinstance(cell,str) and '-' in cell:
+        lower, upper = cell.split('-', 1)
+        try:
+            lower = float(lower)
+            upper = float(upper)
+        except ValueError:
+            lower = None
+            upper = None
+        return lower, upper, None
+    else:
+        return None, None, cell
 
-# for index, row in df.iterrows():
-#     if not math.isnan(row['raw_min_comp']) and not math.isnan(row['raw_max_comp']):
-#         x = row['raw_min_comp']
-#         y = row['raw_max_comp']
-#         df.at[index, 'lower_wf_analysis'] = x / 100
-#         df.at[index, 'upper_wf_analysis'] = y / 100
-#         df.at[index, 'central_wf_analysis'] = ''
-#     elif '<' in str(row['raw_central_comp']):
-#         x = float(str(row['raw_central_comp']).replace('<', '').strip())
-#         df.at[index, 'lower_wf_analysis'] = 0
-#         df.at[index, 'upper_wf_analysis'] = x / 100
-#         df.at[index, 'central_wf_analysis'] = ''
-#     elif '>' in str(row['raw_central_comp']):
-#         x = float(str(row['raw_central_comp']).replace('>', '').strip())
-#         df.at[index, 'lower_wf_analysis'] = x / 100
-#         df.at[index, 'upper_wf_analysis'] = 1
-#         df.at[index, 'central_wf_analysis'] = ''
-#     elif not math.isnan(float(row['raw_central_comp'])):
-#         x = float(row['raw_central_comp'])
-#         df.at[index, 'lower_wf_analysis'] = ''
-#         df.at[index, 'upper_wf_analysis'] = ''
-#         df.at[index, 'central_wf_analysis'] = x / 100
+df['lower_wf_analysis'], df['upper_wf_analysis'], df['central_wf_analysis'] = zip(*df['raw_central_comp'].apply(split_and_assign))
 
-# df = df[['ExtractedComposition_id', 'lower_wf_analysis', 'central_wf_analysis', 'upper_wf_analysis']]
+# Convert columns to numeric to ensure proper division
+df['lower_wf_analysis'] = pd.to_numeric(df['lower_wf_analysis'], errors='coerce')
+df['upper_wf_analysis'] = pd.to_numeric(df['upper_wf_analysis'], errors='coerce')
+df['central_wf_analysis'] = pd.to_numeric(df['central_wf_analysis'], errors='coerce')
 
-# df = df.fillna('')
+# Divide all cells under the three analysis columns by 100
+df['lower_wf_analysis'] /= 100
+df['upper_wf_analysis'] /= 100
+df['central_wf_analysis'] /= 100
 
-# df.to_csv('DGCC.csv', index=False)
-# %%
+df = df.fillna('')
+
+df = df[['ExtractedComposition_id', 'lower_wf_analysis', 'central_wf_analysis', 'upper_wf_analysis']]
+
+df.to_csv('DGCC.csv', index=False)
