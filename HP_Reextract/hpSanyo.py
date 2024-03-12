@@ -204,7 +204,7 @@ for file in fileList:
         cas[c] = cas[c].strip()
         minC.append('')
         maxC.append('')
-        centC[c]=centC[c].replace('%','').replace('~','-').strip()
+        centC[c]=centC[c].replace('%','').replace('~','-').strip(' -')
         if centC[c] != '':
             unit.append('3')
         else:
