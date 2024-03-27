@@ -5,6 +5,7 @@ directory = r'C:\Users\mmetcalf\Documents and Scripts\DoMyOwn\SDS Files'
 
 filenames = []
 titles = []
+organization = []
 
 for filename in os.listdir(directory):
     if filename.endswith(".pdf"):
@@ -13,6 +14,11 @@ for filename in os.listdir(directory):
 
 df = pd.DataFrame({'filename': filenames, 'title': titles, 'document_type': ['SD'] * len(filenames)})
 
+df['url'] = ''
 df['organization'] = df['filename'].str.split('_').str[0]
+df['subtitle'] = ''
+df['epa_reg_number'] = ''
+df['pmid'] = ''
+df['hero_id'] = ''
 
 df.to_csv(r'C:\Users\mmetcalf\Documents and Scripts\DoMyOwn\DoMyOwn_DataGroupCreation.csv', index=False)
