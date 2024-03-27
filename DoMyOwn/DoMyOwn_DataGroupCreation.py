@@ -13,4 +13,6 @@ for filename in os.listdir(directory):
 
 df = pd.DataFrame({'filename': filenames, 'title': titles, 'document_type': ['SD'] * len(filenames)})
 
+df['organization'] = df['filename'].str.split('_').str[0]
+
 df.to_csv(r'C:\Users\mmetcalf\Documents and Scripts\DoMyOwn\DoMyOwn_DataGroupCreation.csv', index=False)
