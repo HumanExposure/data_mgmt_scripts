@@ -1,0 +1,9 @@
+{
+	"mysql": {
+		"username": "mmetcalf",
+		"password": "GZ0{}nSr14s=%",
+		"server": "mysql-ip-m.epa.gov",
+		"port": "3306",
+		"database": "prod_factotum"
+	}
+}
