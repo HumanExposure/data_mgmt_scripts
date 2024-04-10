@@ -72,6 +72,42 @@ def startnstop(x, string_one, string_two):
     new_list = lis[start_found:(end_found+1)]
     return new_list
 
+# %% getting additional product info
+def get_prod_id(file):
+
+    os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Carboline\txt files')
+    ifile = open(file)
+    text = ifile.read()
+    
+    global prod_line, prod_id
+    
+    cleaned = text
+    cleaned = cleanLine(text)
+    cleaned = re.sub(' +', ' ', cleaned)    
+    
+    lines = cleaned.split('\n')
+    lines = [line for line in cleaned.split('\n') if len(line)>0]
+    
+    for line in lines:
+        if re.search('product identifier', str(line)):
+            prod_id = re.split(r'\d\.\d\s{0,2}product identifier', str(line), maxsplit=1)[-1]
+            if re.search('revision|supercedes', prod_id):
+                print(line)
+                
+                prod_id = re.split(r'revision|supercedes',prod_id, maxsplit=1)[0]
+                # prod_id = prod_id.split('revision', 1)[0]
+                print(prod_id)
+                prod_line = line
+
+            break
+
+    try:
+        if prod_id == '':
+            print(prod_line)
+    except:
+        print('continue')
+    return prod_id
+
 
 
 # %% data set up
@@ -430,13 +466,6 @@ def extractData(fileList):
 all_the_data, no_hazard_files, unusuals = extractData(txt_files)
 
 
-os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Carboline')
-ext_df.to_csv('ext_df.csv')
-
-
-
-
-
 # %% CLEANING
 
 
@@ -461,7 +490,7 @@ for i,j in enumerate(ext_df_nh['prod_name']):
 
 ext_df_nh.to_csv('ext_df_nh.csv')
 
-# %%
+
 for i,j in enumerate(ext_df['raw_chem_name']):
     cleaned_value = str(j)
     if 'page' in str(j):
@@ -477,5 +506,48 @@ for i,j in enumerate(ext_df['raw_chem_name']):
     ext_df['raw_chem_name'].iloc[i] = cleaned_value
 
 
-# %% no hazards
+
 ext_df.to_csv('ext_df_v3.csv')
+
+
+# %%product CSV
+
+os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Carboline')
+products_df = pd.read_csv('product_template.csv')
+
+#get urls from dl script
+url_links = pd.read_pickle(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Carboline\urls_w_filename.pickle')
+urls_df = pd.DataFrame(url_links.items(), columns=['prod', 'prod_url'])
+
+products_df = pd.merge(
+    left=products_df,
+    right=urls_df,
+    left_on='data_document_filename',
+    right_on='prod',
+    how='left'
+)
+products_df['url'] = products_df['url'].fillna(products_df['prod_url'])
+products_df = products_df.loc[:, 'data_document_id':'image_name']
+
+#aditional info
+products_df['title'] = products_df['data_document_filename'].str.replace('-', ' ').str.rstrip('.pdf')
+products_df['manufacturer'] = 'Carboline Global Inc.'
+
+
+products_df = products_df.sort_values('title')
+for i,j in enumerate(products_df['data_document_filename']):
+    file = str(j).replace('.pdf', '.txt')
+    
+    try:
+        prod_id = get_prod_id(file)
+    except:
+        print('skipping' + str(file))
+    print(prod_id)
+    products_df['item_id'].iloc[i] = str(prod_id).strip()
+    
+
+
+#export
+os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Carboline')
+products_df.to_csv('prods_csv.csv')
+
