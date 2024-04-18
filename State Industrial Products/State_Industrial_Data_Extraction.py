@@ -3,16 +3,13 @@ import re
 import pandas as pd
 from tqdm import tqdm
 
-# specify the path to the text files
 path = r"C:\Users\mmetcalf\Documents and Scripts\State Industrial\SDS Files"
 
 os.chdir(r'C:\Users\mmetcalf\Documents and Scripts\State Industrial\SDS Files')
 
-# load the data_document_id from the CSV file
 df_id = pd.read_csv('Factotum_State_Industrial_Products_unextracted_documents_20240410.csv')
 
 def text_to_table(text):
-    # define the regular expression for a line
     line_re = re.compile(r'^(.*?)\s{2,}(.*?)\s{2,}(.*?)\s{2,}(.*?)\s{2,}(.*?)$')
     lines = text.split('\n')
     data = []
@@ -35,7 +32,6 @@ def text_to_table(text):
     # add the last row to the data
     if current_row:
         data.append(current_row)
-    # convert the data to a DataFrame
     df = pd.DataFrame(data, columns=['raw_chem_name', 'raw_cas', 'raw_central_comp', 'Column4', 'Column5'])
     df = df[df['raw_chem_name'] != 'Hazardous Ingredients']
     df = df[df['raw_chem_name'] != '']
@@ -70,8 +66,6 @@ def extractData(files):
         csv_file = os.path.join(os.getcwd(), 'CSV files', os.path.splitext(os.path.basename(file))[0] + '.csv')
         df.to_csv(csv_file, index=False)
 
-# get a list of all text files in the specified directory
 text_files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.txt')]
 
-# call the function with the list of text files
 extractData(text_files)
