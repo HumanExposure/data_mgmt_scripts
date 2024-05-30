@@ -4,6 +4,15 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 
 directory = r'C:\Users\mmetcalf\Documents and Scripts\State Industrial\Functional CSVs'
+lookup_file = r"C:\Users\mmetcalf\Documents and Scripts\State Industrial\Factotum_State_Industrial_Products_Ingredient_List_unextracted_documents_20240513.csv"
+
+product_names = []
+
+with open(lookup_file, 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    next(reader)
+    lookup_table = {row[1]: row[0] for row in reader}
+
 # Used to make the title uploadable to Factotum
 def sanitize_title(title):
     invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']  # List of invalid characters
@@ -26,9 +35,11 @@ for product in products:
     product_name_tag = product.find('h5', class_='ingredient-title')
     if product_name_tag:
         product_name = sanitize_title(product_name_tag.text.strip())
+        product_names.append(product_name)
         ingredients_table = product.find('table')
         if ingredients_table:
-            rows = ingredients_table.find_all('tr')
+            rows = iter(ingredients_table.find_all('tr'))
+            next(rows)
             ingredients = []
             for row in rows:
                 cols = row.find_all('td')
@@ -42,21 +53,14 @@ for product in products:
             csv_path = os.path.join(directory, f'{product_name}.csv')
             with open(csv_path, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['raw_chem_name', 'raw_cas', 'report_funcuse'])
-                writer.writerows(ingredients)
-
-            # Read the CSV file into a list of rows
-            with open(csv_path, 'r', newline='', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                rows = list(reader)
-
-            # Remove the second row
-            del rows[1]
-
-            # Write the list of rows back to the CSV file
-            with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerows(rows)
-
-
+                writer.writerow(['data_document_id', 'data_document_filename','raw_chem_name','raw_cas', 'report_funcuse', 'doc_date', 'rev_num'])
+                for ingredient in ingredients:
+                    data_document_id = lookup_table.get(f'{product_name}.pdf', '')
+                    writer.writerow([data_document_id, product_name+'.pdf'] + ingredient + ['', ''])
 driver.quit()
+product_names_csv_path = os.path.join(directory, 'product_names.csv')
+with open(product_names_csv_path, 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerow(['product_name'])
+    for name in product_names:
+        writer.writerow([name])  # Write each product name
