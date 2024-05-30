@@ -59,9 +59,18 @@ def extractData(files):
         # extract the data and convert it to a table
         data_text = text[start.end():end.start()]
         df = text_to_table(data_text)
+        start = re.search(r"Product Description: ", text)
+        end = re.search(r'MSDS', text)
+        raw_category = text[start.end():end.start()].strip()
         # add the data_document_id column
         filename = os.path.splitext(os.path.basename(file))[0] + '.pdf'
         df['data_document_id'] = df_id[df_id['data_document_filename'] == filename]['data_document_id'].values[0]
+        df['doc_date'] = ''
+        df['raw_category'] = raw_category
+        match = re.search(r'Prepared On:(.*?)Replaces:', text)
+        if match:
+            date = match.group(1).strip() 
+            df['doc_date'] = date
         # write the DataFrame to a CSV file
         csv_file = os.path.join(os.getcwd(), 'CSV files', os.path.splitext(os.path.basename(file))[0] + '.csv')
         df.to_csv(csv_file, index=False)
