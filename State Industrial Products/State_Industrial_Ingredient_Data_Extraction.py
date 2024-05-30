@@ -4,7 +4,7 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 
 directory = r'C:\Users\mmetcalf\Documents and Scripts\State Industrial\Functional CSVs'
-lookup_file = r"C:\Users\mmetcalf\Documents and Scripts\State Industrial\Factotum_State_Industrial_Products_Ingredient_List_unextracted_documents_20240513.csv"
+lookup_file = r"C:\Users\mmetcalf\Documents and Scripts\State Industrial\Factotum_State_Industrial_Products_Ingredients_List_unextracted_documents_20240530.csv"
 
 product_names = []
 
@@ -53,14 +53,8 @@ for product in products:
             csv_path = os.path.join(directory, f'{product_name}.csv')
             with open(csv_path, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['data_document_id', 'data_document_filename','raw_chem_name','raw_cas', 'report_funcuse', 'doc_date', 'rev_num'])
+                writer.writerow(['data_document_id', 'data_document_filename','prod_name','raw_chem_name','raw_cas', 'report_funcuse', 'doc_date', 'rev_num'])
                 for ingredient in ingredients:
                     data_document_id = lookup_table.get(f'{product_name}.pdf', '')
-                    writer.writerow([data_document_id, product_name+'.pdf'] + ingredient + ['', ''])
+                    writer.writerow([data_document_id, product_name+'.pdf', product_name] + ingredient + ['', ''])
 driver.quit()
-product_names_csv_path = os.path.join(directory, 'product_names.csv')
-with open(product_names_csv_path, 'w', newline='', encoding='utf-8') as f:
-    writer = csv.writer(f)
-    writer.writerow(['product_name'])
-    for name in product_names:
-        writer.writerow([name])  # Write each product name
