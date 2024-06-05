@@ -35,18 +35,42 @@ def cleanLine(line):
 # %% Group polymers (plastics)
 
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Japan Food Contact Lists')
-plastics = pd.read_csv('plastics_v3.csv')
-plastics = plastics.fillna('nan')
+plastics = pd.read_csv('plastics_v4.csv')
+plastics.columns = ['raw_chem_name', 'raw_cas']
+plastics['component'] = np.NaN
 
-# plastics = plastics.applymap(cleanLine)
-plastics = plastics[~plastics["raw_chem_name"].str.contains(r'^[a-z]{0,1}\-{0,1}[0-9]{0,2}\.|^\(\d\)')]
-plastics = plastics[~((plastics["raw_cas"]=='nan') & (plastics["raw_chem_name"].str.len() <25 ))]
-plastics['raw_chem_name'] = plastics.raw_chem_name.str.lower()
-plastics = plastics[~plastics.raw_chem_name.str.contains(r'^copolymer composed of|^copolymer of')]
-plastics = plastics[~plastics.raw_chem_name.str.contains(r'^[a-z]-{0,1}\d{0,2}\.')]
-plastics = plastics.loc[:,'raw_chem_name':]
-plastics = plastics.applymap(cleanLine)
-# plastics['raw_cas'] = plastics['raw_cas'].replace('^nan$', np.NaN)
+
+# %%
+
+for i,j in enumerate(plastics['raw_chem_name']):
+    if re.search(r'^[\uff10-\uff19]+\uff0e|^\d+\uff0e', str(j)):
+        plastics["component"].iloc[i] = re.sub(r'\d{0,3}[^\u0000-\u007F]+', '', str(j)).strip()
+        plastics['raw_chem_name'].iloc[i] = ''
+
+plastics['component'] = plastics['component'].ffill()
+
+# %%
+# for i,j in enumerate(plastics['raw_chem_name']):
+#     if re.search(r'^[A-Z]\.', str(j)):
+#         print('#####################')
+#         print(i)
+#         print(j)
+#         print('\n')
+
+#changing out full width '-' (\uff0d) with normal '-'
+plastics.raw_cas = plastics.raw_cas.str.replace(r'\uff0d', '-')
+# take out headers such as A. OR C.
+plastics = plastics[~plastics["raw_chem_name"].str.contains(r'^[A-Z]\.')]
+
+# take out "^copolymer"
+plastics = plastics[~plastics["raw_chem_name"].str.contains(r'^Copolymer')]
+
+
+# take out special brackets and everything in them
+
+
+plastics = plastics[~((plastics["raw_chem_name"].str.len() <=20) & (plastics['raw_cas'].isnull()))]
+plastics = plastics[~((plastics["raw_chem_name"].str.contains(r'^[A-Z]-\d\.')) & (plastics['raw_cas'].eq('-')))]
 
 
 # %% split up mult-cas lines
@@ -79,7 +103,7 @@ plastics_ext = plastics_ext.drop_duplicates()
 # %%% clean chem names
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(plastics_ext)):
-    plastics_ext["raw_chem_name"].iloc[j]=str(plastics_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '')
+    plastics_ext["raw_chem_name"].iloc[j]=str(plastics_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '').replace('β', 'beta').replace('γ', 'gamma')
     plastics_ext["raw_chem_name"].iloc[j]=clean(str(plastics_ext["raw_chem_name"].iloc[j]))
     if len(plastics_ext["raw_chem_name"].iloc[j].split())>1:
         plastics_ext["raw_chem_name"].iloc[j]=" ".join(plastics_ext["raw_chem_name"].iloc[j].split())
@@ -88,7 +112,6 @@ for j in range(0, len(plastics_ext)):
 plastics_ext["data_document_id"]="1724078"
 plastics_ext["data_document_filename"]="japan_fc_plastics.pdf"
 plastics_ext["doc_date"]="2020"
-plastics_ext["component"]=""
 plastics_ext["raw_category"]=""
 plastics_ext["report_funcuse"]=""
 plastics_ext["cat_code"]=""
@@ -102,55 +125,52 @@ plastics_ext["cpcat_sourcetype"]="ACToR Assays and Lists"
 # %% coatings
 
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Japan Food Contact Lists')
-coatings = pd.read_csv('coatings.csv')
+coatings = pd.read_csv('coatings_v6_3_.csv')
 coatings = coatings.dropna(how = 'all', axis = 0)
+coatings.columns = ['raw_chem_name', 'raw_cas']
+coatings['component'] = np.NaN
 
 
-# coatings = coatings.chem_name.str.unicodedata.normalize('NFKC')
-coatings.columns = ['index1', 'index2', 'chem_name', 'cas']
-coatings['chem_name'] = coatings.chem_name.str.normalize('NFKC')
-coatings['cas'] = coatings.cas.str.normalize('NFKC')
-coatings['index1'] = coatings.index1.str.normalize('NFKC')
-coatings['index2'] = coatings.index2.str.normalize('NFKC')
+for i,j in enumerate(coatings['raw_chem_name']):
+    if re.search(r'^[\uff10-\uff19]+\uff0e|^\d+\uff0e', str(j)):
+        coatings["component"].iloc[i] = re.sub(r'\d{0,3}[^\u0000-\u007F]+', '', str(j)).strip()
+        coatings['raw_chem_name'].iloc[i] = ''
 
-coatings  = coatings.dropna(subset='chem_name', axis=0)
-coatings = coatings.fillna('nan')
-coatings = coatings[~coatings.chem_name.str.contains("English Name|^copolymer composed of")]
-coatings = coatings[~coatings.cas.str.contains("CAS")]
+coatings['component'] = coatings['component'].ffill()
 
+# %%
+# 【19.B】
+# %%
 
+#changing out full width '-' (\uff0d) with normal '-'
+coatings.raw_cas = coatings.raw_cas.str.replace(r'\uff0d', '-')
 
-coatings['component'] = ''
-for i,j in enumerate(coatings['chem_name']):
-    if re.search(r'^[A-Z]-{0,1}\d{0,1}\.\s', str(j)):
-        coatings['component'].iloc[i] = str(j)
-        coatings['chem_name'].iloc[i] = ''
-    elif str(coatings.iloc[:,0]).lower() == 'nan' and str(coatings.iloc[:,1]).lower() == 'nan':
-        coatings['component'].iloc[i] = 'end'
-        coatings['chem_name'].iloc[i] = 'takeout'
+# take out headers such as A. OR C.
+coatings = coatings[~coatings.raw_chem_name.eq('')]
+coatings = coatings[~coatings["raw_chem_name"].str.contains(r'^[A-Z]\.')]
 
-
-in_component = False
-for i,j in enumerate(coatings['component']):
-    if in_component == True and str(coatings['index2'].iloc[i]).lower() != 'nan':
-        coatings['component'].iloc[i] = np.NaN
-    else:
-        in_component = False    
-    if len(str(j)) > 0 and in_component == False:
-        in_component = True
-    else:
-        continue
-
-coatings = coatings.loc[:,'chem_name':]
-coatings = coatings.fillna(method = 'ffill')
+# take out "^copolymer"
+coatings = coatings[~coatings["raw_chem_name"].str.contains(r'^Copolymer')]
+coatings = coatings[~coatings["raw_chem_name"].str.contains(r'^copolymer')]
 
 
-coatings = coatings[~coatings.chem_name.str.contains(r'^\d{1,2}\.\d{0,2}')]
-coatings = coatings[~((coatings.component.str.len() > 0) & (coatings.chem_name.str.len() == 0))]
+
+# take out special brackets and everything in them
+
+for i,j in enumerate(coatings['raw_chem_name']):
+    if re.search(r'\u3010', str(j)):
+        if ',' in str(j):
+            new_j = str(j).split(',', 1)[0]
+            coatings['raw_chem_name'].iloc[i] = new_j
+        else:
+            coatings['raw_chem_name'].iloc[i] = str(j).replace(r'\u3010.+\u3011', '')
+        
+coatings = coatings[~((coatings.raw_chem_name.str.contains('following')) & (coatings.raw_cas.eq('-')))]
+
 
 # %% split up mult-cas lines
 list_of_lists = []
-for i,j in enumerate(coatings['cas']):
+for i,j in enumerate(coatings['raw_cas']):
     match = re.findall(r'\d+-\d\d-\d', str(j))
     count = len(match)
     if count <= 1:
@@ -158,29 +178,30 @@ for i,j in enumerate(coatings['cas']):
     if count > 1:
         # print('##############')
         # print(match)
-        coatings['cas'].iloc[i] = match[0]
+        coatings['raw_cas'].iloc[i] = match[0]
         for ix,x in enumerate(match):
             if ix == 0:
                 continue
             else:
-                new_chem_name = coatings['chem_name'].iloc[i]
+                new_chem_name = coatings['raw_chem_name'].iloc[i]
                 new_cas = str(x)
                 new_component = coatings['component'].iloc[i]
                 new_list = [str(new_chem_name), str(new_cas), str(new_component).lower()]
                 list_of_lists.append(new_list)
             
 
-merge_df = pd.DataFrame(list_of_lists,columns=['chem_name','cas','component'])
+merge_df = pd.DataFrame(list_of_lists,columns=['raw_chem_name','raw_cas','component'])
 df_lists = [coatings,merge_df]
 coatings_ext = pd.concat(df_lists)
+
 coatings_ext.reset_index(inplace=True, drop=True)
 
-coatings_ext.columns = ['raw_chem_name', 'raw_cas', 'component']
+# coatings_ext.columns = ['raw_chem_name', 'raw_cas', 'component']
 # %% coatings clean up
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(coatings_ext)):
-    coatings_ext["raw_chem_name"].iloc[j]=str(coatings_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '')
+    coatings_ext["raw_chem_name"].iloc[j]=str(coatings_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '').replace('β', 'beta').replace('γ', 'gamma')
     coatings_ext["raw_chem_name"].iloc[j]=clean(str(coatings_ext["raw_chem_name"].iloc[j]))
     if len(coatings_ext["raw_chem_name"].iloc[j].split())>1:
         coatings_ext["raw_chem_name"].iloc[j]=" ".join(coatings_ext["raw_chem_name"].iloc[j].split())
@@ -211,14 +232,15 @@ for i,j in enumerate(trace_monomers['raw_cas']):
 
 trace_monomers = trace_monomers.loc[:,'raw_chem_name':]
 # %%split up mult-cas lines
-
 list_of_lists = []
 for i,j in enumerate(trace_monomers['raw_cas']):
     match = re.findall(r'\d+-\d\d-\d', str(j))
     count = len(match)
     if count <= 1:
         continue
-    elif count > 1:
+    if count > 1:
+        # print('##############')
+        # print(match)
         trace_monomers['raw_cas'].iloc[i] = match[0]
         for ix,x in enumerate(match):
             if ix == 0:
@@ -227,28 +249,31 @@ for i,j in enumerate(trace_monomers['raw_cas']):
                 new_chem_name = trace_monomers['raw_chem_name'].iloc[i]
                 new_cas = str(x)
                 new_list = [str(new_chem_name), str(new_cas)]
-
                 list_of_lists.append(new_list)
-# %%
+            
+
 merge_df = pd.DataFrame(list_of_lists,columns=['raw_chem_name','raw_cas'])
 df_lists = [trace_monomers,merge_df]
 trace_monomers_ext = pd.concat(df_lists)
+
 trace_monomers_ext.reset_index(inplace=True, drop=True)
-trace_monomers_ext = trace_monomers_ext.drop_duplicates()
+
+
+
 
 # %% trace monomers clean up
 
 
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(trace_monomers_ext)):
-    trace_monomers_ext["raw_chem_name"].iloc[j]=str(trace_monomers_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '')
+    trace_monomers_ext["raw_chem_name"].iloc[j]=str(trace_monomers_ext["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '').replace('β', 'beta').replace('γ', 'gamma')
     trace_monomers_ext["raw_chem_name"].iloc[j]=clean(str(trace_monomers_ext["raw_chem_name"].iloc[j]))
     if len(trace_monomers_ext["raw_chem_name"].iloc[j].split())>1:
         trace_monomers_ext["raw_chem_name"].iloc[j]=" ".join(trace_monomers_ext["raw_chem_name"].iloc[j].split())
 
 
 trace_monomers_ext["data_document_id"]="1724080"
-trace_monomers_ext["data_document_filename"]="japan_fc_trace_monomers.pdf"
+trace_monomers_ext["data_document_filename"]="japan_fc_trace_monomers_ext.pdf"
 trace_monomers_ext["doc_date"]="2020"
 trace_monomers_ext["raw_category"]=""
 trace_monomers_ext["component"]=""
@@ -263,21 +288,23 @@ trace_monomers_ext["cpcat_sourcetype"]="ACToR Assays and Lists"
 
 os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Japan Food Contact Lists')
 appendix = pd.read_csv('appendix.csv')
+appendix.columns = ['raw_chem_name', 'raw_cas']
+
 # %%
 
-for i,j in enumerate(coatings['chem_name']):
-    appendix['chem'].iloc[i] = unicodedata.normalize('NFKC', str(j))
-    appendix['cas'].iloc[i] = unicodedata.normalize('NFKC', appendix['cas'].iloc[i])
+for i,j in enumerate(appendix['raw_chem_name']):
+    appendix['raw_chem_name'].iloc[i] = unicodedata.normalize('NFKC', str(j))
+    appendix['raw_cas'].iloc[i] = unicodedata.normalize('NFKC', appendix['raw_cas'].iloc[i])
 appendix  = appendix.fillna('nan')
 
 chem_list = []
 cas_list = []
 
-for i,j in enumerate(appendix['cas']):
+for i,j in enumerate(appendix['raw_cas']):
     # print(str(j))
     # i = 743
     if str(j) == '-':
-        chem = str(appendix['chem'].iloc[i])
+        chem = str(appendix['raw_chem_name'].iloc[i])
         chem_ext = [chem]
         chem_list.extend(chem_ext)
         # print(chem)
@@ -285,7 +312,7 @@ for i,j in enumerate(appendix['cas']):
     else:
         splits = str(j).split('\n')
         n = len(splits)
-        chem_name = [str(appendix['chem'].iloc[i])]
+        chem_name = [str(appendix['raw_chem_name'].iloc[i])]
         chem_list.extend(chem_name*n)
         cas_list.extend(splits)
 
@@ -296,10 +323,10 @@ appendix_df = appendix_df.drop_duplicates()
 
 
 
-# %% reference info clean up
+ # %% reference info clean up
 clean = lambda dirty: ''.join(filter(string.printable.__contains__, dirty))
 for j in range(0, len(appendix_df)):
-    appendix_df["raw_chem_name"].iloc[j]=str(appendix_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '')
+    appendix_df["raw_chem_name"].iloc[j]=str(appendix_df["raw_chem_name"].iloc[j]).strip().lower().replace(".","").replace("α","alpha").replace('TM', '').replace('β', 'beta').replace('γ', 'gamma')
     appendix_df["raw_chem_name"].iloc[j]=clean(str(appendix_df["raw_chem_name"].iloc[j]))
     if len(appendix_df["raw_chem_name"].iloc[j].split())>1:
         appendix_df["raw_chem_name"].iloc[j]=" ".join(appendix_df["raw_chem_name"].iloc[j].split())
@@ -316,12 +343,15 @@ appendix_df["description_cpcat"]=""
 appendix_df["cpcat_code"]=""
 appendix_df["cpcat_sourcetype"]="ACToR Assays and Lists"
 
+appendix_df.to_csv('japan_fc_appendix.csv', columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
 
 # %% merging all data together
 
 all_ext_dfs = [plastics_ext, coatings_ext, trace_monomers_ext, appendix_df]
 japan_fc_ext = pd.concat(all_ext_dfs)
-
+japan_fc_ext.drop_duplicates(inplace = True)
+japan_fc_ext.reset_index(inplace=True, drop=True)
+os.chdir(r'C:\Users\CLUTZ01\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Projects\Extraction Scripts\Japan Food Contact Lists\output files')
 japan_fc_ext.to_csv('japan_fc_ext.csv', columns=["data_document_id","data_document_filename","doc_date","raw_category","raw_cas","raw_chem_name","report_funcuse","cat_code","description_cpcat","cpcat_code","component","cpcat_sourcetype"], index=False)
 
 # %%
