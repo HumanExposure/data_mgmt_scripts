@@ -72,16 +72,11 @@ componentList = [] #List of components
 i=0
 template = csv.reader(open('C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Blick/Factotum_Blick_(M)SDS_documents_20240705.csv')) 
 for row in template:
-    if row[7].split('_')[0].lower() == 'sennelier':
-        filename=row[6]
-        ID = row[0]
-    else: continue
+    filename=row[6]
+    ID = row[0]
     
-    # if ID in []: continue
     
-    # if filename not in sfiles: continue
     if filename == 'file name': continue
-    #fix 1729632
 
     file=filename.replace('.pdf','.txt')    
     ifile = open(file, encoding = 'utf8')
@@ -199,7 +194,7 @@ for row in template:
     for c in range(0,len(chem)): 
         chem[c] = re.sub(' +', ' ', chem[c])
         centC[c]=centC[c].replace('%','').replace('/','').replace('*','').strip()
-        if centC[c] != '':
+        if centC[c] != '' or maxC[c]!='' or minC[c]!=0:
             unit.append('3')
         else:
             unit.append('')
@@ -241,5 +236,3 @@ for row in template:
 df = pd.DataFrame({'data_document_id':idList, 'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'raw_min_comp': minList, 'raw_max_comp':maxList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList, 'component':componentList})
 
 df.to_csv(r'C:\Users\alarger\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\blick uploads\sennelier Extracted Text.csv',index=False, header=True)
-
-  
