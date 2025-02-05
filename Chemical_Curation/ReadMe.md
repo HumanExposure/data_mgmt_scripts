@@ -5,6 +5,8 @@ DOWNLOAD
 - Run **find_weird_cas.py** for each csv, split chem cards with multiple cas, fix mistakes
 - Redownload csvs for the groups that were fixes
 - Run **katherine_clean_chems.py**
+- run **skipped_rows_csv.py**
+- upload the skipped rows csvs to Factotum
 - Send files to Sakshi
 
 UPLOAD
@@ -14,5 +16,4 @@ UPLOAD
   - review records that are causing errors
   - run **csv_remove_rows.py** to remove messed up rows (copy and paste the row numbers directly from Factotum to line 12, and edit filename and folder)
 - try to upload again
-- run **skipped_rows_csv.py**
-- upload the skipped rows csvs to Factotum
+
