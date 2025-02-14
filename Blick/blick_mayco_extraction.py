@@ -129,6 +129,7 @@ for row in template:
         date = cleaned.split('prepared:')[1]
     elif 'reviewed on' in cleaned:
         date = cleaned.split('reviewed on')[1]
+    date = date.replace('wednesday','').replace('16:49','')
     date=date.split('item number')[0].split('prepared by')[0].split('1 identi')[0].split('print')[0].split('reviewed')[0].strip('# .*:')
     
     #version
