@@ -79,7 +79,7 @@ for row in template:
     
 template = csv.reader(open(r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Blick/Factotum_Blick_(M)SDS_documents_20240705.csv')) 
 for row in template:
-    if (clean(row[7].split('_')[0].replace(' ','').lower()) in ['testors', 'modern masters', 'rust-oleum', 'zinsser']
+    if (clean(row[7].split('_')[0].replace(' ','').lower()) in ['testors', 'modernmasters', 'rust-oleum', 'zinsser']
 ):
         filename=row[6]
         ID = row[0]
