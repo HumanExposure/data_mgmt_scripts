@@ -122,7 +122,7 @@ for row in template:
     #Date 
     if 'revision date' in cleaned:
         date = cleaned.split('revision date')[1]
-        date=date.split('\n')[0].split('version')[0].split('revision')[0].split('supercedes')[0].strip(':. ')
+        date=date.split('\n')[0].split('version')[0].split('revision')[0].split('supersedes')[0].strip(':. ')
         date = re.sub(' +', ' ', date)
     else: 
         print('date',ID,filename)
@@ -252,3 +252,4 @@ for row in template:
 df = pd.DataFrame({'data_document_id':idList, 'data_document_filename':filenameList, 'prod_name':prodnameList, 'doc_date':dateList, 'rev_num':revList, 'raw_category':catList, 'raw_cas':casList, 'raw_chem_name':chemList, 'report_funcuse':useList, 'raw_min_comp': minList, 'raw_max_comp':maxList, 'unit_type':unitList, 'ingredient_rank':rankList, 'raw_central_comp':centList, 'component':componentList})
 
 df.to_csv(r'ICL extracted text.csv',index=False, header=True)
+
