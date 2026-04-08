@@ -8,7 +8,7 @@ centList = [] #Document type
 upperList = [] #Product page urls
 
 os.chdir(r'C:/Users/alarger/OneDrive - Environmental Protection Agency (EPA)/Profile/Documents/Python Scripts/Data Cleaning')
-file = 'Factotum_Health_Product_Declaration_(2024)_raw_extracted_records_20260324_4.csv' #Name of raw extracted records file
+file = 'Factotum_Health_Product_Declaration_(2024)_raw_extracted_records_20260408.csv' #Name of raw extracted records file
 newName = file.replace('_raw_extracted_records','_cleaned')
 
 template = csv.reader(open(file,encoding='utf8'))
